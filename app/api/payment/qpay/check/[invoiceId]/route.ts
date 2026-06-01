@@ -3,7 +3,7 @@ import { getCollection } from '@/lib/mongodb';
 import { checkPayment } from '@/lib/qpay';
 import { ObjectId } from 'mongodb';
 import { deductInventory } from '@/lib/inventory';
-import { notifyOrderStatusUpdate } from '@/lib/orderNotifications';
+import { notifyOrderStatusUpdate, notifyOrderPlaced } from '@/lib/orderNotifications';
 
 export async function GET(
     req: NextRequest,
@@ -36,10 +36,12 @@ export async function GET(
                     }
                 );
 
+                const orderIdStr = order._id.toString();
+
                 // Deduct inventory since order is now confirmed
-                 try {
+                try {
                     if (order.items && order.items.length > 0) {
-                        await deductInventory(order._id.toString(), order.items);
+                        await deductInventory(orderIdStr, order.items);
                     }
                 } catch (e) {
                     console.error('[QPay Check] Failed to deduct inventory:', e);
@@ -49,7 +51,7 @@ export async function GET(
                 try {
                     const { notifyAdminNewOrder } = await import('@/lib/adminNotifications');
                     await notifyAdminNewOrder(
-                        order._id.toString(), 
+                        orderIdStr, 
                         order.shipping?.fullName || 'Хэрэглэгч', 
                         order.total || order.totalPrice || 0
                     );
@@ -57,8 +59,12 @@ export async function GET(
                     console.error('[QPay Check] Failed to notify admin:', e);
                 }
 
-                // Notify Customer (Non-blocking)
-                notifyOrderStatusUpdate(order._id.toString(), 'confirmed').catch((err) => {
+                // Notify Customer (Order received first, then payment confirmed - Non-blocking)
+                notifyOrderPlaced(orderIdStr).catch((err) => {
+                    console.error('[QPay Check] Failed to send order placed notification:', err);
+                });
+
+                notifyOrderStatusUpdate(orderIdStr, 'confirmed').catch((err) => {
                     console.error('[QPay Check] Failed to send status update notification:', err);
                 });
             }

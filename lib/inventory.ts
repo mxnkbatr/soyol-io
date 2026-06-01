@@ -1,5 +1,8 @@
 import { getCollection } from "./mongodb";
 import { ObjectId } from "mongodb";
+import { notifyVendorProductSold } from "./vendorNotifications";
+
+const LOW_STOCK_THRESHOLD = parseInt(process.env.LOW_STOCK_THRESHOLD || "5", 10);
 
 interface OrderItem {
   id?: string;
@@ -7,6 +10,7 @@ interface OrderItem {
   quantity: number;
   variantId?: string;
   selectedOptions?: Record<string, string>;
+  name?: string;
   [key: string]: unknown;
 }
 
@@ -83,6 +87,78 @@ export async function deductInventory(
           },
         );
       }
+
+      // Notify vendor about the sale (non-blocking)
+      const productName = item.name || "Бараа";
+      notifyVendorProductSold(productObjectId.toString(), productName, qty, orderId).catch((err) => {
+        console.error(`[Inventory] Failed to send sale notification for product ${productId}:`, err);
+      });
+
+      // Post-deduction low-stock / sold-out check (non-blocking)
+      ;(async () => {
+        try {
+          const updated = await productsCollection.findOne(
+            { _id: productObjectId },
+            { projection: { inventory: 1, name: 1, vendorId: 1 } }
+          );
+          if (!updated) return;
+
+          const updatedInventory = updated.inventory ?? 0;
+
+          if (updatedInventory <= LOW_STOCK_THRESHOLD) {
+            const { sendPushToUser } = await import('./fcm');
+            const { getCollection: gc } = await import('./mongodb');
+            const notificationsCollection = await gc('notifications');
+            const usersCollection = await gc('users');
+
+            // 1. Notify vendor if product has a vendorId (fire-and-forget)
+            if (updated.vendorId) {
+              const { notifyVendorLowStock } = await import('./vendorNotifications');
+              notifyVendorLowStock(
+                updated.vendorId,
+                productObjectId.toString(),
+                updated.name,
+                updatedInventory
+              ).catch((err) => {
+                console.error('[Inventory] Failed to notify vendor of low stock:', err);
+              });
+            }
+
+            // 2. Notify all admins
+            const isSoldOut = updatedInventory <= 0;
+            const title = isSoldOut
+              ? `🚫 "${updated.name}" дууслаа!`
+              : `⚠️ "${updated.name}" бараа дуусаж байна`;
+            const message = isSoldOut
+              ? `Бараа дууслаа! Нөөц яаралтай нэмнэ үү.`
+              : `Зөвхөн ${updatedInventory}ш үлдлээ. Нөөц нэмэхийг санал болгож байна.`;
+
+            const admins = await usersCollection.find({ role: 'admin' }).toArray();
+            for (const admin of admins) {
+              const adminId = admin._id.toString();
+              if (adminId === updated.vendorId) continue; // skip if vendor IS admin
+              await notificationsCollection.insertOne({
+                userId: adminId,
+                title,
+                message,
+                type: 'stock',
+                isRead: false,
+                link: `/admin/products`,
+                createdAt: new Date(),
+              });
+              sendPushToUser({
+                userId: adminId,
+                title,
+                body: message,
+                data: { type: 'low_stock', productId: productObjectId.toString() },
+              }).catch(() => {});
+            }
+          }
+        } catch (checkErr) {
+          console.error('[Inventory] Low-stock check failed:', checkErr);
+        }
+      })();
+
     } catch (itemError) {
       // Log but continue — one bad item should not block the rest
       console.error(

@@ -5,7 +5,7 @@ import { ObjectId } from 'mongodb';
 
 import { User } from '@/models/User';
 import { sendOrderConfirmation } from '@/lib/email';
-import { notifyOrderStatusUpdate } from '@/lib/orderNotifications';
+import { notifyOrderStatusUpdate, notifyOrderPlaced } from '@/lib/orderNotifications';
 
 export async function GET(req: NextRequest) {
   try {
@@ -175,6 +175,17 @@ export async function POST(req: NextRequest) {
       } catch (notifError) {
         console.error('Failed to send admin notifications:', notifError);
       }
+    }
+
+    // Customer "order received" notification (non-blocking)
+    if (userId !== 'guest') {
+      (async () => {
+        try {
+          await notifyOrderPlaced(currentOrderId);
+        } catch (e) {
+          console.error('Failed to send customer order-received notification:', e);
+        }
+      })().catch(() => {});
     }
 
     // Inventory is NO LONGER decremented here on order creation.

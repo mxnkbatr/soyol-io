@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { getCollection } from '@/lib/mongodb';
@@ -13,6 +12,7 @@ export async function GET(req: Request) {
 
         const { searchParams } = new URL(req.url);
         const queryUserId = searchParams.get('userId');
+        const countOnly = searchParams.get('countOnly') === 'true';
 
         if (userId !== queryUserId) {
             // Optional: Allow admins to view others, but for now strict check
@@ -20,6 +20,18 @@ export async function GET(req: Request) {
         }
 
         const notificationsCollection = await getCollection('notifications');
+
+        if (countOnly) {
+            const unreadCount = await notificationsCollection.countDocuments({
+                $or: [
+                    { userId },
+                    { userId: 'all' }
+                ],
+                isRead: false
+            });
+            return NextResponse.json({ unreadCount });
+        }
+
         const notifications = await notificationsCollection
             .find({
                 $or: [
@@ -89,13 +101,34 @@ export async function PATCH(req: Request) {
         }
 
         const body = await req.json();
-        const { notificationId } = body;
-
-        if (!notificationId) {
-            return NextResponse.json({ error: 'Missing notificationId' }, { status: 400 });
-        }
+        const { notificationId, markAll } = body;
 
         const notificationsCollection = await getCollection('notifications');
+
+        // Mode 2: Mark-all-read
+        if (markAll === true) {
+            const result = await notificationsCollection.updateMany(
+                {
+                    $or: [
+                        { userId },
+                        { userId: 'all' }
+                    ],
+                    isRead: false
+                },
+                { $set: { isRead: true } }
+            );
+
+            return NextResponse.json({
+                success: true,
+                updatedCount: result.modifiedCount
+            });
+        }
+
+        // Mode 1: Single mark-read (existing logic)
+        if (!notificationId) {
+            return NextResponse.json({ error: 'Missing notificationId or markAll' }, { status: 400 });
+        }
+
         await notificationsCollection.updateOne(
             { _id: new ObjectId(notificationId), userId },
             { $set: { isRead: true } }

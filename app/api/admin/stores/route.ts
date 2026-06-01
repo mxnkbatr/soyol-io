@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCollection } from '@/lib/mongodb';
 import { auth } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
+import { notifyVendorStoreStatus } from '@/lib/vendorNotifications';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,39 +59,16 @@ export async function PUT(req: NextRequest) {
             return NextResponse.json({ error: 'Store not found' }, { status: 404 });
         }
 
-        // Notify Vendor about status change
-        try {
-            const notificationsCollection = await getCollection('notifications');
-            const store = result as any;
+        const storeDoc = result as any;
 
-            let title = '';
-            let message = '';
-
-            if (status === 'active') {
-                title = '✅ Дэлгүүр баталгаажлаа';
-                message = `Таны '${store.name}' дэлгүүр идэвхтэй боллоо. Та одоо бараагаа нэмэх боломжтой.`;
-            } else if (status === 'suspended') {
-                title = '🚫 Дэлгүүр түдгэлзлээ';
-                message = `Таны дэлгүүрийн үйл ажиллагааг түр зогсоолоо.`;
-            }
-
-            if (title) {
-                await notificationsCollection.insertOne({
-                    userId: store.vendorId,
-                    title,
-                    message,
-                    type: 'store',
-                    isRead: false,
-                    link: '/vendor/products',
-                    createdAt: new Date()
-                });
-            }
-        } catch (notifErr) {
-            console.error('Failed to notify vendor:', notifErr);
+        // Notify Vendor about store status change (fire-and-forget)
+        if (status) {
+            notifyVendorStoreStatus(storeDoc.vendorId, status, storeDoc.name).catch((err) => {
+                console.error('[Admin Stores PUT] Notification failed:', err);
+            });
         }
 
         const usersCollection = await getCollection('users'); 
-        const storeDoc = result as any; 
 
         if (status === 'active') { 
             await usersCollection.updateOne( 

@@ -3,7 +3,7 @@ import { getCollection } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { checkPayment } from '@/lib/qpay';
 import { deductInventory } from '@/lib/inventory';
-import { notifyOrderStatusUpdate } from '@/lib/orderNotifications';
+import { notifyOrderStatusUpdate, notifyOrderPlaced } from '@/lib/orderNotifications';
 
 export async function GET(req: NextRequest) {
     return POST(req);
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
         );
 
         // Deduct inventory since order is now confirmed
-         try {
+        try {
             if (order.items && order.items.length > 0) {
                 await deductInventory(orderId, order.items);
             }
@@ -75,7 +75,11 @@ export async function POST(req: NextRequest) {
             console.error('[QPay Callback] Failed to notify admin:', e);
         }
 
-        // Notify Customer
+        // Notify Customer (Order received first, then payment confirmed)
+        notifyOrderPlaced(orderId).catch((err) => {
+            console.error('[QPay Callback] Failed to send order placed notification:', err);
+        });
+
         notifyOrderStatusUpdate(orderId, 'confirmed').catch((err) => {
             console.error('[QPay Callback] Failed to send status update notification:', err);
         });

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue } from "framer-motion";
 import Image from "next/image";
 import {
   X,
@@ -30,7 +30,6 @@ import { formatPrice, isWithin24Hours } from "@/lib/utils";
 import { Product } from "@/models/Product";
 import { useCartStore } from "@/store/cartStore";
 import toast from "react-hot-toast";
-import { useTranslation } from "@/hooks/useTranslation";
 import RelatedProducts from "./RelatedProducts";
 import ProductReviews from "./ProductReviews";
 import { openExternalLink } from "@/lib/openExternalLink";
@@ -77,7 +76,7 @@ async function haptic(style: "light" | "medium" | "heavy" = "light") {
     const { Capacitor } = await import("@capacitor/core");
     if (!Capacitor.isNativePlatform()) return;
     const { Haptics, ImpactStyle } = await import("@capacitor/haptics");
-    await Haptics.impact({ style: style === "heavy" ? ImpactStyle.Heavy : style === "medium" ? ImpactStyle.Medium : ImpactStyle.Light });
+    await Haptics.impact({ style: style === "heavy" ? ImpactStyle.Heavy : style === "medium" ? ImpactStyle.Medium : style === "light" ? ImpactStyle.Light : ImpactStyle.Light });
   } catch {}
 }
 
@@ -110,6 +109,10 @@ export function ProductDetailClient({
   const [buying, setBuying] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
+
+  // Restock notify states
+  const [notifying, setNotifying] = useState(false);
+  const [requested, setRequested] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -156,6 +159,9 @@ export function ProductDetailClient({
   const isOutOfStock = product.options?.length
     ? !selectedVariant || displayInventory <= 0
     : displayInventory <= 0;
+
+  const isPreorder = product.sections?.includes("Захиалга") || product.stockStatus === "pre-order";
+  const isReady = product.sections?.includes("Бэлэн") || product.stockStatus === "in-stock";
 
   const canAddToCart =
     !isOutOfStock &&
@@ -224,6 +230,37 @@ export function ProductDetailClient({
     }
   };
 
+  const handleNotify = async () => {
+    if (!isAuthenticated) {
+      haptic("medium");
+      toast.error("Нэвтрэх шаардлагатай");
+      router.push("/sign-in");
+      return;
+    }
+
+    setNotifying(true);
+    try {
+      const res = await fetch(`/api/products/${product.id}/notify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (res.ok) {
+        haptic("heavy");
+        setRequested(true);
+        toast.success("Бараа ирэхэд мэдэгдэнэ!");
+      } else {
+        haptic("heavy");
+        toast.error("Мэдэгдэл бүртгэхэд алдаа гарлаа.");
+      }
+    } catch (error) {
+      console.error("Failed to register restock watcher:", error);
+      toast.error("Сервертэй холбогдоход алдаа гарлаа.");
+    } finally {
+      setNotifying(false);
+    }
+  };
+
   const handleAddToCart = async () => {
     if (product.options?.length && !product.options.every((o: any) => selectedOptions[o.name])) {
       await haptic("heavy");
@@ -287,9 +324,6 @@ export function ProductDetailClient({
     );
     router.push("/checkout");
   };
-
-  const isPreorder = product.sections?.includes("Захиалга") || product.stockStatus === "pre-order";
-  const isReady = product.sections?.includes("Бэлэн") || product.stockStatus === "in-stock";
 
   /* swipe image on mobile */
   const handleSwipe = (direction: "left" | "right") => {
@@ -849,33 +883,53 @@ export function ProductDetailClient({
 
               {/* ── STATIC CTA BUTTONS (mobile & desktop) ── */}
               <div className="flex gap-3 my-4 px-4 lg:px-0">
-                <motion.button
-                  whileTap={{ scale: 0.96 }}
-                  transition={SPRING_SNAP}
-                  onClick={handleAddToCart}
-                  disabled={!canAddToCart}
-                  className={`flex-1 flex items-center justify-center gap-2 h-[50px] rounded-2xl font-bold text-[14px] transition-all duration-200 border-2 disabled:opacity-40 disabled:cursor-not-allowed ${
-                    addedToCart
-                      ? "bg-emerald-500 border-emerald-500 text-white"
-                      : "border-[#E5E5EA] bg-white text-gray-800 hover:border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  {addedToCart ? (
-                    <><Check className="w-4 h-4 nat-check" strokeWidth={2.5} />Нэмэгдлээ</>
-                  ) : (
-                    <><ShoppingBag className="w-4 h-4" strokeWidth={2} />Сагсанд нэмэх</>
-                  )}
-                </motion.button>
+                {isOutOfStock && !isPreorder ? (
+                  <motion.button
+                    whileTap={{ scale: 0.96 }}
+                    transition={SPRING_SNAP}
+                    onClick={handleNotify}
+                    disabled={notifying || requested}
+                    className="flex-1 flex items-center justify-center gap-2 h-[50px] rounded-2xl bg-[#1C1C1E] text-white hover:bg-black font-bold text-[15px] transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md cursor-pointer"
+                  >
+                    {notifying ? (
+                      <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : requested ? (
+                      "✓ Мэдэгдэл бүртгэгдлээ"
+                    ) : (
+                      <>🔔 Бэлэн болоход мэдэгдүүл</>
+                    )}
+                  </motion.button>
+                ) : (
+                  <>
+                    <motion.button
+                      whileTap={{ scale: 0.96 }}
+                      transition={SPRING_SNAP}
+                      onClick={handleAddToCart}
+                      disabled={!canAddToCart}
+                      className={`flex-1 flex items-center justify-center gap-2 h-[50px] rounded-2xl font-bold text-[14px] transition-all duration-200 border-2 disabled:opacity-40 disabled:cursor-not-allowed ${
+                        addedToCart
+                          ? "bg-emerald-500 border-emerald-500 text-white"
+                          : "border-[#E5E5EA] bg-white text-gray-800 hover:border-gray-300 hover:bg-gray-50 cursor-pointer"
+                      }`}
+                    >
+                      {addedToCart ? (
+                        <><Check className="w-4 h-4 nat-check" strokeWidth={2.5} />Нэмэгдлээ</>
+                      ) : (
+                        <><ShoppingBag className="w-4 h-4" strokeWidth={2} />Сагсанд нэмэх</>
+                      )}
+                    </motion.button>
 
-                <motion.button
-                  whileTap={{ scale: 0.96 }}
-                  transition={SPRING_SNAP}
-                  onClick={handleBuyNow}
-                  disabled={!canAddToCart || buying}
-                  className={`flex-[1.5] flex items-center justify-center gap-2 h-[50px] rounded-2xl nat-buy-btn text-white font-black text-[15px] disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_6px_24px_rgba(255,80,0,0.35)] ${buying ? "nat-buying" : ""}`}
-                >
-                  {buying ? "Уншиж байна..." : <>Худалдан авах <ArrowRight className="w-4 h-4" strokeWidth={2.5} /></>}
-                </motion.button>
+                    <motion.button
+                      whileTap={{ scale: 0.96 }}
+                      transition={SPRING_SNAP}
+                      onClick={handleBuyNow}
+                      disabled={!canAddToCart || buying}
+                      className={`flex-[1.5] flex items-center justify-center gap-2 h-[50px] rounded-2xl nat-buy-btn text-white font-black text-[15px] disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_6px_24px_rgba(255,80,0,0.35)] cursor-pointer ${buying ? "nat-buying" : ""}`}
+                    >
+                      {buying ? "Уншиж байна..." : <>Худалдан авах <ArrowRight className="w-4 h-4" strokeWidth={2.5} /></>}
+                    </motion.button>
+                  </>
+                )}
 
                 {isAdmin && (
                   <Link
@@ -912,70 +966,90 @@ export function ProductDetailClient({
           style={{ bottom: "calc(49px + env(safe-area-inset-bottom, 0px))" }}
         >
           <div className="flex items-center gap-2.5 px-4 py-3">
-            {/* Price */}
-            <div className="flex flex-col min-w-0 mr-1.5">
-              <span className="text-[9px] text-[#8E8E93] font-bold uppercase tracking-[0.1em]">Нийт дүн</span>
-              <span className="text-[19px] font-black text-gray-900 leading-tight tracking-[-0.5px]">
-                {formatPrice(displayPrice * quantity)}
-              </span>
-            </div>
-
-            {/* Cart */}
-            <motion.button
-              whileTap={{ scale: 0.94 }}
-              transition={SPRING_SNAP}
-              onClick={handleAddToCart}
-              disabled={!canAddToCart}
-              className={`nat-cart-btn flex items-center justify-center gap-1.5 h-[46px] px-4 rounded-[14px] font-bold text-[13px] transition-all duration-250 disabled:opacity-40 border-2 flex-1 ${
-                addedToCart
-                  ? "bg-emerald-500 border-emerald-500 text-white"
-                  : "border-[#E5E5EA] bg-white text-gray-800"
-              }`}
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                {addedToCart ? (
-                  <motion.span
-                    key="added"
-                    initial={{ opacity: 0, scale: 0.6 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.6 }}
-                    transition={SPRING_SNAP}
-                    className="flex items-center gap-1"
-                  >
-                    <Check className="w-4 h-4 nat-check" strokeWidth={2.5} /> Нэмэгдлээ
-                  </motion.span>
+            {isOutOfStock && !isPreorder ? (
+              <motion.button
+                whileTap={{ scale: 0.94 }}
+                transition={SPRING_SNAP}
+                onClick={handleNotify}
+                disabled={notifying || requested}
+                className="w-full flex items-center justify-center gap-1.5 h-[46px] rounded-[14px] bg-[#1C1C1E] text-white hover:bg-black font-bold text-[14px] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {notifying ? (
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : requested ? (
+                  "✓ Мэдэгдэл бүртгэгдлээ"
                 ) : (
-                  <motion.span
-                    key="cart"
-                    initial={{ opacity: 0, scale: 0.6 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.6 }}
-                    transition={SPRING_SNAP}
-                    className="flex items-center gap-1"
-                  >
-                    <ShoppingBag className="w-4 h-4" strokeWidth={2} /> Сагсанд
-                  </motion.span>
+                  <>🔔 Бэлэн болоход мэдэгдүүл</>
                 )}
-              </AnimatePresence>
-            </motion.button>
+              </motion.button>
+            ) : (
+              <>
+                {/* Price */}
+                <div className="flex flex-col min-w-0 mr-1.5">
+                  <span className="text-[9px] text-[#8E8E93] font-bold uppercase tracking-[0.1em]">Нийт дүн</span>
+                  <span className="text-[19px] font-black text-gray-900 leading-tight tracking-[-0.5px]">
+                    {formatPrice(displayPrice * quantity)}
+                  </span>
+                </div>
 
-            {/* Buy Now */}
-            <motion.button
-              whileTap={{ scale: 0.94 }}
-              transition={SPRING_SNAP}
-              onClick={handleBuyNow}
-              disabled={!canAddToCart || buying}
-              className={`flex items-center justify-center gap-1.5 h-[46px] px-5 rounded-[14px] nat-buy-btn text-white font-black text-[14px] disabled:opacity-40 flex-[1.3] shadow-[0_6px_20px_rgba(255,80,0,0.35)] ${buying ? "nat-buying" : ""}`}
-            >
-              {buying ? (
-                "..."
-              ) : (
-                <>
-                  Худалдан авах
-                  <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
-                </>
-              )}
-            </motion.button>
+                {/* Cart */}
+                <motion.button
+                  whileTap={{ scale: 0.94 }}
+                  transition={SPRING_SNAP}
+                  onClick={handleAddToCart}
+                  disabled={!canAddToCart}
+                  className={`nat-cart-btn flex items-center justify-center gap-1.5 h-[46px] px-4 rounded-[14px] font-bold text-[13px] transition-all duration-250 disabled:opacity-40 border-2 flex-1 ${
+                    addedToCart
+                      ? "bg-emerald-500 border-emerald-500 text-white"
+                      : "border-[#E5E5EA] bg-white text-gray-800 cursor-pointer"
+                  }`}
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    {addedToCart ? (
+                      <motion.span
+                        key="added"
+                        initial={{ opacity: 0, scale: 0.6 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.6 }}
+                        transition={SPRING_SNAP}
+                        className="flex items-center gap-1"
+                      >
+                        <Check className="w-4 h-4 nat-check" strokeWidth={2.5} /> Нэмэгдлээ
+                      </motion.span>
+                    ) : (
+                      <motion.span
+                        key="cart"
+                        initial={{ opacity: 0, scale: 0.6 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.6 }}
+                        transition={SPRING_SNAP}
+                        className="flex items-center gap-1"
+                      >
+                        <ShoppingBag className="w-4 h-4" strokeWidth={2} /> Сагсанд
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
+
+                {/* Buy Now */}
+                <motion.button
+                  whileTap={{ scale: 0.94 }}
+                  transition={SPRING_SNAP}
+                  onClick={handleBuyNow}
+                  disabled={!canAddToCart || buying}
+                  className={`flex items-center justify-center gap-1.5 h-[46px] px-5 rounded-[14px] nat-buy-btn text-white font-black text-[14px] disabled:opacity-40 flex-[1.3] shadow-[0_6px_20px_rgba(255,80,0,0.35)] cursor-pointer ${buying ? "nat-buying" : ""}`}
+                >
+                  {buying ? (
+                    "..."
+                  ) : (
+                    <>
+                      Худалдан авах
+                      <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+                    </>
+                  )}
+                </motion.button>
+              </>
+            )}
           </div>
         </div>
 
@@ -1019,69 +1093,89 @@ export function ProductDetailClient({
 
                 {/* Price & Quantity & CTAs */}
                 <div className="flex items-center gap-5 shrink-0">
-                  {/* Price block */}
-                  <div className="flex flex-col items-end">
-                    <span className="text-[16px] font-black text-gray-900 leading-none">
-                      {formatPrice(displayPrice)}
-                    </span>
-                    {product.originalPrice && product.originalPrice > displayPrice && (
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <span className="text-[11px] text-gray-400 line-through font-medium leading-none">
-                          {formatPrice(product.originalPrice)}
+                  {isOutOfStock && !isPreorder ? (
+                    <motion.button
+                      whileTap={{ scale: 0.96 }}
+                      transition={SPRING_SNAP}
+                      onClick={handleNotify}
+                      disabled={notifying || requested}
+                      className="flex items-center justify-center gap-1.5 h-[40px] px-6 rounded-xl bg-[#1C1C1E] text-white hover:bg-black font-bold text-[13px] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      {notifying ? (
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : requested ? (
+                        "✓ Мэдэгдэл бүртгэгдлээ"
+                      ) : (
+                        <>🔔 Бэлэн болоход мэдэгдүүл</>
+                      )}
+                    </motion.button>
+                  ) : (
+                    <>
+                      {/* Price block */}
+                      <div className="flex flex-col items-end">
+                        <span className="text-[16px] font-black text-gray-900 leading-none">
+                          {formatPrice(displayPrice)}
                         </span>
-                        <span className="text-[10px] font-extrabold text-[#FF5000] leading-none">
-                          -{discount}%
-                        </span>
+                        {product.originalPrice && product.originalPrice > displayPrice && (
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="text-[11px] text-gray-400 line-through font-medium leading-none">
+                              {formatPrice(product.originalPrice)}
+                            </span>
+                            <span className="text-[10px] font-extrabold text-[#FF5000] leading-none">
+                              -{discount}%
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  {/* Quantity selector */}
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-[#F2F2F7] rounded-xl">
-                    <button
-                      onClick={() => { haptic("light"); setQuantity(Math.max(1, quantity - 1)); }}
-                      className="w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-sm active:bg-gray-100"
-                    >
-                      <Minus className="w-2.5 h-2.5 text-gray-700" strokeWidth={3} />
-                    </button>
-                    <span className="w-5 text-center text-[13px] font-extrabold text-gray-900">{quantity}</span>
-                    <button
-                      onClick={() => { haptic("light"); setQuantity(Math.min(Math.max(displayInventory, 99), quantity + 1)); }}
-                      className="w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-sm active:bg-gray-100"
-                    >
-                      <Plus className="w-2.5 h-2.5 text-gray-700" strokeWidth={3} />
-                    </button>
-                  </div>
+                      {/* Quantity selector */}
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-[#F2F2F7] rounded-xl">
+                        <button
+                          onClick={() => { haptic("light"); setQuantity(Math.max(1, quantity - 1)); }}
+                          className="w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-sm active:bg-gray-100"
+                        >
+                          <Minus className="w-2.5 h-2.5 text-gray-700" strokeWidth={3} />
+                        </button>
+                        <span className="w-5 text-center text-[13px] font-extrabold text-gray-900">{quantity}</span>
+                        <button
+                          onClick={() => { haptic("light"); setQuantity(Math.min(Math.max(displayInventory, 99), quantity + 1)); }}
+                          className="w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-sm active:bg-gray-100"
+                        >
+                          <Plus className="w-2.5 h-2.5 text-gray-700" strokeWidth={3} />
+                        </button>
+                      </div>
 
-                  {/* Cart Button */}
-                  <motion.button
-                    whileTap={{ scale: 0.96 }}
-                    transition={SPRING_SNAP}
-                    onClick={handleAddToCart}
-                    disabled={!canAddToCart}
-                    className={`flex items-center justify-center gap-1.5 h-[40px] px-5 rounded-xl font-bold text-[12px] transition-all duration-200 border-2 disabled:opacity-40 disabled:cursor-not-allowed ${
-                      addedToCart
-                        ? "bg-emerald-500 border-emerald-500 text-white"
-                        : "border-[#E5E5EA] bg-white text-gray-800 hover:border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    {addedToCart ? (
-                      <><Check className="w-3.5 h-3.5 nat-check" strokeWidth={2.5} /> Нэмэгдлээ</>
-                    ) : (
-                      <><ShoppingBag className="w-3.5 h-3.5" strokeWidth={2} /> Сагслах</>
-                    )}
-                  </motion.button>
+                      {/* Cart Button */}
+                      <motion.button
+                        whileTap={{ scale: 0.96 }}
+                        transition={SPRING_SNAP}
+                        onClick={handleAddToCart}
+                        disabled={!canAddToCart}
+                        className={`flex items-center justify-center gap-1.5 h-[40px] px-5 rounded-xl font-bold text-[12px] transition-all duration-200 border-2 disabled:opacity-40 disabled:cursor-not-allowed ${
+                          addedToCart
+                            ? "bg-emerald-500 border-emerald-500 text-white"
+                            : "border-[#E5E5EA] bg-white text-gray-800 hover:border-gray-300 hover:bg-gray-50 cursor-pointer"
+                        }`}
+                      >
+                        {addedToCart ? (
+                          <><Check className="w-3.5 h-3.5 nat-check" strokeWidth={2.5} /> Нэмэгдлээ</>
+                        ) : (
+                          <><ShoppingBag className="w-3.5 h-3.5" strokeWidth={2} /> Сагслах</>
+                        )}
+                      </motion.button>
 
-                  {/* Buy Now Button */}
-                  <motion.button
-                    whileTap={{ scale: 0.96 }}
-                    transition={SPRING_SNAP}
-                    onClick={handleBuyNow}
-                    disabled={!canAddToCart || buying}
-                    className={`flex items-center justify-center gap-1.5 h-[40px] px-6 rounded-xl nat-buy-btn text-white font-black text-[13px] disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(255,80,0,0.25)] ${buying ? "nat-buying" : ""}`}
-                  >
-                    {buying ? "..." : <>Худалдан авах <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} /></>}
-                  </motion.button>
+                      {/* Buy Now Button */}
+                      <motion.button
+                        whileTap={{ scale: 0.96 }}
+                        transition={SPRING_SNAP}
+                        onClick={handleBuyNow}
+                        disabled={!canAddToCart || buying}
+                        className={`flex items-center justify-center gap-1.5 h-[40px] px-6 rounded-xl nat-buy-btn text-white font-black text-[13px] disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(255,80,0,0.25)] cursor-pointer ${buying ? "nat-buying" : ""}`}
+                      >
+                        {buying ? "..." : <>Худалдан авах <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} /></>}
+                      </motion.button>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>

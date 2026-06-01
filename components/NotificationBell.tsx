@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Bell, X } from 'lucide-react';
 import { useUser } from '@/context/AuthContext';
+import { useNotificationCount } from '@/lib/hooks/useNotificationCount';
 
 export type Notification = {
   id: string;
@@ -13,38 +15,85 @@ export type Notification = {
   message: string;
   isRead: boolean;
   createdAt: string;
+  link?: string;
 };
 
 export default function NotificationBell() {
   const { user, isSignedIn } = useUser();
+  const router = useRouter();
+  
+  // Custom unread count hook
+  const { unreadCount, setUnreadCount } = useNotificationCount(user?.id);
+  
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const bellRef = useRef<HTMLDivElement>(null);
-
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
   const displayList = notifications.slice(0, 5);
+
+  const fetchNotifications = useCallback(async () => {
+    if (!isSignedIn || !user?.id) return;
+    try {
+      const res = await fetch(`/api/notifications?userId=${user.id}`);
+      const data = await res.json();
+      setNotifications(data.notifications || []);
+    } catch {
+      // silent fail
+    }
+  }, [isSignedIn, user?.id]);
 
   const handleToggle = () => {
     setOpen((o) => !o);
   };
 
+  // Only trigger full notifications loading when the panel is opened
   useEffect(() => {
-    if (!isSignedIn || !user?.id) return;
-    setLoading(true);
-    fetch(`/api/notifications?userId=${user.id}`)
-      .then((res) => res.json())
-      .then((data) => setNotifications(data.notifications || []))
-      .catch(() => setNotifications([]))
-      .finally(() => setLoading(false));
-  }, [isSignedIn, user?.id]);
+    if (open) {
+      setLoading(true);
+      fetchNotifications().finally(() => setLoading(false));
+    }
+  }, [open, fetchNotifications]);
 
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string, link?: string) => {
+    // 1. Optimistic Update (instantly mark read in local state and close panel)
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
     );
+    setUnreadCount((prev: number) => Math.max(0, prev - 1));
     setOpen(false);
+
+    // 2. Perform PATCH request in background
+    try {
+      await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationId: id }),
+      });
+    } catch (err) {
+      console.error('Failed to mark notification as read:', err);
+    }
+
+    // 3. Client-side navigation if a valid link exists
+    if (link && typeof link === 'string' && link.trim() !== '') {
+      router.push(link);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    setNotifications((prev) =>
+      prev.map((n) => ({ ...n, isRead: true }))
+    );
+    setUnreadCount(0);
+    try {
+      await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markAll: true }),
+      });
+    } catch (err) {
+      console.error('Failed to mark all notifications as read:', err);
+    }
   };
 
   const backdropStyle: React.CSSProperties = {
@@ -127,7 +176,9 @@ export default function NotificationBell() {
       >
         <Bell className="w-6 h-6 text-[#1C1C1E] group-hover:text-[#FF5000] transition-colors" strokeWidth={1.8} />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#FF3B30] rounded-full ring-2 ring-white shadow-sm" aria-hidden />
+          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF3B30] text-[10px] font-bold text-white ring-2 ring-white shadow-sm">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
         )}
       </motion.button>
 
@@ -145,8 +196,19 @@ export default function NotificationBell() {
               className="absolute right-[-44px] sm:right-[-90px] top-full mt-3 w-[calc(100vw-32px)] sm:w-[380px] max-w-[400px] z-[100] bg-white sm:bg-white/95 sm:backdrop-blur-3xl rounded-[24px] shadow-[0_12px_48px_rgba(0,0,0,0.12)] border border-[#E5E5EA] overflow-hidden flex flex-col"
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0">
-                <span className="font-bold text-[#1C1C1E] text-[20px] tracking-tight">Мэдэгдэл</span>
+              <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0 gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="font-bold text-[#1C1C1E] text-[20px] tracking-tight">Мэдэгдэл</span>
+                  {unreadCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={markAllAsRead}
+                      className="text-[12px] text-[#FF5000] hover:text-[#e04600] font-semibold transition-colors cursor-pointer"
+                    >
+                      Бүгдийг унших
+                    </button>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
@@ -183,7 +245,7 @@ export default function NotificationBell() {
                         <li key={n.id ?? i}>
                           <button
                             type="button"
-                            onClick={() => markAsRead(n.id)}
+                            onClick={() => markAsRead(n.id, n.link)}
                             className={`w-full text-left p-3.5 rounded-[18px] active:scale-[0.98] transition-all flex items-start gap-3 ${!n.isRead
                               ? 'bg-[#FF5000]/[0.06] border border-[#FF5000]/10'
                               : 'bg-transparent border border-transparent hover:bg-[#F2F2F7]/60'
@@ -211,7 +273,7 @@ export default function NotificationBell() {
                 {displayList.length > 0 && notifications.length > 5 && (
                   <div className="px-3 pt-2">
                     <Link
-                      href="/profile"
+                      href="/notifications"
                       onClick={() => setOpen(false)}
                       className="block w-full text-center py-3 bg-[#F2F2F7] text-[#111] text-[14px] font-bold rounded-full active:scale-[0.98] transition-all hover:bg-[#E5E5EA]"
                     >

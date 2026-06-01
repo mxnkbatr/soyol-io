@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getCollection } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
-import { auth, currentUser } from '@/lib/auth';
+import { currentUser } from '@/lib/auth';
 import { sendOrderStatusUpdate } from '@/lib/email';
 import { deductInventory } from '@/lib/inventory';
 import { notifyOrderStatusUpdate } from '@/lib/orderNotifications';
 
-// Get all orders (Admin only)
+// Get all orders (Admin only) - REMAINS UNCHANGED
 export async function GET(request: Request) {
     try {
          const user = await currentUser();
@@ -75,15 +75,15 @@ export async function GET(request: Request) {
     }
 }
 
-// Update order (Status, Delivery Estimate)
+// Update order (Status, Delivery Estimate, Cancel Reason)
 export async function PUT(request: Request) {
     try {
-         const user = await currentUser();
+        const user = await currentUser();
         if (!user || user.role !== 'admin') {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const { orderId, status, deliveryEstimate } = await request.json();
+        const { orderId, status, deliveryEstimate, cancelReason } = await request.json();
 
         if (status) {
             const allowedStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
@@ -107,48 +107,47 @@ export async function PUT(request: Request) {
         if (status) updateData.status = status;
         if (deliveryEstimate !== undefined) updateData.deliveryEstimate = deliveryEstimate;
 
-        const result = await ordersCollection.updateOne(
+        await ordersCollection.updateOne(
             { _id: new ObjectId(orderId) },
             { $set: updateData }
         );
 
-        // Deduct inventory if transitioning from pending to a confirmed state
+        // Deduct inventory only if transitioning from pending to an active/confirmed state
+        // notifyVendorProductSold() is called internally within deductInventory()
         if (status && status !== 'pending' && status !== 'cancelled' && existingOrder.status === 'pending') {
             if (existingOrder.items && existingOrder.items.length > 0) {
                 await deductInventory(orderId, existingOrder.items);
             }
         }
 
-        // Send notification to customer (Non-blocking)
-        if (existingOrder.userId && status) {
-            try {
-                notifyOrderStatusUpdate(orderId, status, deliveryEstimate).catch((err) => {
-                    console.error('Failed to send status update notification:', err);
-                });
+        // Notify customer when order status shifts
+        if (status && status !== existingOrder.status) {
+            // Send Push & In-App Notification (Fire-and-Forget)
+            notifyOrderStatusUpdate(orderId, status, deliveryEstimate, cancelReason).catch((err) => {
+                console.error(`[Admin Order Update] Failed to send status update notification for order ${orderId}:`, err);
+            });
 
-                // Send Email (Non-blocking)
-                (async () => {
-                    try {
-                        const usersCollection = await getCollection('users');
-                        let owner = null;
-                        
-                        // Only attempt to find user if userId is a valid ObjectId string
-                        if (existingOrder.userId && existingOrder.userId !== 'guest' && /^[0-9a-fA-F]{24}$/.test(existingOrder.userId)) {
-                            owner = await usersCollection.findOne({ _id: new ObjectId(existingOrder.userId) });
-                        }
+            // Send Email (Fire-and-Forget)
+            (async () => {
+                try {
+                    const usersCollection = await getCollection('users');
+                    let owner = null;
+                    
+                    if (existingOrder.userId && existingOrder.userId !== 'guest' && /^[0-9a-fA-F]{24}$/.test(existingOrder.userId)) {
+                        owner = await usersCollection.findOne({ _id: new ObjectId(existingOrder.userId) });
+                    }
 
-                        if (owner?.email || existingOrder.shipping?.email) {
-                            await sendOrderStatusUpdate(
-                                { ...existingOrder, deliveryEstimate: deliveryEstimate || existingOrder.deliveryEstimate },
-                                owner?.email || existingOrder.shipping?.email,
-                                status
-                            );
-                        }
-                    } catch (e) { console.error('Status update email error:', e); }
-                })();
-            } catch (notifError) {
-                console.error('Failed to send customer notification:', notifError);
-            }
+                    if (owner?.email || existingOrder.shipping?.email) {
+                        await sendOrderStatusUpdate(
+                            { ...existingOrder, deliveryEstimate: deliveryEstimate || existingOrder.deliveryEstimate },
+                            owner?.email || existingOrder.shipping?.email,
+                            status
+                        );
+                    }
+                } catch (e) { 
+                    console.error(`[Admin Order Update] Status update email failed for order ${orderId}:`, e); 
+                }
+            })();
         }
 
         return NextResponse.json({ success: true });

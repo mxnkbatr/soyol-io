@@ -134,44 +134,6 @@ export async function PUT(req: NextRequest) {
                         link: `/product/${productId}`,
                         createdAt: new Date(),
                     });
-
-                    // ── Personal restock watchers alert block ──
-                    const watchers = existingProduct.restockWatchers || [];
-                    if (watchers.length > 0) {
-                        const { sendPushToUser } = await import('@/lib/fcm');
-                        for (const watcher of watchers) {
-                            try {
-                                await sendPushToUser({
-                                    userId: watcher,
-                                    title: `✅ ${productName} дахин бэлэн боллоо!`,
-                                    body: "Таны хүлээж байсан бараа нэмэгдлээ. Яараарай!",
-                                    imageUrl,
-                                    data: {
-                                        url: `/product/${productId}`,
-                                        type: 'restock_personal'
-                                    }
-                                });
-
-                                await notificationsCollection.insertOne({
-                                    userId: watcher,
-                                    title: `✅ ${productName} дахин бэлэн боллоо!`,
-                                    message: "Таны хүлээж байсан бараа нэмэгдлээ. Яараарай!",
-                                    type: 'product',
-                                    isRead: false,
-                                    link: `/product/${productId}`,
-                                    createdAt: new Date(),
-                                });
-                            } catch (watcherErr) {
-                                console.error(`[Admin Product Restock] Error notifying watcher ${watcher}:`, watcherErr);
-                            }
-                        }
-
-                        // Clear the watchers array to prevent repeated notifications on future updates
-                        await productsCollection.updateOne(
-                            { _id: new ObjectId(productId) },
-                            { $set: { restockWatchers: [] } }
-                        );
-                    }
                 } catch (err) {
                     console.error('[Admin Product Restock] Notification error:', err);
                 }

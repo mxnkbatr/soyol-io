@@ -48,6 +48,9 @@ export async function sendPushToAllUsers({
     const firebase = await getFirebaseAdmin();
     if (!firebase) return;
 
+    // NOTE: Topic subscription management (subscribing to / unsubscribing from 'all-users')
+    // is handled dynamically inside the User Preferences API when users toggle 'promo' preferences.
+    // Therefore, we do not need to manually check preferences or filter user tokens here before sending.
     const message = {
       notification: {
         title,
