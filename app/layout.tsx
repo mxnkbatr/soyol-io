@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import LuxuryNavbar from '@components/LuxuryNavbar';
 import ClientLayout from './ClientLayout';
+import NextTopLoader from 'nextjs-toploader';
 import CapacitorBackButton from '@components/providers/CapacitorBackButton';
 import { SITE_CONFIG } from '@lib/constants';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -81,6 +82,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content={SITE_CONFIG.name} />
       </head>
       <body className={`${inter.className} min-h-screen bg-white antialiased`}>
+        <NextTopLoader color="#FF7900" showSpinner={false} height={3} />
         <CapacitorBackButton />
         <ClientLayout>
           {children}

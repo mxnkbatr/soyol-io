@@ -293,12 +293,6 @@ export default function MyOrdersPage() {
                             {cancellingId === order._id ? 'Түр хүлээнэ үү...' : 'Цуцлах'}
                           </button>
                         )}
-                        <Link
-                          href={`/orders/${order._id}`}
-                          className="px-6 py-2.5 rounded-2xl bg-slate-50 text-slate-900 text-[13px] font-black hover:bg-[#FF5000] hover:text-white transition-all active:scale-95 shadow-sm border border-slate-100"
-                        >
-                          Дэлгэрэнгүй
-                        </Link>
                       </div>
                     </div>
                   </motion.div>

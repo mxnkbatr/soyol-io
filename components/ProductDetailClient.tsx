@@ -23,6 +23,7 @@ import {
   Package,
   CreditCard,
   ChevronDown,
+  Headphones,
 } from "lucide-react";
 import useSWR from "swr";
 import { useAuth } from "@/context/AuthContext";
@@ -754,25 +755,33 @@ export function ProductDetailClient({
                 {/* Desktop CTA buttons moved below description/details */}
 
                 {/* ── INFO TILES ── */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2 py-2">
                   {[
                     {
                       icon: Truck,
-                      label: isPreorder && !isReady ? "7–14 хоног" : "Хурдан хүргэлт",
-                      sub: "Монгол даяар",
+                      label: "Шуурхай хүргэлт",
+                      sub: "",
                     },
-                    { icon: ShieldCheck, label: "Баталгаат", sub: "100% жинхэнэ" },
-                    { icon: CreditCard, label: "QPay · Карт", sub: "Хялбар төлбөр" },
+                    {
+                      icon: ShieldCheck,
+                      label: "Найдвартай төлбөр",
+                      sub: "",
+                    },
+                    {
+                      icon: CreditCard,
+                      label: "Төлбөр төлөх боломжууд",
+                      sub: "",
+                    },
                   ].map(({ icon: Icon, label, sub }) => (
                     <div
                       key={label}
-                      className="flex flex-col items-center gap-1.5 bg-[#F2F2F7] rounded-2xl py-3 px-1.5 text-center"
+                      className="flex flex-col items-center gap-1.5 bg-[#F2F2F7] rounded-2xl py-4 px-1.5 text-center"
                     >
-                      <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                        <Icon className="w-4 h-4 text-[#FF5000]" strokeWidth={1.8} />
+                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm mb-0.5">
+                        <Icon className="w-5 h-5 text-[#FF5000]" strokeWidth={1.8} />
                       </div>
-                      <p className="text-[11px] font-bold text-gray-800 leading-tight">{label}</p>
-                      <p className="text-[10px] text-gray-400 leading-tight">{sub}</p>
+                      <p className="text-[11px] font-bold text-gray-900 leading-tight">{label}</p>
+                      <p className="text-[10px] text-[#8E8E93] font-medium leading-tight">{sub}</p>
                     </div>
                   ))}
                 </div>
@@ -956,101 +965,6 @@ export function ProductDetailClient({
               <RelatedProducts products={product.relatedProducts} />
             </div>
           )}
-        </div>
-
-        {/* ════════════════════════════════════════
-            NATIVE BOTTOM ACTION BAR (mobile only)
-        ════════════════════════════════════════ */}
-        <div
-          className="lg:hidden fixed bottom-0 left-0 right-0 z-[130] bg-white/95 backdrop-blur-2xl border-t border-black/[0.08]"
-          style={{ bottom: "calc(49px + env(safe-area-inset-bottom, 0px))" }}
-        >
-          <div className="flex items-center gap-2.5 px-4 py-3">
-            {isOutOfStock && !isPreorder ? (
-              <motion.button
-                whileTap={{ scale: 0.94 }}
-                transition={SPRING_SNAP}
-                onClick={handleNotify}
-                disabled={notifying || requested}
-                className="w-full flex items-center justify-center gap-1.5 h-[46px] rounded-[14px] bg-[#1C1C1E] text-white hover:bg-black font-bold text-[14px] transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              >
-                {notifying ? (
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : requested ? (
-                  "✓ Мэдэгдэл бүртгэгдлээ"
-                ) : (
-                  <>🔔 Бэлэн болоход мэдэгдүүл</>
-                )}
-              </motion.button>
-            ) : (
-              <>
-                {/* Price */}
-                <div className="flex flex-col min-w-0 mr-1.5">
-                  <span className="text-[9px] text-[#8E8E93] font-bold uppercase tracking-[0.1em]">Нийт дүн</span>
-                  <span className="text-[19px] font-black text-gray-900 leading-tight tracking-[-0.5px]">
-                    {formatPrice(displayPrice * quantity)}
-                  </span>
-                </div>
-
-                {/* Cart */}
-                <motion.button
-                  whileTap={{ scale: 0.94 }}
-                  transition={SPRING_SNAP}
-                  onClick={handleAddToCart}
-                  disabled={!canAddToCart}
-                  className={`nat-cart-btn flex items-center justify-center gap-1.5 h-[46px] px-4 rounded-[14px] font-bold text-[13px] transition-all duration-250 disabled:opacity-40 border-2 flex-1 ${
-                    addedToCart
-                      ? "bg-emerald-500 border-emerald-500 text-white"
-                      : "border-[#E5E5EA] bg-white text-gray-800 cursor-pointer"
-                  }`}
-                >
-                  <AnimatePresence mode="wait" initial={false}>
-                    {addedToCart ? (
-                      <motion.span
-                        key="added"
-                        initial={{ opacity: 0, scale: 0.6 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.6 }}
-                        transition={SPRING_SNAP}
-                        className="flex items-center gap-1"
-                      >
-                        <Check className="w-4 h-4 nat-check" strokeWidth={2.5} /> Нэмэгдлээ
-                      </motion.span>
-                    ) : (
-                      <motion.span
-                        key="cart"
-                        initial={{ opacity: 0, scale: 0.6 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.6 }}
-                        transition={SPRING_SNAP}
-                        className="flex items-center gap-1"
-                      >
-                        <ShoppingBag className="w-4 h-4" strokeWidth={2} /> Сагсанд
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </motion.button>
-
-                {/* Buy Now */}
-                <motion.button
-                  whileTap={{ scale: 0.94 }}
-                  transition={SPRING_SNAP}
-                  onClick={handleBuyNow}
-                  disabled={!canAddToCart || buying}
-                  className={`flex items-center justify-center gap-1.5 h-[46px] px-5 rounded-[14px] nat-buy-btn text-white font-black text-[14px] disabled:opacity-40 flex-[1.3] shadow-[0_6px_20px_rgba(255,80,0,0.35)] cursor-pointer ${buying ? "nat-buying" : ""}`}
-                >
-                  {buying ? (
-                    "..."
-                  ) : (
-                    <>
-                      Худалдан авах
-                      <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
-                    </>
-                  )}
-                </motion.button>
-              </>
-            )}
-          </div>
         </div>
 
         {/* ─── DESKTOP STICKY BUYING BAR ─── */}

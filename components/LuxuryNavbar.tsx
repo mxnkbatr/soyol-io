@@ -25,6 +25,8 @@ import {
   MessageCircle,
   LayoutGrid,
   ChevronRight,
+  Info,
+  Headphones,
 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -187,6 +189,8 @@ export default function LuxuryNavbar() {
     ...(hasSaleItems
       ? [{ name: t("nav", "sale"), href: "/sale", icon: Zap }]
       : []),
+    { name: t("nav", "about"), href: "/about", icon: Info },
+    { name: "Тусламж", href: "/support", icon: Headphones },
   ];
 
   const mobileNavItems = [

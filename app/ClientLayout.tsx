@@ -161,6 +161,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   }, []);
 
   const isAdminRoute = !!pathname && pathname.startsWith("/admin");
+  const isSupportPage = pathname === '/support';
 
   return (
     <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
@@ -184,25 +185,16 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 )}
               </AnimatePresence>
 
-              {!isAdminRoute && <LuxuryNavbar />}
+              {!isAdminRoute && !isSupportPage && <LuxuryNavbar />}
               <main className={isAdminRoute 
                 ? "min-h-screen relative z-0" 
+                : isSupportPage
+                ? "min-h-screen relative z-0"
                 : "min-h-screen relative z-0 mobile-nav-pb"
               }>
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={pathname}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -12 }}
-                    transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="w-full h-full"
-                  >
-                    {children}
-                  </motion.div>
-                </AnimatePresence>
+                {children}
               </main>
-              {!isAdminRoute && <Footer />}
+              {!isAdminRoute && !isSupportPage && <Footer />}
               <FloatingChatButton />
               <Toaster position="top-right" reverseOrder={false} />
             </ErrorBoundary>
