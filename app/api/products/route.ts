@@ -1,186 +1,83 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCollection } from '@/lib/mongodb';
-import { auth } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
 
-export async function POST(req: NextRequest) {
-    try {
-        const { userId, role } = await auth();
-        // Ensure the user is an admin
-        if (!userId || role !== 'admin') {
-            return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-        }
+export const dynamic = 'force-dynamic';
 
-        const body = await req.json();
-        const productsCollection = await getCollection('products');
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
 
-        const newProduct = {
-            ...body,
-            inventory: Number(body.inventory) || 0,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        };
+    const limitParam = parseInt(searchParams.get('limit') || '18', 10);
+    const cursor     = searchParams.get('cursor');
+    const featured   = searchParams.get('featured') === 'true';
+    const isSale     = searchParams.get('isSale') === 'true';
+    const section    = searchParams.get('section');
+    const category   = searchParams.get('category');
+    const storeHandle= searchParams.get('storeHandle');
+    const q          = searchParams.get('q');
+    const minPrice   = searchParams.get('minPrice');
+    const maxPrice   = searchParams.get('maxPrice');
+    const isAdmin    = searchParams.get('admin') === 'true';
 
-        const result = await productsCollection.insertOne(newProduct);
-        const insertedId = result.insertedId.toString();
+    const query: Record<string, any> = {};
 
-        // Notify all users about the new product (non-blocking, fire-and-forget)
-        ;(async () => {
-            try {
-                const { sendPushToAllUsers } = await import('@/lib/fcm');
-                const notificationTitle = '🔥 Шинэ бараа ирлээ!';
-                const notificationBody = `${newProduct.name} яг одоо бэлэн байна.${newProduct.price ? ` Үнэ: ${newProduct.price}₮` : ''}`;
-                const imageUrl = newProduct.images?.[0] || newProduct.image || undefined;
-
-                await sendPushToAllUsers({
-                    title: notificationTitle,
-                    body: notificationBody,
-                    imageUrl,
-                    data: {
-                        url: `/product/${insertedId}`,
-                        productId: insertedId,
-                        type: 'new_product',
-                    },
-                });
-
-                const notificationsCollection = await getCollection('notifications');
-                await notificationsCollection.insertOne({
-                    userId: 'all',
-                    title: notificationTitle,
-                    message: notificationBody,
-                    type: 'new_product',
-                    isRead: false,
-                    link: `/product/${insertedId}`,
-                    createdAt: new Date(),
-                });
-            } catch (err) {
-                console.error('[Admin Product] Notification error:', err);
-            }
-        })();
-
-        return NextResponse.json({ success: true, productId: insertedId }, { status: 201 });
-    } catch (error) {
-        console.error('[Admin] Failed to create product:', error);
-        return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+    if (featured)     query.featured = true;
+    if (isSale)       query.$or = [{ isSale: true }, { discountPercent: { $gt: 0 } }];
+    if (section)      query.sections = section;
+    if (category)     query.category = category;
+    if (storeHandle)  query.storeHandle = storeHandle;
+    if (q) {
+      query.$or = [
+        { name: { $regex: q, $options: 'i' } },
+        { description: { $regex: q, $options: 'i' } },
+      ];
     }
-}
-
-export async function PUT(req: NextRequest) {
-    try {
-        const { userId, role } = await auth();
-        // Ensure the user is an admin
-        if (!userId || role !== 'admin') {
-            return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-        }
-
-        const body = await req.json();
-        const { productId, ...updatedFields } = body;
-
-        if (!productId) {
-            return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
-        }
-
-        const productsCollection = await getCollection('products');
-        const existingProduct = await productsCollection.findOne({ _id: new ObjectId(productId) });
-
-        if (!existingProduct) {
-            return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-        }
-
-        const previousInventory = Number(existingProduct.inventory) || 0;
-
-        // Process fields to avoid mutating structural metadata unnecessarily
-        const fieldsToUpdate = { ...updatedFields };
-        if (fieldsToUpdate.inventory !== undefined) {
-            fieldsToUpdate.inventory = Number(fieldsToUpdate.inventory) || 0;
-        }
-        fieldsToUpdate.updatedAt = new Date();
-
-        await productsCollection.updateOne(
-            { _id: new ObjectId(productId) },
-            { $set: fieldsToUpdate }
-        );
-
-        const newInventory = fieldsToUpdate.inventory !== undefined ? fieldsToUpdate.inventory : previousInventory;
-        const isRestocked = previousInventory === 0 && newInventory > 0;
-
-        if (isRestocked) {
-            const productName = fieldsToUpdate.name || existingProduct.name;
-            const productImages = fieldsToUpdate.images || existingProduct.images;
-            const imageUrl = productImages?.[0] || undefined;
-
-            // Notify all users about restocked product (non-blocking, fire-and-forget)
-            ;(async () => {
-                try {
-                    const { sendPushToAllUsers } = await import('@/lib/fcm');
-                    await sendPushToAllUsers({
-                        title: '✅ Бараа нөөцлөгдлөө!',
-                        body: `${productName} дахин бэлэн боллоо!`,
-                        imageUrl,
-                        data: {
-                            url: `/product/${productId}`,
-                            productId,
-                            type: 'restock',
-                        },
-                    });
-
-                    const notificationsCollection = await getCollection('notifications');
-                    await notificationsCollection.insertOne({
-                        userId: 'all',
-                        title: '✅ Бараа нөөцлөгдлөө!',
-                        message: `${productName} дахин бэлэн боллоо!`,
-                        type: 'product',
-                        isRead: false,
-                        link: `/product/${productId}`,
-                        createdAt: new Date(),
-                    });
-
-                    // ── Personal restock watchers alert block ──
-                    const watchers = existingProduct.restockWatchers || [];
-                    if (watchers.length > 0) {
-                        const { sendPushToUser } = await import('@/lib/fcm');
-                        for (const watcher of watchers) {
-                            try {
-                                await sendPushToUser({
-                                    userId: watcher,
-                                    title: `✅ ${productName} дахин бэлэн боллоо!`,
-                                    body: "Таны хүлээж байсан бараа нэмэгдлээ. Яараарай!",
-                                    imageUrl,
-                                    data: {
-                                        url: `/product/${productId}`,
-                                        type: 'restock_personal'
-                                    }
-                                });
-
-                                await notificationsCollection.insertOne({
-                                    userId: watcher,
-                                    title: `✅ ${productName} дахин бэлэн боллоо!`,
-                                    message: "Таны хүлээж байсан бараа нэмэгдлээ. Яараарай!",
-                                    type: 'product',
-                                    isRead: false,
-                                    link: `/product/${productId}`,
-                                    createdAt: new Date(),
-                                });
-                            } catch (watcherErr) {
-                                console.error(`[Admin Product Restock] Error notifying watcher ${watcher}:`, watcherErr);
-                            }
-                        }
-
-                        // Clear the watchers array to prevent repeated notifications on future updates
-                        await productsCollection.updateOne(
-                            { _id: new ObjectId(productId) },
-                            { $set: { restockWatchers: [] } }
-                        );
-                    }
-                } catch (err) {
-                    console.error('[Admin Product Restock] Notification error:', err);
-                }
-            })();
-        }
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error('[Admin] Failed to update product:', error);
-        return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = parseFloat(minPrice);
+      if (maxPrice) query.price.$lte = parseFloat(maxPrice);
     }
+    if (cursor) {
+      try {
+        query._id = { $lt: new ObjectId(cursor) };
+      } catch {
+        // invalid cursor — ignore
+      }
+    }
+
+    const productsCollection = await getCollection('products');
+    const limit = isAdmin ? 0 : limitParam; // 0 = no limit in MongoDB
+
+    const products = await productsCollection
+      .find(query)
+      .sort({ _id: -1 })
+      .limit(limit || 0)
+      .toArray();
+
+    const serialized = products.map((p) => ({
+      ...p,
+      id: p._id.toString(),
+      _id: p._id.toString(),
+    }));
+
+    if (isAdmin) {
+      return NextResponse.json({ products: serialized, nextCursor: null, hasMore: false });
+    }
+
+    const hasMore = products.length === limitParam;
+    const nextCursor = hasMore ? products[products.length - 1]._id.toString() : null;
+
+    return NextResponse.json(
+      { products: serialized, nextCursor, hasMore },
+      {
+        headers: {
+          'Cache-Control': 'no-store',
+        },
+      }
+    );
+  } catch (error) {
+    console.error('[Products GET] Error:', error);
+    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+  }
 }

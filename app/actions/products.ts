@@ -3,7 +3,7 @@
 import { getCollection } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { revalidatePath } from 'next/cache';
-import { auth, currentUser } from '@/lib/auth';
+import { currentUser } from '@/lib/auth';
 import { sendPushToAllUsers } from '@/lib/fcm';
 
 export type ProductFormData = {
@@ -153,6 +153,13 @@ export async function updateProduct(productId: string, data: Partial<ProductForm
     }
 
     const products = await getCollection('products');
+    const existingProduct = await products.findOne({ _id: new ObjectId(productId) });
+
+    if (!existingProduct) {
+      return { success: false, error: 'Бараа олдсонгүй' };
+    }
+
+    const previousInventory = Number(existingProduct.inventory) || 0;
 
     // Create a clean update object with only provided fields
     const updateData: any = { ...data };
@@ -172,6 +179,83 @@ export async function updateProduct(productId: string, data: Partial<ProductForm
       { _id: new ObjectId(productId) },
       { $set: { ...updateData, updatedAt: new Date() } }
     );
+
+    const newInventory = updateData.inventory !== undefined ? updateData.inventory : previousInventory;
+    const isRestocked = previousInventory === 0 && newInventory > 0;
+
+    if (isRestocked) {
+      const productName = updateData.name || existingProduct.name;
+      const productImages = updateData.images || existingProduct.images;
+      const imageUrl = productImages?.[0] || undefined;
+
+      // Notify all users about restocked product (non-blocking, fire-and-forget)
+      ;(async () => {
+        try {
+          const { sendPushToAllUsers } = await import('@/lib/fcm');
+          await sendPushToAllUsers({
+            title: '✅ Бараа нөөцлөгдлөө!',
+            body: `${productName} дахин бэлэн боллоо!`,
+            imageUrl,
+            data: {
+              url: `/product/${productId}`,
+              productId,
+              type: 'restock',
+            },
+          });
+
+          const notificationsCollection = await getCollection('notifications');
+          await notificationsCollection.insertOne({
+            userId: 'all',
+            title: '✅ Бараа нөөцлөгдлөө!',
+            message: `${productName} дахин бэлэн боллоо!`,
+            type: 'product',
+            isRead: false,
+            link: `/product/${productId}`,
+            createdAt: new Date(),
+          });
+
+          // ── Personal restock watchers alert block ──
+          const watchers = existingProduct.restockWatchers || [];
+          if (watchers.length > 0) {
+            const { sendPushToUser } = await import('@/lib/fcm');
+            for (const watcher of watchers) {
+              try {
+                await sendPushToUser({
+                  userId: watcher,
+                  title: `✅ ${productName} дахин бэлэн боллоо!`,
+                  body: "Таны хүлээж байсан бараа нэмэгдлээ. Яараарай!",
+                  imageUrl,
+                  data: {
+                    url: `/product/${productId}`,
+                    type: 'restock_personal'
+                  }
+                });
+
+                await notificationsCollection.insertOne({
+                  userId: watcher,
+                  title: `✅ ${productName} дахин бэлэн боллоо!`,
+                  message: "Таны хүлээж байсан бараа нэмэгдлээ. Яараарай!",
+                  type: 'product',
+                  isRead: false,
+                  link: `/product/${productId}`,
+                  createdAt: new Date(),
+                });
+              } catch (watcherErr) {
+                console.error(`[Admin Product Restock Action] Error notifying watcher ${watcher}:`, watcherErr);
+              }
+            }
+
+            // Clear the watchers array to prevent repeated notifications on future updates
+            await products.updateOne(
+              { _id: new ObjectId(productId) },
+              { $set: { restockWatchers: [] } }
+            );
+          }
+        } catch (err) {
+          console.error('[Admin Product Restock Action] Notification error:', err);
+        }
+      })();
+    }
 
     revalidatePath('/');
     revalidatePath('/admin');

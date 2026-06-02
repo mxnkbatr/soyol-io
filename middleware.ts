@@ -41,7 +41,7 @@ const adminRoutes = [
   '/admin'
 ];
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const forwarded = req.headers.get('x-forwarded-for');
   const ip = forwarded ? forwarded.split(',')[0] : '127.0.0.1';
@@ -103,6 +103,12 @@ export async function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    /*
+     * Match all request paths except for:
+     * - Next.js internal system files (_next)
+     * - Favicon
+     * - Public static images/assets (optional, standard bypass patterns)
+     */
+    '/((?!_next|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

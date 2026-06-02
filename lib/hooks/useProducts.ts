@@ -54,12 +54,23 @@ export function useProducts(filters: Record<string, any> = {}) {
     setSize(1);
   }, [filtersKey, setSize]);
 
-  const products = data ? data.flatMap(page => page.products) : [];
+  // SAFE GUARD: Safe map that skips undefined/null pages
+  const products = data
+    ? data.flatMap(page => page && Array.isArray(page.products) ? page.products : [])
+    : [];
+    
   const isLoadingInitialData = !data && !error;
   const isLoadingMore = size > 1 && typeof data?.[size - 1] === 'undefined';
-  const isEmpty = data?.[0]?.products.length === 0;
+  
+  // SAFE GUARD: Safe check to prevent reading .length of undefined
+  const isEmpty = data?.[0] && Array.isArray(data[0].products) 
+    ? data[0].products.length === 0 
+    : false;
+
+  // SAFE GUARD: Ensure array boundaries are checked
   const isReachingEnd =
-    isEmpty || (data && !data[data.length - 1]?.hasMore);
+    isEmpty || (data && data[data.length - 1] && !data[data.length - 1].hasMore);
+    
   const isRefreshing = isValidating && data && data.length === size;
 
   return {
