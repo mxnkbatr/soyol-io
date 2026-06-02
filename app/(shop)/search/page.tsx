@@ -141,14 +141,6 @@ function SearchContent() {
         <div className="lg:hidden bg-white px-4 pt-4 pb-3 border-b border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-2xl font-black text-gray-900 tracking-tight">{t('nav', 'search')}</h1>
-            <div className="flex gap-2">
-              <button className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 active:bg-gray-200 transition">
-                <Camera className="w-4 h-4 text-gray-500" />
-              </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 active:bg-gray-200 transition">
-                <Mic className="w-4 h-4 text-gray-500" />
-              </button>
-            </div>
           </div>
 
           <form
