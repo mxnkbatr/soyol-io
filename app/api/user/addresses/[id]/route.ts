@@ -23,7 +23,11 @@ async function getUser(req: Request) {
     }
 }
 
-export async function PUT(req: Request, { params }: { params: any }) {
+// FIXED: Signature changed from params: any to params: Promise<{ id: string }>
+export async function PUT(
+  req: Request, 
+  { params }: { params: Promise<{ id: string }> }
+) {
     const userId = await getUser(req);
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -70,7 +74,10 @@ export async function PUT(req: Request, { params }: { params: any }) {
     return NextResponse.json({ success: true });
 }
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  req: Request, 
+  { params }: { params: Promise<{ id: string }> }
+) {
     const userId = await getUser(req);
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
