@@ -30,7 +30,14 @@ export async function GET(request: Request) {
       ttl: '10m', // Token expires in 10 minutes
     });
 
-    at.addGrant({ roomJoin: true, room, canPublish: true, canSubscribe: true });
+    // FIXED: added canPublishData: true permission grant
+    at.addGrant({ 
+      roomJoin: true, 
+      room, 
+      canPublish: true, 
+      canSubscribe: true,
+      canPublishData: true
+    });
 
     const token = await at.toJwt();
 

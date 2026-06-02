@@ -148,9 +148,17 @@ export default function CartPage() {
                             </div>
                             <div className="space-y-3">
                                 <AnimatePresence mode="popLayout">
-                                    {readyItems.map((item) => (
-                                        <AntiGravityCartItem key={item.id} item={item} />
-                                    ))}
+                                    {readyItems.map((item, index) => {
+                                        // Cast to any to inspect dynamic fields without compilation blocks
+                                        const anyItem = item as any;
+                                        const variantId = anyItem.variantId || anyItem.selectedVariantId || anyItem.variant?.id || '';
+                                        const optionPart = anyItem.selectedOptions ? JSON.stringify(anyItem.selectedOptions) : '';
+                                        const stableKey = `${item.id}-${variantId}-${optionPart}-${index}`;
+
+                                        return (
+                                            <AntiGravityCartItem key={stableKey} item={item} />
+                                        );
+                                    })}
                                 </AnimatePresence>
                             </div>
                         </section>
@@ -168,9 +176,17 @@ export default function CartPage() {
                             </div>
                             <div className="space-y-3">
                                 <AnimatePresence mode="popLayout">
-                                    {preOrderItems.map((item) => (
-                                        <AntiGravityCartItem key={item.id} item={item} />
-                                    ))}
+                                    {preOrderItems.map((item, index) => {
+                                        // Cast to any to inspect dynamic fields without compilation blocks
+                                        const anyItem = item as any;
+                                        const variantId = anyItem.variantId || anyItem.selectedVariantId || anyItem.variant?.id || '';
+                                        const optionPart = anyItem.selectedOptions ? JSON.stringify(anyItem.selectedOptions) : '';
+                                        const stableKey = `${item.id}-${variantId}-${optionPart}-${index}`;
+
+                                        return (
+                                            <AntiGravityCartItem key={stableKey} item={item} />
+                                        );
+                                    })}
                                 </AnimatePresence>
                             </div>
                         </section>

@@ -105,7 +105,8 @@ export default function ChatWidget({ isOpen, onClose }: ChatWidgetProps) {
             setSelectedAdmin(supportAdmin);
 
             if (mode === 'video_call') {
-                const roomName = `call-${effectiveUser.id}-${Date.now()}`;
+                // FIXED 1: Room name prefix set to support-
+                const roomName = `support-${effectiveUser.id}`;
                 setCallRoom(roomName);
                 
                 // Append call invitation message to conversation
@@ -270,7 +271,8 @@ export default function ChatWidget({ isOpen, onClose }: ChatWidgetProps) {
                                 guestId={guestId}
                                 onStartCall={async () => {
                                     setIsVoiceCall(false);
-                                    const roomName = `call-${effectiveUser.id}-${Date.now()}`;
+                                    // FIXED 2: Room name prefix set to support-
+                                    const roomName = `support-${effectiveUser.id}`;
                                     setCallRoom(roomName);
                                     
                                     const headers: any = { 'Content-Type': 'application/json' };
@@ -288,7 +290,8 @@ export default function ChatWidget({ isOpen, onClose }: ChatWidgetProps) {
                                 }}
                                 onStartVoiceCall={async () => {
                                     setIsVoiceCall(true);
-                                    const roomName = `call-${effectiveUser.id}-${Date.now()}`;
+                                    // FIXED 3: Room name prefix set to support-
+                                    const roomName = `support-${effectiveUser.id}`;
                                     setCallRoom(roomName);
 
                                     const headers: any = { 'Content-Type': 'application/json' };
@@ -315,7 +318,8 @@ export default function ChatWidget({ isOpen, onClose }: ChatWidgetProps) {
                         ) : viewMode === 'video_call' && selectedAdmin ? (
                             <div className="h-full overflow-y-auto">
                                 <VideoCall
-                                    prefilledRoom={callRoom || `call-${effectiveUser.id}-${selectedAdmin._id}`}
+                                    // FIXED 4: Fallback set to support- prefixed room name
+                                    prefilledRoom={callRoom || `support-${effectiveUser.id}`}
                                     onBack={handleBack}
                                     initialVideoDisabled={isVoiceCall}
                                 />
