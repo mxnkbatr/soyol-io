@@ -7,7 +7,7 @@
 /* Luxury Typography */
 @layer base {
   html {
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior-y: none;
@@ -30,16 +30,23 @@
 
 :root {
   /* Soyol Brand Colors */
-  --brand-primary: #F57E20;
-  --brand-primary-light: #ff9d4d;
-  --brand-primary-dark: #d46610;
-  --brand-secondary: #1a1a1a;
-  --brand-accent: #F57E20;
+  --brand-primary: #FF4500;
+  --brand-primary-light: #ff6a33;
+  --brand-primary-dark: #cc3700;
+  --brand-secondary: #000000;
+  --brand-accent: #FF4500;
+
+  /* iOS System Colors */
+  --ios-bg: #FFFFFF;
+  --ios-grouped-bg: #F2F2F7;
+  --ios-secondary-bg: #F9F9F9;
+  --ios-border: #E5E5EA;
+  --ios-text-secondary: #8E8E93;
 
   /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(245, 126, 32, 0.1);
-  --glass-shadow: rgba(245, 126, 32, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --glass-shadow: rgba(0, 0, 0, 0.03);
 }
 
 * {
@@ -59,11 +66,11 @@ img {
 
 
 body {
-  font-family: 'Inter', ui-sans-serif, system-ui;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
   background: #FFFFFF;
-  color: #1a1a1a;
-  line-height: 1.6;
-  letter-spacing: -0.01em;
+  color: #1c1c1e;
+  line-height: 1.5;
+  letter-spacing: -0.015em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
@@ -602,6 +609,53 @@ select {
     .mobile-nav-pb {
       padding-bottom: 0 !important;
     }
+  }
+
+  /* --- iOS Premium Layout Utilities --- */
+  .ios-shadow-sm {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 2px 8px rgba(0,0,0,0.03);
+  }
+  
+  .ios-shadow-md {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03), 0 10px 28px rgba(0,0,0,0.04);
+  }
+
+  .ios-shadow-lg {
+    box-shadow: 0 10px 24px rgba(0,0,0,0.04), 0 20px 48px rgba(0,0,0,0.06);
+  }
+
+  .ios-blur {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+  }
+
+  .ios-card {
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    border: 1px solid rgba(0,0,0,0.03);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+  }
+
+  /* Inset Grouped style layout (iOS settings style) */
+  .ios-grouped-list {
+    background-color: #FFFFFF;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.035);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  }
+
+  .ios-grouped-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    background-color: #FFFFFF;
+    transition: background-color 0.15s ease;
+  }
+
+  .ios-grouped-item:active {
+    background-color: #EFEEF2;
   }
 }
 

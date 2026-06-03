@@ -316,6 +316,12 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                                                     setFormData(prev => ({ ...prev, image: url }));
                                                 }
                                             }}
+                                            options={{
+                                                clientAllowedFormats: ['png', 'jpeg', 'webp', 'jpg'],
+                                                maxImageWidth: 2000,
+                                                maxImageHeight: 2000,
+                                                sources: ['local', 'url', 'camera']
+                                            }}
                                         >
                                             {({ open }) => (
                                                 <button
@@ -370,6 +376,12 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                                                     images: [...(prev.images || []), url]
                                                 }));
                                             }
+                                        }}
+                                        options={{
+                                            clientAllowedFormats: ['png', 'jpeg', 'webp', 'jpg'],
+                                            maxImageWidth: 2000,
+                                            maxImageHeight: 2000,
+                                            sources: ['local', 'url', 'camera']
                                         }}
                                     >
                                         {({ open }) => (

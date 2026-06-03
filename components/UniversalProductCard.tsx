@@ -75,7 +75,7 @@ const UniversalProductCard = memo(({
     toast.success("Сагсанд нэмлээ", {
       style: {
         borderRadius: "10px",
-        background: "#FF5000",
+        background: "#FF4500",
         color: "#fff",
         fontWeight: "600",
       },
@@ -126,7 +126,7 @@ const UniversalProductCard = memo(({
   return (
     <div
       ref={cardRef}
-      className={`group relative reveal-card gpu ${isVisible ? "visible" : ""} active:scale-[0.98] transition-transform`}
+      className={`group relative reveal-card gpu ${isVisible ? "visible" : ""} active:scale-[0.99] transition-transform`}
       style={{
         touchAction: "manipulation",
         contain: "layout style"
@@ -138,14 +138,14 @@ const UniversalProductCard = memo(({
           router.push(`/product/${product.id}`);
         }}
       >
-        <div className="bg-white rounded-[20px] sm:rounded-[2rem] overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:-translate-y-1">
+        <div className="bg-white rounded-[24px] overflow-hidden border border-[#E5E5EA]/45 shadow-[0_4px_16px_rgba(0,0,0,0.02)] transition-all duration-300 hover:shadow-[0_12px_32px_rgba(0,0,0,0.05)] hover:-translate-y-0.5">
           {/* ── Image area ─────────────────────────────── */}
-          <div className="relative aspect-square bg-[#F7F7F5] overflow-hidden rounded-t-[20px] sm:rounded-t-[2rem]">
+          <div className="relative aspect-square bg-[#F6F6F9] overflow-hidden rounded-t-[24px]">
             <Image
               src={allImages[0]}
               alt={product.name}
               fill
-              className="object-cover sm:object-contain sm:p-6 transition-transform duration-500 group-hover:scale-105"
+              className="object-cover sm:object-contain sm:p-5 transition-transform duration-500 group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               priority={index < 4}
             />
@@ -158,9 +158,9 @@ const UniversalProductCard = memo(({
                   product.sections?.includes("Бэлэн") ||
                   (!product.sections?.includes("Захиалга") && product.stockStatus === "in-stock")
                 ))) && (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/95 backdrop-blur-md rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#34C759] animate-pulse" />
-                    <span className="text-[10px] sm:text-[11px] font-bold text-[#34C759] uppercase tracking-wider leading-none mt-[1px]">
+                  <div className="flex items-center gap-1 px-2.5 py-1 bg-[#34C759]/10 border border-[#34C759]/20 backdrop-blur-md rounded-full shadow-sm">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#34C759]" />
+                    <span className="text-[9px] font-bold text-[#34C759] uppercase tracking-wider leading-none">
                       Бэлэн
                     </span>
                   </div>
@@ -172,27 +172,27 @@ const UniversalProductCard = memo(({
                   product.sections?.includes("Захиалга") ||
                   (!product.sections?.includes("Бэлэн") && product.stockStatus === "pre-order")
                 ))) && (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/95 backdrop-blur-md rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                    <Clock className="w-3 h-3 text-[#FF9500]" strokeWidth={2.5} />
-                    <span className="text-[10px] sm:text-[11px] font-bold text-[#FF9500] uppercase tracking-wider leading-none mt-[1px]">
+                  <div className="flex items-center gap-1 px-2.5 py-1 bg-[#FF9500]/10 border border-[#FF9500]/20 backdrop-blur-md rounded-full shadow-sm">
+                    <Clock className="w-2.5 h-2.5 text-[#FF9500]" strokeWidth={2.5} />
+                    <span className="text-[9px] font-bold text-[#FF9500] uppercase tracking-wider leading-none">
                       Захиалга
                     </span>
                   </div>
                 )}
 
               {statusBadgeMode === "new" && isWithin24Hours(product.createdAt) && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/95 backdrop-blur-md rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                  <span className="text-[11px] leading-none">✨</span>
-                  <span className="text-[10px] sm:text-[11px] font-bold text-[#007AFF] uppercase tracking-wider leading-none mt-[1px]">
+                <div className="flex items-center gap-1 px-2.5 py-1 bg-[#007AFF]/10 border border-[#007AFF]/20 backdrop-blur-md rounded-full shadow-sm">
+                  <span className="text-[9px] leading-none">✨</span>
+                  <span className="text-[9px] font-bold text-[#007AFF] uppercase tracking-wider leading-none">
                     Шинэ
                   </span>
                 </div>
               )}
 
               {statusBadgeMode === "sale" && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/95 backdrop-blur-md rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                  <span className="text-[11px] leading-none">🏷️</span>
-                  <span className="text-[10px] sm:text-[11px] font-bold text-[#FF3B30] uppercase tracking-wider leading-none mt-[1px]">
+                <div className="flex items-center gap-1 px-2.5 py-1 bg-[#FF3B30]/10 border border-[#FF3B30]/20 backdrop-blur-md rounded-full shadow-sm">
+                  <span className="text-[9px] leading-none">🏷️</span>
+                  <span className="text-[9px] font-bold text-[#FF3B30] uppercase tracking-wider leading-none">
                     Хямдрал
                   </span>
                 </div>
@@ -212,25 +212,25 @@ const UniversalProductCard = memo(({
               )}
             </div>
 
-            {/* ── Wishlist button (Now conditionally moved or hidden on multi-image to avoid overlap with badge) ── */}
+            {/* ── Wishlist button ── */}
             <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
               onClick={handleWishlist}
-              className={`absolute bottom-3 right-3 z-30 flex items-center justify-center transition-all w-6 h-6 sm:w-9 sm:h-9 sm:rounded-full sm:border ${isWishlisted
-                ? "text-[#FF5722] sm:bg-red-50 sm:border-red-100 sm:text-red-500"
-                : "text-[#AAAAAA] sm:bg-white/90 sm:backdrop-blur-sm sm:border-black/[0.04] sm:text-black/30 hover:text-[#FF5722] sm:hover:text-red-500 sm:shadow-sm"
+              className={`absolute bottom-3 right-3 z-30 flex items-center justify-center transition-all w-7 h-7 sm:w-9 sm:h-9 rounded-full border ${isWishlisted
+                ? "text-[#FF3B30] bg-[#FF3B30]/5 border-[#FF3B30]/20"
+                : "text-[#8E8E93] bg-white/95 backdrop-blur-sm border-[#E5E5EA] shadow-sm active:bg-gray-50"
                 }`}
             >
               {/* Mobile Heart */}
               <Heart
-                className={`sm:hidden w-5 h-5 ${isWishlisted ? "fill-[#FF5722] stroke-[#FF5722]" : "fill-transparent stroke-[#AAAAAA]"}`}
-                strokeWidth={1}
+                className={`sm:hidden w-4.5 h-4.5 ${isWishlisted ? "fill-[#FF3B30] stroke-[#FF3B30]" : "fill-transparent stroke-[#8E8E93]"}`}
+                strokeWidth={1.5}
               />
               {/* Desktop Heart */}
               <Heart
                 className={`hidden sm:block w-4 h-4 ${isWishlisted ? "fill-red-500" : ""}`}
-                strokeWidth={2.5}
+                strokeWidth={2}
               />
             </motion.button>
           </div>
@@ -238,7 +238,7 @@ const UniversalProductCard = memo(({
           {/* ── Info area ──────────────────────────────── */}
           <div className="px-3.5 pt-3 pb-3.5 sm:px-5 sm:pt-5 sm:pb-5 flex flex-col gap-2.5 sm:gap-4">
             {/* Product name */}
-            <h3 className="text-[14px] sm:text-[16px] font-semibold text-[#1C1C1E] leading-snug line-clamp-2 min-h-[42px] sm:min-h-[48px] tracking-tight group-hover:text-[#FF5000] transition-colors">
+            <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#1C1C1E] leading-snug line-clamp-2 min-h-[42px] sm:min-h-[45px] tracking-tight group-hover:text-[#FF4500] transition-colors">
               {product.name} {product.isCargo && " + Карго"}
             </h3>
 
@@ -265,12 +265,12 @@ const UniversalProductCard = memo(({
               <div className="hidden sm:flex flex-col gap-0.5">
                 {product.originalPrice &&
                   product.originalPrice > product.price && (
-                    <span className="text-[11px] sm:text-xs text-gray-400 line-through font-medium leading-none">
+                    <span className="text-[11px] sm:text-xs text-[#8E8E93] line-through font-medium leading-none">
                       {formatPrice(product.originalPrice)}
                     </span>
                   )}
                 <div className="flex items-baseline gap-1">
-                  <span className="text-[18px] sm:text-2xl font-bold text-[#FF5000] leading-none tracking-tight">
+                  <span className="text-[18px] sm:text-2xl font-bold text-[#FF4500] leading-none tracking-tight">
                     {formatPrice(product.price)}
                   </span>
                 </div>
@@ -293,11 +293,11 @@ const UniversalProductCard = memo(({
                 )}
                 <motion.button
                   whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.9 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={handleAddToCart}
-                  className="lg:w-11 lg:h-11 w-10 h-10 flex items-center justify-center bg-[#FF5000] text-white rounded-[14px] shadow-[0_4px_12px_rgba(255,80,0,0.3)] active:bg-[#E64800] transition-all shrink-0"
+                  className="lg:w-10 lg:h-10 w-9 h-9 flex items-center justify-center bg-[#FF4500] text-white rounded-[12px] shadow-[0_4px_12px_rgba(255,69,0,0.18)] active:bg-[#cc3700] transition-all shrink-0"
                 >
-                  <ShoppingCart className="w-5 h-5" strokeWidth={2.5} />
+                  <ShoppingCart className="w-[18px] h-[18px]" strokeWidth={2} />
                 </motion.button>
               </div>
 
@@ -310,20 +310,20 @@ const UniversalProductCard = memo(({
                         {formatPrice(product.originalPrice)}
                       </span>
                     )}
-                  <span className="text-[17px] font-bold text-[#FF5000] leading-none tracking-tight">
+                  <span className="text-[17px] font-bold text-[#FF4500] leading-none tracking-tight">
                     {formatPrice(product.price)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.9 }}
+                    whileTap={{ scale: 0.92 }}
                     onClick={handleAddToCart}
-                    className="w-[34px] h-[34px] flex items-center justify-center bg-[#FF5000] text-white rounded-[12px] shadow-[0_4px_12px_rgba(255,80,0,0.3)] active:bg-[#E64800] transition-all shrink-0"
+                    className="w-[32px] h-[32px] flex items-center justify-center bg-[#FF4500] text-white rounded-[10px] shadow-[0_4px_12px_rgba(255,69,0,0.18)] active:bg-[#cc3700] transition-all shrink-0"
                   >
                     <ShoppingCart
-                      className="w-[18px] h-[18px]"
-                      strokeWidth={2.5}
+                      className="w-[16px] h-[16px]"
+                      strokeWidth={2}
                     />
                   </motion.button>
                 </div>

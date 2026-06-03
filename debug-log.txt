@@ -2069,3 +2069,166 @@
     ]
   }
 ]
+
+--- Request 2026-06-03T13:24:50.224Z ---
+[
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "hi"
+      }
+    ]
+  }
+]
+
+--- Request 2026-06-03T13:27:55.758Z ---
+[
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "hi"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "hi"
+      }
+    ]
+  }
+]
+
+--- Request 2026-06-03T13:28:21.211Z ---
+[
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "hi"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "hi"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Сайн байна уу? Та \"Soyol Video Shop\"-д тавтай морилно уу. Таны хүсэлтээр би танд хамгийн сүүлийн үеийн бараа бүтээгдэхүүнийг танилцуулах боломжтой. Мөн та сонирхож буй барааныхаа нэрийг хэлж, дэлгэрэнгүй мэдээлэл болон үнийг нь шалгах боломжтой шүү.\n"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "tanaid ymar eregtei huvtsasnuud bgawe"
+      }
+    ]
+  }
+]
+
+--- Request 2026-06-03T13:32:21.209Z ---
+[
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "bi beleg avmaar baina"
+      }
+    ]
+  }
+]
+
+--- Request 2026-06-03T13:32:53.263Z ---
+[
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "bi beleg avmaar baina"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Тэгвэл танд эрэгтэй, эмэгтэй, хүүхдэд тохирох эсвэл хамгийн трэнд бараануудаас санал болгоё. Та хэнд бэлэг авах гэж байгаагаа хэлбэл би танд илүү тохирох зүйлийг санал болгож чадна.\n\nЭдгээр нь одоогоор манай дэлгүүрт хамгийн эрэлттэй байгаа гурван бүтээгдэхүүн байна:\n\n**1. \"Цэцэг\" үнэртэй ус** - Эмэгтэйчүүдэд зориулсан.\n[PRODUCT_CARD: id=\"39700\", name=\"Цэцэг\", price=\"120,000₮\", image=\"https://soyol.shop/images/flower.jpg\"]\n\n**2. \"Эрхэмсэг\" эрэгтэй цаг** - Загварлаг бөгөөд дэгжин харагдуулах\n[PRODUCT_CARD: id=\"14360\", name=\"Эрхэмсэг\", price=\"210,000₮\", image=\"https://soyol.shop/images/watch.jpg\"]\n\n**3. \"Хөгжилтэй робот\" хүүхдийн тоглоом** - Хүүхдүүдийн чөлөөт цагийг хөгжилтэй, үр дүнтэй өнгөрүүлэх\n[PRODUCT_CARD: id=\"58122\", name=\"Хөгжилтэй робот\", price=\"65,000₮\", image=\"https://soyol.shop/images/robot.jpg\"]"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "tanaid baigaa baraanuudaas sanal bolgooch"
+      }
+    ]
+  }
+]
+
+--- Request 2026-06-03T13:34:49.396Z ---
+[
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "100к-аас хямд бараанууд харуул\""
+      }
+    ]
+  }
+]
+
+--- Request 2026-06-03T13:35:00.423Z ---
+[
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "100к-аас хямд бараанууд харуул\""
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "За, ойлголоо. 100,000₮-өөс хямд бараанууд хайж байна тийм үү? Та ямар төрлийн бараа сонирхож байгаагаа хэлж өгөх боломжтой юу, эсвэл шууд хайлт хийх үү?"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "shuud hailt"
+      }
+    ]
+  }
+]

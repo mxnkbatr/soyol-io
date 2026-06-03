@@ -85,7 +85,11 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
                 onSuccess={onUpload}
                 uploadPreset="Buddha"
                 options={{
-                    maxFiles: 10
+                    maxFiles: 10,
+                    clientAllowedFormats: ['png', 'jpeg', 'webp', 'jpg'],
+                    maxImageWidth: 2000,
+                    maxImageHeight: 2000,
+                    sources: ['local', 'url', 'camera']
                 }}
             >
                 {({ open }) => {

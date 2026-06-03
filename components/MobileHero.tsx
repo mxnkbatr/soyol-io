@@ -39,9 +39,9 @@ export default function MobileHero() {
     }
 
     return (
-        <section className="relative w-full bg-white lg:hidden mb-10 mt-3 px-4">
+        <section className="relative w-full bg-transparent lg:hidden mb-8 mt-3 px-4">
             {/* Native Paging Banner Header */}
-            <div className="relative rounded-[28px] overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.06)] bg-white border border-black/[0.02]">
+            <div className="relative rounded-[24px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.03)] bg-white border border-[#E5E5EA]/50">
                 <div className="relative aspect-[16/9] w-full overflow-hidden">
                     <motion.div
                         drag="x"
@@ -69,7 +69,7 @@ export default function MobileHero() {
                                     className="object-cover"
                                     sizes="100vw"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent pointer-events-none" />
                             </div>
                         ))}
                     </motion.div>
@@ -81,10 +81,10 @@ export default function MobileHero() {
                                 key={index}
                                 initial={false}
                                 animate={{
-                                    width: index === currentIndex ? 18 : 6,
-                                    backgroundColor: index === currentIndex ? "rgba(255,255,255,1)" : "rgba(255,255,255,0.4)"
+                                    width: index === currentIndex ? 16 : 5,
+                                    backgroundColor: index === currentIndex ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.35)"
                                 }}
-                                className="h-1.5 rounded-full backdrop-blur-md shadow-sm"
+                                className="h-1 rounded-full backdrop-blur-md shadow-sm"
                             />
                         ))}
                     </div>
@@ -92,31 +92,31 @@ export default function MobileHero() {
             </div>
 
             {/* Premium Minimalist Quick Actions */}
-            <div className="mt-8 flex justify-between items-start gap-1 overflow-x-auto scrollbar-hide">
+            <div className="mt-6 flex justify-between items-start gap-1 overflow-x-auto scrollbar-hide">
                 {[
-                    { name: 'Шинэ', icon: Flame, color: 'text-rose-500', bg: 'bg-rose-100/60', glow: 'shadow-rose-200/40', href: '/new-arrivals' },
-                    { name: 'Бэлэн', icon: Package, color: 'text-orange-600', bg: 'bg-orange-100/60', glow: 'shadow-orange-200/40', href: '/ready-to-ship' },
-                    { name: 'Захиалга', icon: Globe, color: 'text-blue-600', bg: 'bg-blue-100/60', glow: 'shadow-blue-200/40', href: '/pre-order' },
-                    { name: 'Хямдрал', icon: Tag, color: 'text-red-500', bg: 'bg-red-50/90', glow: 'shadow-red-200/50', href: '/sale', highlight: true },
+                    { name: 'Шинэ', icon: Flame, color: 'text-rose-500', href: '/new-arrivals' },
+                    { name: 'Бэлэн', icon: Package, color: 'text-[#FF4500]', href: '/ready-to-ship' },
+                    { name: 'Захиалга', icon: Globe, color: 'text-blue-500', href: '/pre-order' },
+                    { name: 'Хямдрал', icon: Tag, color: 'text-red-500', href: '/sale', highlight: true },
                 ].map((item) => (
                     <motion.a
                         key={item.name}
                         href={item.href}
                         whileTap={{ scale: 0.94 }}
-                        className="flex flex-col items-center gap-2.5 flex-1 min-w-[76px]"
+                        className="flex flex-col items-center gap-2 flex-1 min-w-[76px] select-none"
                         style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
                         <motion.div
-                            animate={item.highlight ? { scale: [1, 1.05, 1] } : {}}
-                            transition={item.highlight ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : {}}
-                            className={`relative w-[60px] h-[60px] rounded-2xl ${item.bg} flex items-center justify-center transition-all duration-300 shadow-[0_8px_20px_-4px_rgba(0,0,0,0.06)] ${item.glow} border ${item.highlight ? 'border-red-100' : 'border-white'}`}
+                            animate={item.highlight ? { scale: [1, 1.03, 1] } : {}}
+                            transition={item.highlight ? { duration: 2.5, repeat: Infinity, ease: "easeInOut" } : {}}
+                            className={`relative w-14 h-14 rounded-2xl bg-white border border-[#E5E5EA]/60 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.02)] transition-all duration-300`}
                         >
-                            <item.icon className={`w-6.5 h-6.5 ${item.color}`} strokeWidth={item.highlight ? 2 : 1.6} />
+                            <item.icon className={`w-5.5 h-5.5 ${item.color}`} strokeWidth={1.5} />
 
                             {/* Pro-grade Glass Highlight */}
-                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-transparent via-white/20 to-white/50 pointer-events-none" />
+                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-transparent via-white/5 to-white/20 pointer-events-none" />
                         </motion.div>
-                        <span className="text-[12px] font-medium text-gray-800 tracking-tight text-center leading-tight">
+                        <span className="text-[12px] font-semibold text-gray-800 tracking-tight text-center leading-tight">
                             {item.name}
                         </span>
                     </motion.a>

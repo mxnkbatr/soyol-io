@@ -51,7 +51,7 @@ const SearchDropdown = ({
           <div className="max-h-[400px] overflow-y-auto scrollbar-hide">
             {isLoading ? (
               <div className="flex items-center justify-center gap-3 py-10 text-gray-500">
-                <span className="inline-block w-5 h-5 border-2 border-[#FF5000] border-t-transparent rounded-full animate-spin" />
+                <span className="inline-block w-5 h-5 border-2 border-[#FF4500] border-t-transparent rounded-full animate-spin" />
                 <span className="text-sm font-medium">Түр хүлээнэ үү...</span>
               </div>
             ) : results.length === 0 ? (
@@ -84,7 +84,7 @@ const SearchDropdown = ({
                       <span className="font-medium text-sm text-gray-900 line-clamp-2 leading-snug">
                         {product.name} {product.isCargo && " + Карго"}
                       </span>
-                      <span className="text-[#FF5000] font-bold text-sm mt-1">
+                      <span className="text-[#FF4500] font-bold text-sm mt-1">
                         {formatPrice(product.price)}
                       </span>
                     </div>

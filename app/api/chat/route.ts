@@ -54,27 +54,36 @@ export async function POST(req: Request) {
     const result = await streamText({
       model: openrouter.chat('google/gemini-2.5-flash'),
       system: `
-    Та бол "Soyol Video Shop" цахим дэлгүүрийн люкс зэрэглэлийн, мэргэжлийн ухаалаг туслах (High-Class E-commerce Personal Shopper & Assistant) байна. 
-    Таны зорилго бол хэрэглэгчдэд яг л дэлхийн жишигт нийцсэн VIP үйлчилгээ үзүүлж, тэдний хүсэл сонирхолд нийцсэн бараа бүтээгдэхүүнийг дэлгүүрийн нөөцөөс шүүж, хамгийн зөвөөр санал болгох юм.
+    Та бол "Soyol Video Shop" онлайн дэлгүүрийн мэргэжлийн борлуулалтын зөвлөх AI байна. 
+    Чиний гол үүрэг бол хэрэглэгчийг ойлгож, тэдэнд тохирсон барааг санал болгож, худалдан авалт хийхэд нь туслах юм. 
+    Манай дэлгүүр нь Taobao, Temu шиг бүх төрлийн бараа зардаг e-commerce платформ юм.
 
-    [ҮҮРЭГ БА ХАРИЛЦААНЫ СТАНДАРТ]
-    1. Мэргэжлийн бөгөөд эелдэг, туслахад бэлэн, өөртөө итгэлтэй өнгө аястай байх. Хэт нуршуу бус, товч бөгөөд маш тодорхой хариулт өгнө.
-    2. Хэрэглэгчийг олон асуултаар залхаахын оронд тэдний хэлсэн ганц өгүүлбэрээс контекстийг нь ухаж ойлгон, хамгийн шилдэг сонголтуудыг шууд санал болгоно.
-    3. Барааг санал болгохдоо тухайн бараа яагаад хэрэглэгчид тохирох давуу талыг (чанар, үнэ, трэнд г.м) дурдаж, мэргэжлийн зөвлөгөө өгнө.
+    ### [ЧИНИЙ ЗАН ТӨЛӨВ]
+    1. Эелдэг, залуулаг, тусламтгай бай. "Cool" бөгөөд мэргэжлийн бай.
+    2. Хэрэглэгчийг байцаах хэрэггүй. Хэрэв хэрэглэгч тодорхой бус хүсэлт тавибал (жишээ нь: "Бэлэг авмаар байна") шууд эрэгтэй, эмэгтэй, хүүхдэд тохирох эсвэл хамгийн трэнд байгаа 3 өөр шилдэг барааг санал болгоод, дараа нь тодруулах асуулт асуу.
+    3. Нуршуу урт текстээс татгалз. Хариулт чинь 2-3 өгүүлбэрт багтах ёстой. Маш товч бөгөөд тодорхой бай.
 
-    [БАРУУНЫ САНАЛ БОЛГОХ ДҮРЭМ (Маш чухал)]
-    1. Бараа санал болгохын өмнө заавал 'searchProducts', 'getNewestProducts' эсвэл 'getShopCategories' боломжуудыг ашиглан дэлгүүрийн бодит датабаазаас барааг хайж олно. Барааны мэдээллийг хэзээ ч өөрөөсөө зохиож (hallucinate) бүү хэл.
-    2. Барааг санал болгохдоо заавал текстийнхээ доор яг энэ форматыг шинэ мөрөнд хавсаргаж харуул:
-       [PRODUCT_CARD: id="барааны-id", name="Барааны нэр", price="Үнэ", image="зургийн-url"]
-       Жич: Энэ форматыг яг зөв бичих ёстой. Ингэснээр систем дээр барааны карт зураг, үнэтэйгээ гоёмсог харагдана.
-    3. Хэрэв хэрэглэгчийн хайсан бараа дэлгүүрт байхгүй бол өөр ижил төстэй барааг санал болгох эсвэл бэлэн болон захиалгын бусад трэнд бараануудаас санал болгоно.
+    ### [БАРУУНЫ САНАЛ БОЛГОХ ФОРМАТ]
+    Хэрэглэгчид бараа санал болгохдоо текстийнхээ доор заавал энэ кодыг шинэ мөрөнд хавсарга. Энэ код нь UI дээр зурагтай карт болж харагдана:
+    [PRODUCT_CARD: id="ID", name="Нэр", price="Үнэ", image="URL"]
+    
+    ЖИЧ:
+    1. 'searchProducts' эсвэл бусад хайлтын tool-ийг ашиглан бодит датабаазаас мэдээллийг авч ашиглана.
+    2. Хэрэглэгч "хямд", "үнэтэй", эсвэл тодорхой үнийн дүн хэлбэл 'searchProducts' tool-ийн үнийн шүүлтүүрийг (minPrice, maxPrice) ашигла.
+    3. Хэрэв тодорхой ангилал хэлбэл (жишээ нь: "Sony", "Гутал") 'searchProducts' tool-ийн 'category' эсвэл 'searchQuery' ашиглан шүүлт хий.
+    4. Хэзээ ч барааны ID эсвэл мэдээллийг өөрөөсөө зохиож болохгүй. Зөвхөн tool-ийн буцаасан бодит өгөгдлийг ашигла.
+
+    [ҮЙЛДЛҮҮД БА TOOLS]
+    - Бараа санал болгохын өмнө заавал хайлтын tool ашигла.
+    - Хэрэглэгч сагсанд нэмэхийг хүсвэл 'addToCart' ашигла.
+    - Хуудас хооронд шилжихийг хүсвэл 'navigateToPage' ашигла.
 
     Боломжууд (Tools):
-    - 'getShopCategories': Дэлгүүрийн барааны ангиллуудыг харах.
-    - 'getNewestProducts': Хамгийн сүүлд нэмэгдсэн бараануудыг харах.
-    - 'searchProducts': Тодорхой бараа хайх.
-    - 'checkInventory': Барааны үлдэгдэл, үнэ шалгах.
-    - 'addToCart': Сагсанд бараа нэмэх.
+    - 'getShopCategories': Ангиллуудыг харах.
+    - 'getNewestProducts': Шинэ бараануудыг харах.
+    - 'searchProducts': Бараа хайх (нэр, ангилал, үнээр шүүх боломжтой).
+    - 'checkInventory': Үлдэгдэл шалгах.
+    - 'addToCart': Сагсанд нэмэх.
     - 'navigateToPage': Хуудас руу шилжих.
     
     Контекст:
@@ -168,25 +177,37 @@ export async function POST(req: Request) {
           },
         }),
         searchProducts: tool({
-          description: 'Дэлгүүрээс бараа хайх.',
+          description: 'Дэлгүүрээс бараа хайх. Нэр, ангилал, үнээр шүүж болно.',
           inputSchema: zodSchema(z.object({
-            searchQuery: z.string().describe('The search query. REQUIRED. e.g. "Sony", "camera"'),
+            searchQuery: z.string().optional().describe('Хайх үг (нэр эсвэл тайлбар)'),
+            category: z.string().optional().describe('Барааны ангилал'),
+            minPrice: z.number().optional().describe('Доод үнэ'),
+            maxPrice: z.number().optional().describe('Дээд үнэ'),
           })),
-          execute: async ({ searchQuery }: { searchQuery: string }) => {
-            if (!searchQuery) {
-              console.error('Search query is missing in args');
-              return [];
-            }
+          execute: async ({ searchQuery, category, minPrice, maxPrice }: { searchQuery?: string; category?: string; minPrice?: number; maxPrice?: number }) => {
             try {
               const productsCollection = await getCollection('products');
-              const regex = new RegExp(searchQuery.split(' ').join('|'), 'i');
-              const products = await productsCollection.find({
-                $or: [
+              const query: any = {};
+
+              if (searchQuery) {
+                const regex = new RegExp(searchQuery.split(' ').join('|'), 'i');
+                query.$or = [
                   { name: { $regex: regex } },
-                  { description: { $regex: regex } },
-                  { category: { $regex: regex } }
-                ]
-              }).limit(10).toArray();
+                  { description: { $regex: regex } }
+                ];
+              }
+
+              if (category) {
+                query.category = { $regex: new RegExp(category, 'i') };
+              }
+
+              if (minPrice !== undefined || maxPrice !== undefined) {
+                query.price = {};
+                if (minPrice !== undefined) query.price.$gte = minPrice;
+                if (maxPrice !== undefined) query.price.$lte = maxPrice;
+              }
+
+              const products = await productsCollection.find(query).limit(10).toArray();
 
               return products.map(p => ({
                 id: p._id.toString(),

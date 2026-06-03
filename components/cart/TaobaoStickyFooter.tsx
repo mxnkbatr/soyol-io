@@ -38,8 +38,8 @@ export default function TaobaoStickyFooter() {
                     initial={{ y: 80, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ type: 'spring', damping: 28, stiffness: 220, delay: 0.15 }}
-                    className="bg-white/95 backdrop-blur-xl rounded-[24px] border border-[#E5E5EA] overflow-hidden"
-                    style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}
+                    className="bg-white rounded-[28px] border border-[#E5E5EA]/60 overflow-hidden"
+                    style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)' }}
                 >
                     <div className="px-5 py-4 flex flex-col gap-4">
 
@@ -49,11 +49,11 @@ export default function TaobaoStickyFooter() {
                                 onClick={() => toggleAllSelection(!allSelected)}
                                 className="flex items-center gap-2.5"
                             >
-                                <div className={`w-[22px] h-[22px] rounded-full flex items-center justify-center transition-all ${allSelected ? 'bg-[#FF5000] shadow-[0_2px_8px_rgba(255,80,0,0.3)]' : 'border-2 border-[#E5E5EA] bg-white'
+                                <div className={`w-[22px] h-[22px] rounded-full flex items-center justify-center transition-all duration-200 ${allSelected ? 'bg-[#FF4500] shadow-[0_2px_8px_rgba(255,69,0,0.25)]' : 'border-2 border-[#D1D1D6] bg-white'
                                     }`}>
                                     {allSelected && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3.5} />}
                                 </div>
-                                <span className="text-[14px] font-medium text-gray-500">Бүгдийг сонгох</span>
+                                <span className="text-[14px] font-medium text-[#3C3C43]">Бүгдийг сонгох</span>
                             </button>
 
                             <div className="flex gap-1.5">
@@ -76,31 +76,35 @@ export default function TaobaoStickyFooter() {
                             </div>
                         </div>
 
+                        {/* Hairline divider */}
+                        <div className="h-px bg-[#F2F2F7]" />
+
                         {/* Total + checkout */}
                         <div className="flex items-center justify-between gap-3">
                             <div>
-                                <p className="text-[12px] text-gray-400 font-medium mb-0.5">
-                                    Нийт дүн ({selectedTotalItems})
+                                <p className="text-[11px] text-[#8E8E93] font-medium tracking-wide uppercase">
+                                    Нийт ({selectedTotalItems} бараа)
                                 </p>
                                 <div className="flex items-baseline gap-0.5 mt-1">
-                                    <motion.span className="text-[24px] font-black text-[#111] tracking-tight leading-none">
+                                    <motion.span className="text-[26px] font-black text-[#1C1C1E] tracking-tight leading-none">
                                         {displayPrice}
                                     </motion.span>
-                                    <span className="text-[15px] font-bold text-[#FF5000] ml-0.5 leading-none">₮</span>
+                                    <span className="text-[16px] font-bold text-[#FF4500] ml-0.5 leading-none">₮</span>
                                 </div>
                             </div>
 
                             <motion.button
-                                whileTap={{ scale: 0.96 }}
+                                whileTap={{ scale: 0.95 }}
                                 onClick={() => { if (selectedTotalItems === 0) return; router.push('/checkout'); }}
                                 disabled={selectedTotalItems === 0}
-                                className={`h-[52px] px-8 rounded-full flex items-center justify-center gap-2 font-bold text-[16px] transition-all shadow-sm ${selectedTotalItems > 0
-                                    ? 'bg-[#111] text-white hover:bg-black hover:shadow-md'
-                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                className={`h-[54px] px-7 rounded-full flex items-center justify-center gap-2 font-bold text-[16px] transition-all ${selectedTotalItems > 0
+                                    ? 'text-white shadow-[0_6px_20px_rgba(255,69,0,0.35)]'
+                                    : 'bg-[#F2F2F7] text-[#C7C7CC] cursor-not-allowed'
                                     }`}
+                                style={selectedTotalItems > 0 ? { background: 'linear-gradient(135deg, #FF6B00 0%, #FF4500 100%)' } : {}}
                             >
                                 Захиалах
-                                <ArrowRight className={`w-5 h-5 ${selectedTotalItems > 0 ? 'text-[#FF5000]' : 'text-gray-400'}`} strokeWidth={2.5} />
+                                <ArrowRight className={`w-5 h-5 ${selectedTotalItems > 0 ? 'text-white/80' : 'text-[#C7C7CC]'}`} strokeWidth={2.5} />
                             </motion.button>
                         </div>
                     </div>

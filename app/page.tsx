@@ -208,31 +208,40 @@ export default function HomePage() {
             className="lg:hidden sticky z-30 bg-white/95 backdrop-blur-sm border-b border-gray-100"
             style={{ top: "calc(52px + env(safe-area-inset-top, 0px))" }}
           >
-            {/* Category Tabs Row */}
-            <div className="flex items-center gap-2 px-4 pt-3 pb-1 overflow-x-auto scrollbar-hide">
-              {(["all", "Бэлэн", "Захиалга"] as const).map((f) => (
-                <motion.button
-                  key={f}
-                  onClick={() => {
-                    triggerHaptic();
-                    setActiveFilter(f as FilterType);
-                  }}
-                  className={`relative shrink-0 px-4 py-1.5 rounded-full text-sm font-bold transition-colors duration-200 ${
-                    activeFilter === f ? "text-white" : "bg-gray-100 text-gray-500"
-                  }`}
-                >
-                  {activeFilter === f && (
-                    <motion.div
-                      layoutId="activeFilterHome"
-                      className="absolute inset-0 bg-[#FF5000] rounded-full shadow-sm"
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                  <span className="relative z-10">
-                    {f === "all" ? "Бүгд" : f}
-                  </span>
-                </motion.button>
-              ))}
+            {/* Category Tabs Row - iOS UISegmentedControl Style */}
+            <div className="px-4 pt-3.5 pb-1.5">
+              <div className="bg-[#767680]/12 rounded-[9px] p-0.5 flex relative">
+                {(["all", "Бэлэн", "Захиалга"] as const).map((f) => {
+                  const isActive = activeFilter === f;
+                  return (
+                    <button
+                      key={f}
+                      onClick={() => {
+                        triggerHaptic();
+                        setActiveFilter(f as FilterType);
+                      }}
+                      className="flex-1 relative py-1.5 text-[13px] font-bold select-none cursor-pointer transition-all duration-150"
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeSegmentControl"
+                          className="absolute inset-0 bg-white rounded-[7px]"
+                          style={{
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(0,0,0,0.06)"
+                          }}
+                          transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                        />
+                      )}
+                      <span className={`relative z-10 block text-center transition-colors duration-150 ${
+                        isActive ? "text-[#1C1C1E] font-bold" : "text-[#8E8E93] font-semibold hover:text-[#1C1C1E]"
+                      }`}>
+                        {f === "all" ? "Бүгд" : f}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Sort + Filter Row */}
@@ -265,7 +274,7 @@ export default function HomePage() {
                   setShowPriceFilter(!showPriceFilter);
                 }}
                 className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${showPriceFilter || minPrice || maxPrice
-                    ? "bg-[#FF5000] text-white"
+                    ? "bg-[#FF4500] text-white"
                     : "bg-gray-100 text-gray-700"
                   }`}
               >
@@ -287,7 +296,7 @@ export default function HomePage() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setActiveFilter("all")}
                 className={`px-4 py-2 lg:px-5 lg:py-2.5 rounded-2xl font-bold text-xs lg:text-sm transition-all duration-300 whitespace-nowrap ${activeFilter === "all"
-                    ? "bg-[#FF5000] text-white shadow-lg shadow-orange-500/30"
+                    ? "bg-[#FF4500] text-white shadow-lg shadow-[#FF4500]/25"
                     : "bg-white/50 text-gray-600 hover:bg-white border border-gray-100"
                   }`}
               >
@@ -316,7 +325,7 @@ export default function HomePage() {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setActiveFilter(section as any)}
                     className={`px-4 py-2 lg:px-5 lg:py-2.5 rounded-2xl font-bold text-xs lg:text-sm transition-all duration-300 whitespace-nowrap ${isActive
-                        ? "bg-[#FF5000] text-white shadow-lg shadow-orange-500/30"
+                        ? "bg-[#FF4500] text-white shadow-lg shadow-[#FF4500]/25"
                         : "bg-white/50 text-gray-600 hover:bg-white border border-gray-100"
                       }`}
                   >
@@ -359,8 +368,8 @@ export default function HomePage() {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowPriceFilter(!showPriceFilter)}
                   className={`flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2.5 text-xs lg:text-sm font-bold rounded-2xl transition-all duration-300 ${showPriceFilter || minPrice || maxPrice
-                      ? "bg-[#FF5000] text-white shadow-lg shadow-orange-500/30"
-                      : "bg-white text-gray-700 border border-gray-200 hover:border-[#FF5000]/30"
+                      ? "bg-[#FF4500] text-white shadow-lg shadow-[#FF4500]/25"
+                      : "bg-white text-gray-700 border border-gray-200 hover:border-[#FF4500]/20"
                     }`}
                 >
                   <SlidersHorizontal
@@ -606,7 +615,7 @@ export default function HomePage() {
                 triggerHaptic();
                 setShowPriceFilter(false);
               }}
-              className="w-full py-4.5 text-[17px] font-bold text-white bg-[#FF5000] rounded-[18px] shadow-xl shadow-orange-500/20 active:opacity-90 transition-all"
+              className="w-full py-4.5 text-[17px] font-bold text-white bg-[#FF4500] rounded-[18px] shadow-xl shadow-[#FF4500]/20 active:opacity-90 transition-all"
             >
               Үр дүнг харах
             </motion.button>

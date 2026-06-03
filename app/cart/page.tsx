@@ -42,13 +42,13 @@ export default function CartPage() {
                         transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
                         className="relative mb-8 mt-6"
                     >
-                        <div className="w-28 h-28 rounded-[32px] bg-white shadow-[0_12px_40px_rgba(255,100,0,0.12)] flex items-center justify-center">
-                            <ShoppingBag className="w-12 h-12 text-[#FF5000]" strokeWidth={1.5} />
+                        <div className="w-28 h-28 rounded-[32px] bg-white shadow-[0_12px_40px_rgba(255,69,0,0.12)] flex items-center justify-center">
+                            <ShoppingBag className="w-12 h-12 text-[#FF4500]" strokeWidth={1.5} />
                         </div>
                         <motion.span
                             animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
                             transition={{ duration: 2, repeat: Infinity, delay: 0.8 }}
-                            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#FF5000] block shadow-md shadow-orange-300/50"
+                            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#FF4500] block shadow-md shadow-orange-300/50"
                         />
                     </motion.div>
 
@@ -63,7 +63,7 @@ export default function CartPage() {
                     <Link href="/" className="w-full mb-10 block">
                         <motion.button
                             whileTap={{ scale: 0.97 }}
-                            className="w-full py-4 bg-[#FF5000] text-white rounded-2xl font-bold text-[16px] shadow-[0_6px_20px_rgba(255,80,0,0.25)] flex items-center justify-center gap-2"
+                            className="w-full py-4 bg-[#FF4500] text-white rounded-2xl font-bold text-[16px] shadow-[0_6px_20px_rgba(255,69,0,0.25)] flex items-center justify-center gap-2"
                         >
                             {t('cart', 'continueShopping')}
                             <ArrowRight className="w-5 h-5" strokeWidth={2} />
@@ -73,7 +73,7 @@ export default function CartPage() {
                     {/* Suggested Products */}
                     <div className="w-[100vw] px-4 overflow-x-hidden md:w-full md:px-0 text-left">
                         <div className="flex items-center gap-2 mb-4">
-                            <div className="w-1 h-5 bg-[#FF5000] rounded-full" />
+                            <div className="w-1 h-5 bg-[#FF4500] rounded-full" />
                             <span className="text-[16px] font-bold text-gray-900">Танд санал болгох</span>
                         </div>
 
@@ -125,7 +125,7 @@ export default function CartPage() {
     const preOrderItems = items.filter(i => i.stockStatus === 'pre-order');
 
     return (
-        <div className="min-h-screen bg-[#F5F5F3] pt-14 pb-[calc(env(safe-area-inset-bottom)+260px)] lg:pb-[260px]">
+        <div className="min-h-screen bg-[#F2F2F7] pt-14 pb-[calc(env(safe-area-inset-bottom)+260px)] lg:pb-[260px]">
             <NativeHeader
                 title={t('cart', 'title')}
                 subtitle={`${getTotalItems()} бараа`}
@@ -139,14 +139,14 @@ export default function CartPage() {
                     {/* Ready to Ship Section */}
                     {readyItems.length > 0 && (
                         <section>
-                            <div className="flex items-center gap-2 mb-3.5 px-1">
+                        <div className="flex items-center gap-2 mb-3.5 px-1">
                                 <div className="w-2 h-2 rounded-full bg-[#34C759]" style={{ boxShadow: '0 0 8px rgba(52,199,89,0.4)' }} />
-                                <span className="text-[14px] font-bold text-[#111]">Бэлэн бараанууд</span>
-                                <div className="ml-auto text-[11px] font-bold text-[#34C759] bg-[#34C759]/10 px-2.5 py-1 rounded-full flex items-center gap-1">
-                                    <Check className="w-3 h-3" strokeWidth={3} /> Маргааш хүргэнэ
+                                <span className="text-[12px] font-bold text-[#3C3C43] uppercase tracking-wider">Бэлэн бараанууд</span>
+                                <div className="ml-auto text-[10px] font-bold text-[#34C759] bg-[#34C759]/10 px-2.5 py-1 rounded-full flex items-center gap-1">
+                                    <Check className="w-2.5 h-2.5" strokeWidth={3} /> Маргааш хүргэнэ
                                 </div>
                             </div>
-                            <div className="space-y-3">
+                            <div className="bg-white rounded-[20px] border border-[#E5E5EA]/45 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden divide-y divide-[#E5E5EA]/55">
                                 <AnimatePresence mode="popLayout">
                                     {readyItems.map((item, index) => {
                                         // Cast to any to inspect dynamic fields without compilation blocks
@@ -169,12 +169,12 @@ export default function CartPage() {
                         <section>
                             <div className="flex items-center gap-2 mb-3.5 px-1">
                                 <div className="w-2 h-2 rounded-full bg-[#FF9500]" style={{ boxShadow: '0 0 8px rgba(255,149,0,0.4)' }} />
-                                <span className="text-[14px] font-bold text-[#111]">Захиалгын бараанууд</span>
-                                <div className="ml-auto text-[11px] font-bold text-[#FF9500] bg-[#FF9500]/10 px-2.5 py-1 rounded-full flex items-center gap-1">
-                                    <Clock className="w-3 h-3" strokeWidth={2.5} /> 14 хоногт ирнэ
+                                <span className="text-[12px] font-bold text-[#3C3C43] uppercase tracking-wider">Захиалгын бараанууд</span>
+                                <div className="ml-auto text-[10px] font-bold text-[#FF9500] bg-[#FF9500]/10 px-2.5 py-1 rounded-full flex items-center gap-1">
+                                    <Clock className="w-2.5 h-2.5" strokeWidth={2.5} /> 14 хоногт ирнэ
                                 </div>
                             </div>
-                            <div className="space-y-3">
+                            <div className="bg-white rounded-[20px] border border-[#E5E5EA]/45 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden divide-y divide-[#E5E5EA]/55">
                                 <AnimatePresence mode="popLayout">
                                     {preOrderItems.map((item, index) => {
                                         // Cast to any to inspect dynamic fields without compilation blocks
@@ -201,8 +201,8 @@ export default function CartPage() {
                 {/* Recommendation Guide */}
                 <div className="mt-4">
                     <div className="flex items-center justify-between mb-5 px-1.5">
-                        <h3 className="text-[13px] font-bold text-gray-400 uppercase tracking-widest">Танд санал болгох бараа</h3>
-                        <ChevronRight className="w-4 h-4 text-gray-300" />
+                        <h3 className="text-[11px] font-bold text-[#8E8E93] uppercase tracking-widest">Танд санал болгох</h3>
+                        <ChevronRight className="w-4 h-4 text-[#C7C7CC]" />
                     </div>
                     <div className="grid grid-cols-2 gap-3 pb-8">
                         {suggested.length > 0

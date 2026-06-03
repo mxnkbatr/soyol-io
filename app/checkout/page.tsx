@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import { useUser } from '@/context/AuthContext';
 import useSWR from 'swr';
 import QPay from '@/components/checkout/QPay';
+import NativeHeader from '@/components/ui/NativeHeader';
 
 interface Address {
   id: string;
@@ -328,64 +329,54 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-gray-50 to-white py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6 sm:mb-8">
-          <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors">
-            <div className="p-1.5 bg-white rounded-lg border border-gray-200 shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
-            </div>
-            <span className="text-sm font-medium">Буцах</span>
-          </button>
-          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">Захиалга баталгаажуулах</h1>
-          <p className="text-sm sm:text-base text-gray-600">Хүргэлтийн мэдээллээ оруулна уу</p>
-        </motion.div>
-
+    <div className="min-h-screen bg-[#F2F2F7] pt-[calc(52px+env(safe-area-inset-top,0px))] pb-28">
+      <NativeHeader title="Захиалга баталгаажуулах" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-6 sm:gap-8 pb-[160px] lg:pb-0">
           <div className="lg:col-span-2 space-y-6">
             {/* Delivery Method Toggle */}
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
-                <div className="p-2.5 bg-orange-50 rounded-xl"><Package className="w-5 h-5 text-orange-600" /></div>
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Хүргэлтийн төрөл</h2>
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="bg-white rounded-[20px] p-5 border border-[#E5E5EA]/45 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+              <div className="flex items-center gap-3 mb-6 border-b border-[#F2F2F7] pb-4">
+                <div className="p-2 bg-[#FF4500]/10 text-[#FF4500] rounded-lg"><Package className="w-5 h-5" /></div>
+                <h2 className="text-[17px] font-bold text-[#1C1C1E]">Хүргэлтийн төрөл</h2>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setDeliveryMethod('delivery')}
-                  className={`p-4 rounded-xl border-2 flex flex-col items-center gap-3 transition-all ${deliveryMethod === 'delivery' ? 'border-orange-500 bg-orange-50/50 text-orange-700' : 'border-gray-100 hover:border-orange-200 text-gray-600'}`}
+                  className={`py-4 px-3 rounded-2xl border-2 flex flex-col items-center gap-2.5 transition-all duration-200 active:scale-95 ${deliveryMethod === 'delivery' ? 'border-[#FF4500] bg-[#FF4500]/5 text-[#FF4500] font-bold' : 'border-[#E5E5EA]/60 bg-[#F9F9F9] hover:border-[#D1D1D6] text-[#3C3C43]'}`}
                 >
-                  <Package className={`w-8 h-8 ${deliveryMethod === 'delivery' ? 'text-orange-600' : 'text-gray-400'}`} />
-                  <span className="font-bold">Хүргэлтээр авах</span>
-                  <span className="text-xs font-medium px-2 py-1 bg-white rounded-full border border-gray-200">{maxDeliveryFee > 0 ? `${maxDeliveryFee.toLocaleString()}₮` : 'Үнэгүй'}</span>
+                  <Package className={`w-6 h-6 ${deliveryMethod === 'delivery' ? 'text-[#FF4500]' : 'text-[#8E8E93]'}`} />
+                  <span className="font-bold text-[14px]">Хүргэлтээр авах</span>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 bg-white rounded-full border border-[#E5E5EA]/80">{maxDeliveryFee > 0 ? `${maxDeliveryFee.toLocaleString()}₮` : 'Үнэгүй'}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setDeliveryMethod('pickup')}
-                  className={`p-4 rounded-xl border-2 flex flex-col items-center gap-3 transition-all ${deliveryMethod === 'pickup' ? 'border-orange-500 bg-orange-50/50 text-orange-700' : 'border-gray-100 hover:border-orange-200 text-gray-600'}`}
+                  className={`py-4 px-3 rounded-2xl border-2 flex flex-col items-center gap-2.5 transition-all duration-200 active:scale-95 ${deliveryMethod === 'pickup' ? 'border-[#FF4500] bg-[#FF4500]/5 text-[#FF4500] font-bold' : 'border-[#E5E5EA]/60 bg-[#F9F9F9] hover:border-[#D1D1D6] text-[#3C3C43]'}`}
                 >
-                  <MapPin className={`w-8 h-8 ${deliveryMethod === 'pickup' ? 'text-orange-600' : 'text-gray-400'}`} />
-                  <span className="font-bold">Өөрөө ирж авах</span>
-                  <span className="text-xs font-medium px-2 py-1 bg-white rounded-full border border-gray-200">Үнэгүй</span>
+                  <MapPin className={`w-6 h-6 ${deliveryMethod === 'pickup' ? 'text-[#FF4500]' : 'text-[#8E8E93]'}`} />
+                  <span className="font-bold text-[14px]">Өөрөө ирж авах</span>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 bg-white rounded-full border border-[#E5E5EA]/80">Үнэгүй</span>
                 </button>
               </div>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
-                <div className="p-2.5 bg-orange-50 rounded-xl"><User className="w-5 h-5 text-orange-600" /></div>
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Хэрэглэгчийн мэдээлэл</h2>
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-[20px] p-5 border border-[#E5E5EA]/45 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+              <div className="flex items-center gap-3 mb-6 border-b border-[#F2F2F7] pb-4">
+                <div className="p-2 bg-[#FF4500]/10 text-[#FF4500] rounded-lg"><User className="w-5 h-5" /></div>
+                <h2 className="text-[17px] font-bold text-[#1C1C1E]">Хэрэглэгчийн мэдээлэл</h2>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs uppercase font-bold text-gray-500 mb-1.5 ml-1">Овог нэр <span className="text-red-500">*</span></label>
-                  <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} placeholder="Жишээ: Бат Болд" className="w-full px-4 py-3 rounded-xl bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all outline-none font-medium text-base" required />
+                  <label className="block text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider mb-2 ml-1">Овог нэр <span className="text-[#FF3B30]">*</span></label>
+                  <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} placeholder="Жишээ: Бат Болд" className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border border-transparent focus:bg-white focus:border-[#FF4500] focus:ring-4 focus:ring-[#FF4500]/10 transition-all duration-200 outline-none font-semibold text-[15px] text-[#1C1C1E]" required />
                 </div>
                 <div>
-                  <label className="block text-xs uppercase font-bold text-gray-500 mb-1.5 ml-1">Утасны дугаар <span className="text-red-500">*</span></label>
+                  <label className="block text-[11px] font-bold text-[#8E8E93] uppercase tracking-wider mb-2 ml-1">Утасны дугаар <span className="text-[#FF3B30]">*</span></label>
                   <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="99119911" className="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all outline-none font-medium text-base" required />
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8E8E93]" />
+                    <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="99119911" className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-[#F2F2F7] border border-transparent focus:bg-white focus:border-[#FF4500] focus:ring-4 focus:ring-[#FF4500]/10 transition-all duration-200 outline-none font-semibold text-[15px] text-[#1C1C1E]" required />
                   </div>
                 </div>
               </div>
@@ -473,22 +464,22 @@ export default function CheckoutPage() {
           </div>
 
           <div className="lg:col-span-1">
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 lg:sticky lg:top-24">
-              <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
-                <div className="p-2.5 bg-orange-50 rounded-xl"><Package className="w-5 h-5 text-orange-600" /></div>
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Захиалгын хураангуй</h2>
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="bg-white rounded-[20px] p-5 border border-[#E5E5EA]/45 shadow-[0_2px_12px_rgba(0,0,0,0.02)] lg:sticky lg:top-24">
+              <div className="flex items-center gap-3 mb-6 border-b border-[#F2F2F7] pb-4">
+                <div className="p-2 bg-[#FF4500]/10 text-[#FF4500] rounded-lg"><Package className="w-5 h-5" /></div>
+                <h2 className="text-[17px] font-bold text-[#1C1C1E]">Захиалгын хураангуй</h2>
               </div>
-              <div className="space-y-4 mb-6 max-h-60 sm:max-h-96 overflow-y-auto pr-1 custom-scrollbar">
+              <div className="space-y-3 mb-6 max-h-60 sm:max-h-96 overflow-y-auto pr-1 custom-scrollbar">
                 {selectedItems.map((item, idx) => (
-                  <div key={item.id || idx} className="flex gap-3 p-2 hover:bg-gray-50 rounded-xl transition-colors">
-                    <div className="relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden border border-gray-100">
+                  <div key={item.id || idx} className="flex gap-3 py-3 border-b border-[#F2F2F7] last:border-0">
+                    <div className="relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden border border-[#E5E5EA]/60">
                       <Image src={item.image || '/placeholder.png'} alt={item.name} fill className="object-cover" sizes="56px" />
                     </div>
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
-                      <h4 className="text-sm font-bold text-gray-900 line-clamp-1">{item.name}</h4>
+                      <h4 className="text-sm font-bold text-[#1C1C1E] line-clamp-1">{item.name}</h4>
                       <div className="flex justify-between items-center mt-1">
-                        <p className="text-xs text-gray-500">Тоо: {item.quantity}</p>
-                        <p className="text-sm font-bold text-orange-600">{formatPrice(item.price * item.quantity)}</p>
+                        <p className="text-xs text-[#8E8E93]">Тоо: {item.quantity}</p>
+                        <p className="text-sm font-bold text-[#FF4500]">{formatPrice(item.price * item.quantity)}</p>
                       </div>
                     </div>
                   </div>
@@ -496,29 +487,29 @@ export default function CheckoutPage() {
               </div>
               {/* Delivery Time Info Box */}
               {preOrderCount === 0 ? (
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+                <div className="bg-[#34C759]/10 border border-[#34C759]/20 rounded-2xl p-4 mb-6">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-green-600">✅</span>
-                    <span className="font-bold text-green-700 text-sm">Бүх бараа бэлэн байна</span>
+                    <span className="text-[#34C759] text-sm">✅</span>
+                    <span className="font-bold text-[#34C759] text-sm">Бүх бараа бэлэн байна</span>
                   </div>
-                  <p className="text-xs text-green-600 pl-6">Хүргэлт: Өнөөдөр - Маргааш</p>
+                  <p className="text-xs text-[#34C759]/80 pl-6">Хүргэлт: Өнөөдөр - Маргааш</p>
                 </div>
               ) : inStockCount === 0 ? (
-                <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6">
+                <div className="bg-[#FF9500]/10 border border-[#FF9500]/20 rounded-2xl p-4 mb-6">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-orange-600">✈️</span>
-                    <span className="font-bold text-orange-700 text-sm">[Захиалгаар] ирэх бараа</span>
+                    <span className="text-[#FF9500] text-sm">✈️</span>
+                    <span className="font-bold text-[#FF9500] text-sm">[Захиалгаор] ирэх бараа</span>
                   </div>
-                  <p className="text-xs text-orange-600 pl-6">Хүргэлт: 7-14 хоног</p>
-                  <p className="text-xs text-orange-600 pl-6 mt-1">Бараа ирмэгц танд мэдэгдэнэ</p>
+                  <p className="text-xs text-[#FF9500]/80 pl-6">Хүргэлт: 7-14 хоног</p>
+                  <p className="text-xs text-[#FF9500]/80 pl-6 mt-1">Бараа ирмэгц танд мэдэгдэнэ</p>
                 </div>
               ) : (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+                <div className="bg-[#FFCC00]/10 border border-[#FFCC00]/20 rounded-2xl p-4 mb-6">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-yellow-600">⚠️</span>
-                    <span className="font-bold text-yellow-700 text-sm">Хоёр төрлийн бараа байна</span>
+                    <span className="text-[#FFCC00] text-sm">⚠️</span>
+                    <span className="font-bold text-[#FFCC00] text-sm">Хоёр төрлийн бараа байна</span>
                   </div>
-                  <div className="pl-6 text-xs text-yellow-600 space-y-1">
+                  <div className="pl-6 text-xs text-[#FFCC00]/80 space-y-1">
                     <p>• {inStockCount} бэлэн бараа</p>
                     <p>• {preOrderCount} захиалгын бараа</p>
                     <p className="font-medium mt-1">Хүргэлт: 7-14 хоног (хамт хүргэнэ)</p>
@@ -526,15 +517,15 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              <div className="space-y-3 pt-6 border-t border-dashed border-gray-200">
-                <div className="flex justify-between text-sm text-gray-600"><span>Барааны үнэ:</span><span className="font-bold">{formatPrice(getSelectedTotalPrice())}</span></div>
-                <div className="flex justify-between text-sm text-gray-600"><span>Хүргэлт:</span><span className="font-bold text-gray-900">{DELIVERY_FEE === 0 ? '0₮' : formatPrice(DELIVERY_FEE)}</span></div>
-                <div className="flex justify-between text-lg font-black pt-3 border-t border-gray-100"><span>Нийт:</span><span className="text-orange-600">{formatPrice(grandTotal)}</span></div>
+              <div className="space-y-3 pt-5 border-t border-dashed border-[#E5E5EA]">
+                <div className="flex justify-between text-[14px] text-[#8E8E93]"><span>Барааны үнэ:</span><span className="font-semibold text-[#1C1C1E]">{formatPrice(getSelectedTotalPrice())}</span></div>
+                <div className="flex justify-between text-[14px] text-[#8E8E93]"><span>Хүргэлт:</span><span className="font-semibold text-[#1C1C1E]">{DELIVERY_FEE === 0 ? '0₮' : formatPrice(DELIVERY_FEE)}</span></div>
+                <div className="flex justify-between text-[17px] font-bold pt-3 border-t border-[#F2F2F7]"><span>Нийт төлөх:</span><span className="text-[#FF4500]">{formatPrice(grandTotal)}</span></div>
               </div>
 
               {/* Payment Method Selector */}
-              <div className="mt-6 mb-6 pt-6 border-t border-dashed border-gray-200">
-                <h3 className="text-sm font-bold text-gray-900 mb-3">💳 Төлбөрийн арга</h3>
+              <div className="mt-6 mb-6 pt-5 border-t border-dashed border-[#E5E5EA]">
+                <h3 className="text-[14px] font-bold text-[#1C1C1E] mb-3">💳 Төлбөрийн арга</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {[
                     { id: 'qpay', icon: '📱', label: 'QR кодоор', title: 'QPay' },
@@ -544,49 +535,45 @@ export default function CheckoutPage() {
                       key={method.id}
                       type="button"
                       onClick={() => setPaymentMethod(method.id)}
-                      className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden ${paymentMethod === method.id
-                        ? 'border-orange-500 bg-orange-50'
-                        : 'border-gray-200 hover:border-orange-200 hover:bg-gray-50'
+                      className={`p-3.5 rounded-2xl border text-left transition-all duration-200 relative overflow-hidden active:scale-95 ${paymentMethod === method.id
+                        ? 'border-[#FF4500] bg-[#FF4500]/5'
+                        : 'border-[#E5E5EA] hover:border-[#D1D1D6] bg-[#F9F9F9]'
                         }`}
                     >
-                      <div className="font-bold text-gray-900 text-sm mb-0.5 flex items-center gap-2">
+                      <div className="font-bold text-[#1C1C1E] text-[14px] mb-0.5 flex items-center gap-1.5">
                         <span>{method.icon}</span>
                         {method.title}
                       </div>
-                      <div className="text-[10px] text-gray-500 font-medium">{method.label}</div>
+                      <div className="text-[10.5px] text-[#8E8E93] font-medium">{method.label}</div>
                       {paymentMethod === method.id && (
-                        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-orange-500" />
+                        <div className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#FF4500]" />
                       )}
                     </button>
                   ))}
                 </div>
 
                 {paymentMethod === 'bank' && (
-                  <div className="mt-3 p-4 border-2 border-dashed border-orange-200 rounded-xl bg-orange-50 flex flex-col gap-2">
+                  <div className="mt-3.5 p-4 border border-[#FF4500]/20 rounded-2xl bg-[#FF4500]/5 flex flex-col gap-2">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xl">🏦</span>
-                      <p className="text-sm font-bold text-gray-900">Банкны шилжүүлэг</p>
+                      <p className="text-[14px] font-bold text-[#1C1C1E]">Банкны шилжүүлэг</p>
                     </div>
-                    <div className="space-y-1.5 text-xs text-gray-600">
+                    <div className="space-y-2 text-[12.5px] text-[#3C3C43]">
                       <div className="flex justify-between">
-                        <span>Банк:</span>
-                        <span className="font-bold text-gray-900">Хаан банк</span>
+                        <span className="text-[#8E8E93]">Банк:</span>
+                        <span className="font-semibold text-[#1C1C1E]">Хаан банк</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>IBAN:</span>
-                        <span className="font-bold text-gray-900">MN83000500</span>
+                        <span className="text-[#8E8E93]">Данс:</span>
+                        <span className="font-bold text-[#1C1C1E]">5664240180</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Данс:</span>
-                        <span className="font-bold text-gray-900">5664240180</span>
+                        <span className="text-[#8E8E93]">Хүлээн авагч:</span>
+                        <span className="font-semibold text-[#1C1C1E]">Battogtokh khukhuu</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Хүлээн авагч:</span>
-                        <span className="font-bold text-gray-900">Battogtokh khukhuu</span>
-                      </div>
-                      <div className="flex justify-between pt-1 border-t border-orange-100">
-                        <span>Гүйлгээний утга:</span>
-                        <span className="font-black text-orange-600">Утасны дугаараа бичнэ үү</span>
+                      <div className="flex justify-between pt-2 border-t border-[#E5E5EA] mt-1">
+                        <span className="text-[#8E8E93]">Гүйлгээний утга:</span>
+                        <span className="font-black text-[#FF4500]">Утасны дугаараа бичнэ үү</span>
                       </div>
                     </div>
                   </div>
@@ -594,23 +581,49 @@ export default function CheckoutPage() {
               </div>
 
               <div className="hidden lg:block">
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" disabled={isSubmitting} className="w-full mt-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl shadow-lg shadow-orange-500/30 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-orange-500/40 transition-all">
-                  {isSubmitting ? (<><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Боловсруулж байна...</span></>) : (<><CreditCard className="w-5 h-5" /><span>Захиалга өгөх</span></>)}
+                <motion.button 
+                  whileTap={{ scale: 0.95 }} 
+                  type="submit" 
+                  disabled={isSubmitting} 
+                  className="w-full mt-6 h-[54px] rounded-full text-white font-bold text-[16px] shadow-[0_6px_20px_rgba(255,69,0,0.35)] flex items-center justify-center gap-2.5 transition-all"
+                  style={{ background: 'linear-gradient(135deg, #FF6B00 0%, #FF4500 100%)' }}
+                >
+                  {isSubmitting ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <CreditCard className="w-5 h-5" />
+                      <span>Захиалга өгөх</span>
+                    </>
+                  )}
                 </motion.button>
-                <p className="text-[10px] text-gray-400 text-center mt-4">Захиалга өгснөөр та манай <a href="#" className="text-orange-600 hover:underline">үйлчилгээний нөхцөл</a>-тэй танилцаж зөвшөөрсөн гэж үзнэ</p>
+                <p className="text-[10px] text-[#8E8E93] text-center mt-4">Захиалга өгснөөр та манай <a href="#" className="text-[#FF4500] hover:underline">үйлчилгээний нөхцөл</a>-тэй танилцаж зөвшөөрсөн гэж үзнэ</p>
               </div>
             </motion.div>
           </div>
 
           {/* Mobile Fixed Bottom Button */}
-          <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+56px)] left-0 right-0 bg-white border-t border-gray-100 p-4 lg:hidden z-30 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-            <div className="flex items-center justify-between gap-4 max-w-7xl mx-auto mb-2">
+          <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-[#E5E5EA]/60 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)] lg:hidden z-30 shadow-[0_-8px_32px_rgba(0,0,0,0.04)]">
+            <div className="flex items-center justify-between gap-5 max-w-lg mx-auto">
               <div className="flex flex-col">
-                <span className="text-xs text-gray-500">Нийт төлөх</span>
-                <span className="text-lg font-black text-gray-900">{formatPrice(grandTotal)}</span>
+                <span className="text-[11px] text-[#8E8E93] font-medium uppercase tracking-wider">Нийт төлөх</span>
+                <span className="text-[20px] font-black text-[#1C1C1E] tracking-tight">{formatPrice(grandTotal)}</span>
               </div>
-              <motion.button whileTap={{ scale: 0.95 }} type="submit" disabled={isSubmitting} className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                {isSubmitting ? (<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />) : (<><span>Захиалга өгөх</span><CreditCard className="w-4 h-4 ml-1" /></>)}
+              <motion.button 
+                whileTap={{ scale: 0.95 }} 
+                type="submit" 
+                disabled={isSubmitting} 
+                className="flex-1 h-[48px] rounded-full text-white font-bold text-[15px] shadow-[0_6px_18px_rgba(255,69,0,0.3)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: 'linear-gradient(135deg, #FF6B00 0%, #FF4500 100%)' }}
+              >
+                {isSubmitting ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <span>Захиалга өгөх</span>
+                    <CreditCard className="w-4 h-4" />
+                  </>
+                )}
               </motion.button>
             </div>
           </div>

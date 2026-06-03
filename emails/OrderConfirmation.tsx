@@ -21,7 +21,7 @@ export const OrderConfirmationEmail: React.FC<Readonly<OrderConfirmationEmailPro
         color: '#1a1a1a'
     }}>
         <div style={{ maxWidth: '600px', margin: '0 auto', border: '1px solid #f0f0f0', borderRadius: '16px', overflow: 'hidden' }}>
-            <div style={{ backgroundColor: '#FF5000', padding: '30px', textAlign: 'center' }}>
+            <div style={{ backgroundColor: '#FF4500', padding: '30px', textAlign: 'center' }}>
                 <h1 style={{ color: '#ffffff', margin: 0, fontSize: '24px', fontWeight: '900' }}>Soyol Video Shop</h1>
             </div>
 
@@ -44,9 +44,9 @@ export const OrderConfirmationEmail: React.FC<Readonly<OrderConfirmationEmailPro
                     </div>
                 ))}
 
-                <div style={{ borderTop: '2px solid #FF5000', marginTop: '20px', paddingTop: '15px', display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: '900' }}>
+                <div style={{ borderTop: '2px solid #FF4500', marginTop: '20px', paddingTop: '15px', display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: '900' }}>
                     <span>Нийт дүн:</span>
-                    <span style={{ color: '#FF5000' }}>{Number(order.totalPrice).toLocaleString()}₮</span>
+                    <span style={{ color: '#FF4500' }}>{Number(order.totalPrice).toLocaleString()}₮</span>
                 </div>
 
                 <div style={{ marginTop: '40px' }}>

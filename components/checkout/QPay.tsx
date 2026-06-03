@@ -123,7 +123,7 @@ export default function QPay({ orderId, amount, onSuccess }: QPayProps) {
       particleCount: 150,
       spread: 70,
       origin: { y: 0.6 },
-      colors: ["#f59e0b", "#fbbf24", "#ffffff"],
+      colors: ["#FF4500", "#FF6B00", "#ffffff"],
     });
 
     setTimeout(() => {
@@ -153,7 +153,7 @@ export default function QPay({ orderId, amount, onSuccess }: QPayProps) {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-12 space-y-4 bg-slate-900 border border-white/10 rounded-3xl">
-        <Loader2 className="w-10 h-10 text-amber-500 animate-spin" />
+        <Loader2 className="w-10 h-10 text-[#FF4500] animate-spin" />
         <p className="text-slate-400 font-medium">
           QPay QR код үүсгэж байна...
         </p>
@@ -186,7 +186,7 @@ export default function QPay({ orderId, amount, onSuccess }: QPayProps) {
       {/* Header */}
       <div className="p-6 border-b border-white/5 bg-slate-800/50 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center shadow-lg shadow-amber-500/20">
+          <div className="w-8 h-8 bg-[#FF4500] rounded-lg flex items-center justify-center shadow-lg shadow-[#FF4500]/20">
             <QrCode className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -198,7 +198,7 @@ export default function QPay({ orderId, amount, onSuccess }: QPayProps) {
           </div>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-950 rounded-full border border-white/5">
-          <Clock className="w-3.5 h-3.5 text-amber-500" />
+          <Clock className="w-3.5 h-3.5 text-[#FF4500]" />
           <span className="text-xs font-mono font-bold text-slate-300">
             {formatTime(timeLeft)}
           </span>
@@ -223,7 +223,7 @@ export default function QPay({ orderId, amount, onSuccess }: QPayProps) {
                 exit={{ opacity: 0 }}
                 className="absolute inset-0 bg-white/80 backdrop-blur-[2px] flex flex-col items-center justify-center gap-3"
               >
-                <RefreshCcw className="w-8 h-8 text-amber-500 animate-spin" />
+                <RefreshCcw className="w-8 h-8 text-[#FF4500] animate-spin" />
                 <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">
                   Шалгаж байна
                 </span>
@@ -254,7 +254,7 @@ export default function QPay({ orderId, amount, onSuccess }: QPayProps) {
                 onClick={() => openPaymentLink(app.link)}
                 className="group flex flex-col items-center gap-2"
               >
-                <div className="w-12 h-12 rounded-xl bg-slate-950 border border-white/10 p-2 group-hover:border-amber-500/50 transition-all group-hover:scale-105 overflow-hidden">
+                <div className="w-12 h-12 rounded-xl bg-slate-950 border border-white/10 p-2 group-hover:border-[#FF4500]/50 transition-all group-hover:scale-105 overflow-hidden">
                   <img
                     src={app.logo}
                     alt={app.name}
@@ -274,7 +274,7 @@ export default function QPay({ orderId, amount, onSuccess }: QPayProps) {
           <button
             onClick={() => checkStatus(qpayData!.invoiceId)}
             disabled={checking}
-            className="flex-1 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold text-white transition-all active:scale-95"
+            className="flex-1 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full flex items-center justify-center gap-2 text-sm font-bold text-white transition-all active:scale-95"
           >
             <RefreshCcw
               className={`w-4 h-4 ${checking ? "animate-spin" : ""}`}
@@ -283,7 +283,7 @@ export default function QPay({ orderId, amount, onSuccess }: QPayProps) {
           </button>
           <button
             onClick={() => openPaymentLink(qpayData?.urls[0]?.link)}
-            className="flex-1 py-4 bg-amber-500 hover:bg-amber-600 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold text-white transition-all shadow-lg shadow-amber-500/20 active:scale-95"
+            className="flex-1 py-4 bg-[#FF4500] hover:bg-[#CC3700] rounded-full flex items-center justify-center gap-2 text-sm font-bold text-white transition-all shadow-lg shadow-[#FF4500]/20 active:scale-95"
           >
             <ExternalLink className="w-4 h-4" />
             Апп нээх

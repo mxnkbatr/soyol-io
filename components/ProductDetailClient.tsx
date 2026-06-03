@@ -347,7 +347,7 @@ export function ProductDetailClient({
         .nat-check { animation: nat-check 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
         @keyframes nat-badge-pop { 0%{transform:scale(0.7);opacity:0} 70%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
         .nat-badge-pop { animation: nat-badge-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; }
-        .nat-buy-btn { background: linear-gradient(135deg, #FF5000 0%, #FF3000 100%); }
+        .nat-buy-btn { background: linear-gradient(135deg, #FF4500 0%, #FF3000 100%); }
         .nat-buy-btn:active { background: linear-gradient(135deg, #E64800 0%, #CC2800 100%); transform: scale(0.97); }
         .nat-cart-btn:active { transform: scale(0.96); }
         @keyframes nat-shimmer { 0%{opacity:1} 50%{opacity:0.7} 100%{opacity:1} }
@@ -358,7 +358,7 @@ export function ProductDetailClient({
 
         {/* ══════════════════════════════════════
             MOBILE FULL-SCREEN LAYOUT
-        ══════════════════════════════════════ */}
+            ══════════════════════════════════════ */}
 
         {/* ─── STICKY NATIVE HEADER (mobile) ─── */}
         <div
@@ -401,10 +401,9 @@ export function ProductDetailClient({
           </div>
         </div>
 
-        {/* ─── MAIN SCROLL CONTENT ─── */}
         <div
           className="lg:max-w-6xl lg:mx-auto lg:px-6 lg:pb-12 pb-[calc(130px+env(safe-area-inset-bottom,0px))]"
-          style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 44px)" }}
+          style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 43px)" }}
         >
 
           {/* Desktop breadcrumb */}
@@ -420,7 +419,7 @@ export function ProductDetailClient({
 
             {/* ════════════════════════════
                 IMAGE GALLERY
-            ════════════════════════════ */}
+                ════════════════════════════ */}
             <div className="lg:w-[52%] lg:sticky lg:top-6 lg:self-start">
 
               {/* Main image box */}
@@ -462,7 +461,7 @@ export function ProductDetailClient({
                 {/* Overlayed badges */}
                 <div className="absolute top-3 left-3 z-20 flex flex-col gap-1.5">
                   {discount > 0 && (
-                    <div className="nat-badge-pop bg-[#FF5000] text-white text-[11px] font-black px-2.5 py-1 rounded-[8px] leading-none shadow-sm">
+                    <div className="nat-badge-pop bg-[#FF4500] text-white text-[11px] font-black px-2.5 py-1 rounded-[8px] leading-none shadow-sm">
                       -{discount}%
                     </div>
                   )}
@@ -523,7 +522,7 @@ export function ProductDetailClient({
                         animate={{ width: activeImageIndex === i ? 20 : 6, opacity: activeImageIndex === i ? 1 : 0.35 }}
                         transition={SPRING_SNAP}
                         onClick={() => { haptic("light"); setActiveImageIndex(i); }}
-                        className="h-[5px] rounded-full bg-[#FF5000]"
+                        className="h-[5px] rounded-full bg-[#FF4500]"
                       />
                     ))}
                   </div>
@@ -548,7 +547,7 @@ export function ProductDetailClient({
                       onClick={() => { haptic("light"); setActiveImageIndex(i); }}
                       className={`relative shrink-0 w-16 h-16 rounded-2xl bg-white overflow-hidden transition-all duration-200 ${
                         activeImageIndex === i
-                          ? "ring-2 ring-[#FF5000] ring-offset-1"
+                          ? "ring-2 ring-[#FF4500] ring-offset-1"
                           : "ring-1 ring-black/[0.08] opacity-50 hover:opacity-80"
                       }`}
                     >
@@ -561,7 +560,7 @@ export function ProductDetailClient({
 
             {/* ════════════════════════════
                 PRODUCT INFORMATION
-            ════════════════════════════ */}
+                ════════════════════════════ */}
             <div className="lg:w-[48%] flex flex-col gap-3 mt-3 lg:mt-0">
 
               {/* ── MAIN PRODUCT CARD ── */}
@@ -569,7 +568,7 @@ export function ProductDetailClient({
 
                 {/* Brand */}
                 {product.brand && (
-                  <p className="text-[11px] font-bold text-[#FF5000] uppercase tracking-[0.12em] mb-1.5">
+                  <p className="text-[11px] font-bold text-[#FF4500] uppercase tracking-[0.12em] mb-1.5">
                     {product.brand}
                   </p>
                 )}
@@ -578,7 +577,7 @@ export function ProductDetailClient({
                 <h1 className="text-[17px] lg:text-[20px] font-bold text-gray-900 leading-snug mb-2.5 tracking-[-0.3px]">
                   {product.name}
                   {product.isCargo && (
-                    <span className="ml-2 text-[13px] font-semibold text-[#FF5000]">+ Карго</span>
+                    <span className="ml-2 text-[13px] font-semibold text-[#FF4500]">+ Карго</span>
                   )}
                 </h1>
 
@@ -607,7 +606,7 @@ export function ProductDetailClient({
                       <span className="text-[14px] text-gray-400 line-through font-medium mb-0.5">
                         {formatPrice(product.originalPrice)}
                       </span>
-                      <span className="text-[13px] font-bold text-[#FF5000] mb-0.5">-{discount}%</span>
+                      <span className="text-[13px] font-bold text-[#FF4500] mb-0.5">-{discount}%</span>
                     </>
                   )}
                 </div>
@@ -621,7 +620,7 @@ export function ProductDetailClient({
 
                 {/* Cargo warning */}
                 {product.isCargo && (
-                  <div className="flex items-center gap-2 text-[#FF5000] text-[12px] font-semibold bg-orange-50 border border-orange-100 rounded-xl px-3 py-2.5 mb-3">
+                  <div className="flex items-center gap-2 text-[#FF4500] text-[12px] font-semibold bg-orange-50 border border-orange-100 rounded-xl px-3 py-2.5 mb-3">
                     <Package className="w-3.5 h-3.5 shrink-0" />
                     Карго бараа — хүргэлт тусдаа тооцогдоно
                   </div>
@@ -650,11 +649,11 @@ export function ProductDetailClient({
 
                 {/* ── OPTIONS / VARIANTS ── */}
                 {product.options && product.options.length > 0 && (
-                  <div id="product-options-section" className="flex flex-col gap-5 mb-5 pb-5 border-b border-[#F2F2F7]">
+                  <div id="product-options-section" className="flex flex-col gap-5 mb-5 pb-5 border-b border-[#E5E5EA]">
                     {product.options.map((option: any) => (
                       <div key={option.id}>
                         <div className="flex items-center justify-between mb-2.5">
-                          <p className="text-[12px] font-bold text-gray-500 uppercase tracking-[0.1em]">
+                          <p className="text-[12px] font-bold text-gray-400 uppercase tracking-[0.05em]">
                             {option.name}
                             {selectedOptions[option.name] && (
                               <span className="ml-1.5 text-gray-800 normal-case font-semibold tracking-normal">
@@ -669,7 +668,7 @@ export function ProductDetailClient({
                                 const result = await openExternalLink(product.sizeGuideUrl);
                                 if (!result.ok) toast.error("Холбоос нээхэд алдаа гарлаа");
                               }}
-                              className="text-[11px] text-[#FF5000] font-semibold underline underline-offset-2"
+                              className="text-[11px] text-[#FF4500] font-semibold underline underline-offset-2"
                             >
                               Хэмжээний заавар
                             </button>
@@ -688,16 +687,16 @@ export function ProductDetailClient({
                             return (
                               <motion.button
                                 key={val}
-                                whileTap={{ scale: 0.92 }}
+                                whileTap={{ scale: 0.94 }}
                                 transition={SPRING_SNAP}
                                 onClick={() => {
                                   haptic("light");
                                   setSelectedOptions((p) => ({ ...p, [option.name]: val }));
                                 }}
-                                className={`relative flex items-center gap-1.5 px-4 py-2 rounded-[12px] border-2 text-[13px] font-semibold transition-all duration-150 ${
+                                className={`relative flex items-center gap-1.5 px-4 py-2.5 rounded-[14px] border-2 text-[13px] font-semibold transition-all duration-150 select-none ${
                                   isSelected
-                                    ? "border-[#FF5000] bg-orange-50 text-[#FF5000]"
-                                    : "border-[#E5E5EA] bg-white text-gray-700"
+                                    ? "border-[#FF4500] bg-[#FF4500]/5 text-[#FF4500]"
+                                    : "border-[#E5E5EA] bg-white text-gray-700 hover:border-gray-300"
                                 }`}
                               >
                                 {valImage && (
@@ -713,7 +712,7 @@ export function ProductDetailClient({
                                       animate={{ scale: 1 }}
                                       exit={{ scale: 0 }}
                                       transition={SPRING_SNAP}
-                                      className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#FF5000] rounded-full flex items-center justify-center"
+                                      className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#FF4500] rounded-full flex items-center justify-center"
                                     >
                                       <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                                     </motion.div>
@@ -729,14 +728,14 @@ export function ProductDetailClient({
                 )}
 
                 {/* ── QUANTITY STEPPER ── */}
-                <div className="flex items-center justify-between mb-5 py-3 px-4 bg-[#F2F2F7] rounded-2xl">
-                  <p className="text-[13px] font-bold text-gray-700">Тоо ширхэг</p>
+                <div className="flex items-center justify-between mb-5 py-3.5 px-4 bg-white border border-[#E5E5EA] rounded-[20px]">
+                  <p className="text-[13px] font-bold text-[#1C1C1E]">Тоо ширхэг</p>
                   <div className="flex items-center gap-3">
                     <motion.button
                       whileTap={{ scale: 0.85 }}
                       transition={SPRING_SNAP}
                       onClick={() => { haptic("light"); setQuantity(Math.max(1, quantity - 1)); }}
-                      className="w-9 h-9 rounded-full bg-white border border-[#E5E5EA] flex items-center justify-center shadow-sm active:bg-gray-50"
+                      className="w-9 h-9 rounded-full bg-[#F2F2F7] flex items-center justify-center active:bg-gray-200"
                     >
                       <Minus className="w-3.5 h-3.5 text-gray-700" strokeWidth={2.5} />
                     </motion.button>
@@ -745,7 +744,7 @@ export function ProductDetailClient({
                       whileTap={{ scale: 0.85 }}
                       transition={SPRING_SNAP}
                       onClick={() => { haptic("light"); setQuantity(Math.min(Math.max(displayInventory, 99), quantity + 1)); }}
-                      className="w-9 h-9 rounded-full bg-white border border-[#E5E5EA] flex items-center justify-center shadow-sm active:bg-gray-50"
+                      className="w-9 h-9 rounded-full bg-[#F2F2F7] flex items-center justify-center active:bg-gray-200"
                     >
                       <Plus className="w-3.5 h-3.5 text-gray-700" strokeWidth={2.5} />
                     </motion.button>
@@ -775,10 +774,10 @@ export function ProductDetailClient({
                   ].map(({ icon: Icon, label, sub }) => (
                     <div
                       key={label}
-                      className="flex flex-col items-center gap-1.5 bg-[#F2F2F7] rounded-2xl py-4 px-1.5 text-center"
+                      className="flex flex-col items-center gap-1.5 bg-[#F2F2F7]/60 border border-[#E5E5EA]/40 rounded-2xl py-4 px-1.5 text-center"
                     >
                       <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm mb-0.5">
-                        <Icon className="w-5 h-5 text-[#FF5000]" strokeWidth={1.8} />
+                        <Icon className="w-5 h-5 text-[#FF4500]" strokeWidth={1.8} />
                       </div>
                       <p className="text-[11px] font-bold text-gray-900 leading-tight">{label}</p>
                       <p className="text-[10px] text-[#8E8E93] font-medium leading-tight">{sub}</p>
@@ -798,14 +797,14 @@ export function ProductDetailClient({
                         key={tab}
                         onClick={() => { haptic("light"); setActiveTab(tab); }}
                         className={`flex-1 py-4 text-[13px] font-bold transition-colors relative ${
-                          activeTab === tab ? "text-[#FF5000]" : "text-[#8E8E93] hover:text-gray-700"
+                          activeTab === tab ? "text-[#FF4500]" : "text-[#8E8E93] hover:text-gray-700"
                         }`}
                       >
                         {labels[tab]}
                         {activeTab === tab && (
                           <motion.div
                             layoutId="nat-tab-bar"
-                            className="absolute bottom-0 left-4 right-4 h-[2.5px] bg-[#FF5000] rounded-t-full"
+                            className="absolute bottom-0 left-4 right-4 h-[2.5px] bg-[#FF4500] rounded-t-full"
                           />
                         )}
                       </button>
@@ -834,7 +833,7 @@ export function ProductDetailClient({
                             {product.description.length > 180 && (
                               <button
                                 onClick={() => { haptic("light"); setDescExpanded(!descExpanded); }}
-                                className="mt-2.5 flex items-center gap-1 text-[13px] font-semibold text-[#FF5000]"
+                                className="mt-2.5 flex items-center gap-1 text-[13px] font-semibold text-[#FF4500]"
                               >
                                 {descExpanded ? "Хаах" : "Бүгдийг үзэх"}
                                 <motion.div
@@ -861,14 +860,14 @@ export function ProductDetailClient({
                         transition={{ duration: 0.16, ease: "easeOut" }}
                       >
                         {product.attributes && Object.keys(product.attributes).length > 0 ? (
-                          <div className="flex flex-col divide-y divide-[#F2F2F7]">
-                            {Object.entries(product.attributes).map(([k, v]) => (
-                              <div key={k} className="flex items-start py-3.5 gap-4">
-                                <span className="text-[12px] text-[#8E8E93] font-medium min-w-[110px] shrink-0 pt-0.5">{k}</span>
-                                <span className="text-[13px] text-gray-900 font-semibold">{String(v)}</span>
-                              </div>
-                            ))}
-                          </div>
+                           <div className="flex flex-col divide-y divide-[#F2F2F7]">
+                             {Object.entries(product.attributes).map(([k, v]) => (
+                               <div key={k} className="flex items-start py-3.5 gap-4">
+                                 <span className="text-[12px] text-[#8E8E93] font-medium min-w-[110px] shrink-0 pt-0.5">{k}</span>
+                                 <span className="text-[13px] text-gray-900 font-semibold">{String(v)}</span>
+                               </div>
+                             ))}
+                           </div>
                         ) : (
                           <p className="text-[14px] text-[#8E8E93] text-center py-6">Үзүүлэлтийн мэдээлэл байхгүй байна.</p>
                         )}
@@ -933,7 +932,7 @@ export function ProductDetailClient({
                       transition={SPRING_SNAP}
                       onClick={handleBuyNow}
                       disabled={!canAddToCart || buying}
-                      className={`flex-[1.5] flex items-center justify-center gap-2 h-[50px] rounded-2xl nat-buy-btn text-white font-black text-[15px] disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_6px_24px_rgba(255,80,0,0.35)] cursor-pointer ${buying ? "nat-buying" : ""}`}
+                      className={`flex-[1.5] flex items-center justify-center gap-2 h-[50px] rounded-2xl nat-buy-btn text-white font-black text-[15px] disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_6px_24px_rgba(255,69,0,0.35)] cursor-pointer ${buying ? "nat-buying" : ""}`}
                     >
                       {buying ? "Уншиж байна..." : <>Худалдан авах <ArrowRight className="w-4 h-4" strokeWidth={2.5} /></>}
                     </motion.button>
@@ -995,7 +994,7 @@ export function ProductDetailClient({
                   </div>
                   <div className="min-w-0">
                     {product.brand && (
-                      <p className="text-[9px] font-bold text-[#FF5000] uppercase tracking-[0.1em] leading-none mb-1">
+                      <p className="text-[9px] font-bold text-[#FF4500] uppercase tracking-[0.1em] leading-none mb-1">
                         {product.brand}
                       </p>
                     )}
@@ -1035,7 +1034,7 @@ export function ProductDetailClient({
                             <span className="text-[11px] text-gray-400 line-through font-medium leading-none">
                               {formatPrice(product.originalPrice)}
                             </span>
-                            <span className="text-[10px] font-extrabold text-[#FF5000] leading-none">
+                            <span className="text-[10px] font-extrabold text-[#FF4500] leading-none">
                               -{discount}%
                             </span>
                           </div>
@@ -1084,7 +1083,7 @@ export function ProductDetailClient({
                         transition={SPRING_SNAP}
                         onClick={handleBuyNow}
                         disabled={!canAddToCart || buying}
-                        className={`flex items-center justify-center gap-1.5 h-[40px] px-6 rounded-xl nat-buy-btn text-white font-black text-[13px] disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(255,80,0,0.25)] cursor-pointer ${buying ? "nat-buying" : ""}`}
+                        className={`flex items-center justify-center gap-1.5 h-[40px] px-6 rounded-xl nat-buy-btn text-white font-black text-[13px] disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(255,69,0,0.2)] cursor-pointer ${buying ? "nat-buying" : ""}`}
                       >
                         {buying ? "..." : <>Худалдан авах <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} /></>}
                       </motion.button>
@@ -1095,6 +1094,69 @@ export function ProductDetailClient({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* ── MOBILE STICKY BUYING BAR ── */}
+        <div
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] bg-white/80 border-t border-[#E5E5EA]/80 backdrop-blur-xl px-4 pt-3 pb-[calc(8px+env(safe-area-inset-bottom,0px))] flex items-center justify-between gap-3 shadow-[0_-4px_16px_rgba(0,0,0,0.02)] select-none"
+        >
+          <div className="flex flex-col shrink-0 min-w-[100px]">
+            {product.originalPrice && product.originalPrice > displayPrice && (
+              <span className="text-[11px] text-gray-400 line-through font-medium leading-none mb-1">
+                {formatPrice(product.originalPrice)}
+              </span>
+            )}
+            <span className="text-[20px] font-bold text-[#FF4500] leading-none tracking-tight">
+              {formatPrice(displayPrice)}
+            </span>
+          </div>
+
+          {isOutOfStock && !isPreorder ? (
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              transition={SPRING_SNAP}
+              onClick={handleNotify}
+              disabled={notifying || requested}
+              className="flex-1 flex items-center justify-center gap-1.5 h-11 rounded-[16px] bg-[#1C1C1E] text-white font-bold text-[14px] disabled:opacity-40 cursor-pointer"
+            >
+              {notifying ? (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : requested ? (
+                "✓ Мэдэгдсэн"
+              ) : (
+                <>🔔 Мэдэгдэх</>
+              )}
+            </motion.button>
+          ) : (
+            <div className="flex items-center gap-2 flex-1">
+              <motion.button
+                whileTap={{ scale: 0.92 }}
+                onClick={handleAddToCart}
+                disabled={!canAddToCart}
+                className={`w-11 h-11 rounded-[16px] flex items-center justify-center border transition-all duration-150 shrink-0 ${
+                  addedToCart
+                    ? "bg-emerald-500 border-emerald-500 text-white"
+                    : "border-[#E5E5EA] bg-white text-gray-700 active:bg-gray-50"
+                }`}
+              >
+                {addedToCart ? (
+                  <Check className="w-5 h-5 nat-check" strokeWidth={2.5} />
+                ) : (
+                  <ShoppingBag className="w-5 h-5" strokeWidth={1.8} />
+                )}
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                transition={SPRING_SNAP}
+                onClick={handleBuyNow}
+                disabled={!canAddToCart || buying}
+                className={`flex-1 h-11 rounded-[16px] bg-[#FF4500] text-white font-bold text-[14px] flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(255,69,0,0.2)] active:opacity-90 transition-all ${buying ? "nat-buying" : ""}`}
+              >
+                {buying ? "Уншиж байна..." : <>Худалдан авах <ArrowRight className="w-4 h-4" strokeWidth={2.5} /></>}
+              </motion.button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── LIGHTBOX ── */}

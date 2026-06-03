@@ -18,7 +18,7 @@ export const OrderStatusUpdateEmail: React.FC<Readonly<OrderStatusUpdateEmailPro
         confirmed: {
             title: 'Таны захиалга баталгаажлаа ✅',
             message: 'Таны төлбөр баталгаажиж, бид захиалгыг бэлтгэж эхэллээ.',
-            color: '#FF5000'
+            color: '#FF4500'
         },
         delivered: {
             title: 'Захиалга хүргэгдлээ 🚚',
