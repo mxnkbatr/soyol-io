@@ -889,65 +889,17 @@ export function ProductDetailClient({
                 </div>
               </div>
 
-              {/* ── STATIC CTA BUTTONS (mobile & desktop) ── */}
-              <div className="flex gap-3 my-4 px-4 lg:px-0">
-                {isOutOfStock && !isPreorder ? (
-                  <motion.button
-                    whileTap={{ scale: 0.96 }}
-                    transition={SPRING_SNAP}
-                    onClick={handleNotify}
-                    disabled={notifying || requested}
-                    className="flex-1 flex items-center justify-center gap-2 h-[50px] rounded-2xl bg-[#1C1C1E] text-white hover:bg-black font-bold text-[15px] transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md cursor-pointer"
-                  >
-                    {notifying ? (
-                      <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : requested ? (
-                      "✓ Мэдэгдэл бүртгэгдлээ"
-                    ) : (
-                      <>🔔 Бэлэн болоход мэдэгдүүл</>
-                    )}
-                  </motion.button>
-                ) : (
-                  <>
-                    <motion.button
-                      whileTap={{ scale: 0.96 }}
-                      transition={SPRING_SNAP}
-                      onClick={handleAddToCart}
-                      disabled={!canAddToCart}
-                      className={`flex-1 flex items-center justify-center gap-2 h-[50px] rounded-2xl font-bold text-[14px] transition-all duration-200 border-2 disabled:opacity-40 disabled:cursor-not-allowed ${
-                        addedToCart
-                          ? "bg-emerald-500 border-emerald-500 text-white"
-                          : "border-[#E5E5EA] bg-white text-gray-800 hover:border-gray-300 hover:bg-gray-50 cursor-pointer"
-                      }`}
-                    >
-                      {addedToCart ? (
-                        <><Check className="w-4 h-4 nat-check" strokeWidth={2.5} />Нэмэгдлээ</>
-                      ) : (
-                        <><ShoppingBag className="w-4 h-4" strokeWidth={2} />Сагсанд нэмэх</>
-                      )}
-                    </motion.button>
-
-                    <motion.button
-                      whileTap={{ scale: 0.96 }}
-                      transition={SPRING_SNAP}
-                      onClick={handleBuyNow}
-                      disabled={!canAddToCart || buying}
-                      className={`flex-[1.5] flex items-center justify-center gap-2 h-[50px] rounded-2xl nat-buy-btn text-white font-black text-[15px] disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_6px_24px_rgba(255,69,0,0.35)] cursor-pointer ${buying ? "nat-buying" : ""}`}
-                    >
-                      {buying ? "Уншиж байна..." : <>Худалдан авах <ArrowRight className="w-4 h-4" strokeWidth={2.5} /></>}
-                    </motion.button>
-                  </>
-                )}
-
-                {isAdmin && (
+              {/* ── ADMIN ACTIONS ── */}
+              {isAdmin && (
+                <div className="px-4 lg:px-0 my-4">
                   <Link
                     href={`/admin/products/${product.id}`}
-                    className="flex items-center justify-center h-[50px] px-4 rounded-2xl bg-gray-800 text-white font-semibold text-[13px] hover:bg-gray-900 transition-colors whitespace-nowrap"
+                    className="flex items-center justify-center h-[46px] w-full rounded-2xl bg-gray-800 text-white font-semibold text-[13px] hover:bg-gray-900 transition-colors"
                   >
-                    ✏️ Засварлах
+                    ✏️ Бараа засах (Admin)
                   </Link>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Related (desktop) */}
               {product.relatedProducts && product.relatedProducts.length > 0 && (
