@@ -1,5 +1,4 @@
 import { createOpenAI } from '@ai-sdk/openai';
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { streamText, tool, stepCountIs, convertToModelMessages, zodSchema } from 'ai';
 import { z } from 'zod';
 import { getCollection } from '@/lib/mongodb';
@@ -7,15 +6,9 @@ import { auth } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
 import { User } from '@/models/User';
 
-// DeepSeek Provider (OpenAI Compatible)
-const deepseekProvider = createOpenAI({
-  baseURL: 'https://api.deepseek.com',
-  apiKey: process.env.DEEPSEEK_API_KEY || '',
-});
-
-// OpenRouter Provider (Backup)
-const openrouterProvider = createOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY || '',
+const openrouter = createOpenAI({
+  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: process.env.OPENROUTER_API_KEY,
 });
 
 // Allow streaming responses up to 30 seconds
@@ -24,35 +17,17 @@ export const maxDuration = 30;
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
+
     const modelMessages = await convertToModelMessages(messages);
-
-    // Identify which model to use
-    let aiModel;
-    const hasDeepSeek = !!process.env.DEEPSEEK_API_KEY;
-    const hasOpenRouter = !!process.env.OPENROUTER_API_KEY;
-
-    console.log(`[AI Chat] Keys status: DeepSeek=${hasDeepSeek}, OpenRouter=${hasOpenRouter}`);
-
-    if (hasDeepSeek) {
-      console.log('[AI Chat] Using DeepSeek (deepseek-chat)');
-      aiModel = deepseekProvider.chat('deepseek-chat');
-    } else if (hasOpenRouter) {
-      console.log('[AI Chat] Falling back to OpenRouter (google/gemini-2.0-flash-001)');
-      aiModel = openrouterProvider.chat('google/gemini-2.0-flash-001');
-    } else {
-      console.error('[AI Chat] No AI API keys found in environment variables!');
-      return new Response(JSON.stringify({ 
-        error: 'AI API keys are missing. Please set DEEPSEEK_API_KEY or OPENROUTER_API_KEY.' 
-      }), { status: 500 });
-    }
 
     // LOGGING for debug
     try {
       const fs = await import('fs');
       const path = await import('path');
       const logPath = path.join(process.cwd(), 'debug-log.txt');
-      fs.appendFileSync(logPath, `\n\n--- AI Request ${new Date().toISOString()} | Model: ${hasDeepSeek ? 'DeepSeek' : 'OpenRouter'} ---\n`);
-    } catch (e) {}
+      fs.appendFileSync(logPath, `\n\n--- Request ${new Date().toISOString()} ---\n`);
+      fs.appendFileSync(logPath, JSON.stringify(modelMessages, null, 2));
+    } catch (e) { console.error('Logging failed', e); }
 
     const session = await auth();
     let userContext = '';
@@ -77,7 +52,7 @@ export async function POST(req: Request) {
     }
 
     const result = await streamText({
-      model: aiModel,
+      model: openrouter.chat('google/gemini-2.5-flash'),
       system: `
     Та бол "Soyol Video Shop" онлайн дэлгүүрийн мэргэжлийн борлуулалтын зөвлөх AI байна. 
     Чиний гол үүрэг бол хэрэглэгчийг ойлгож, тэдэнд тохирсон барааг санал болгож, худалдан авалт хийхэд нь туслах юм. 
