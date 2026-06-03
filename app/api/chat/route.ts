@@ -8,7 +8,7 @@ import { User } from '@/models/User';
 
 const openrouter = createOpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: process.env.OPENROUTER_API_KEY,
+  apiKey: process.env.Deepseek_API || process.env.OPENROUTER_API_KEY,
 });
 
 // Allow streaming responses up to 30 seconds
@@ -20,14 +20,16 @@ export async function POST(req: Request) {
 
     const modelMessages = await convertToModelMessages(messages);
 
-    // LOGGING for debug
-    try {
-      const fs = await import('fs');
-      const path = await import('path');
-      const logPath = path.join(process.cwd(), 'debug-log.txt');
-      fs.appendFileSync(logPath, `\n\n--- Request ${new Date().toISOString()} ---\n`);
-      fs.appendFileSync(logPath, JSON.stringify(modelMessages, null, 2));
-    } catch (e) { console.error('Logging failed', e); }
+    // Skip local file logging in production (Vercel has read-only filesystem)
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const logPath = path.join(process.cwd(), 'debug-log.txt');
+        fs.appendFileSync(logPath, `\n\n--- Request ${new Date().toISOString()} ---\n`);
+        fs.appendFileSync(logPath, JSON.stringify(modelMessages, null, 2));
+      } catch (e) { console.error('Logging failed', e); }
+    }
 
     const session = await auth();
     let userContext = '';
@@ -52,7 +54,7 @@ export async function POST(req: Request) {
     }
 
     const result = await streamText({
-      model: openrouter.chat('google/gemini-2.5-flash'),
+      model: openrouter.chat('google/gemini-2.0-flash-001'),
       system: `
     Та бол "Soyol Video Shop" онлайн дэлгүүрийн мэргэжлийн борлуулалтын зөвлөх AI байна. 
     Чиний гол үүрэг бол хэрэглэгчийг ойлгож, тэдэнд тохирсон барааг санал болгож, худалдан авалт хийхэд нь туслах юм. 
