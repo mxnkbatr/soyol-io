@@ -617,11 +617,11 @@ export default function LuxuryNavbar() {
             <Link
               href="/search"
               onClick={() => triggerHaptic()}
-              className="p-1.5 text-[#1C1C1E]"
+              className="p-1.5 text-[#1C1C1E] btn-tap-active"
             >
               <Search className="w-6 h-6" strokeWidth={1.8} />
             </Link>
-            <Link href="/wishlist">
+            <Link href="/wishlist" className="btn-tap-active">
               <div
                 onClick={() => triggerHaptic()}
                 className="p-1.5 text-[#1C1C1E] relative"
@@ -638,7 +638,7 @@ export default function LuxuryNavbar() {
                 triggerHaptic();
                 setMobileMenuOpen(true);
               }}
-              className="p-1.5 text-[#1C1C1E] cursor-pointer"
+              className="p-1.5 text-[#1C1C1E] cursor-pointer btn-tap-active"
             >
               <Menu className="w-6 h-6" strokeWidth={1.8} />
             </button>
@@ -826,7 +826,7 @@ export default function LuxuryNavbar() {
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }
                 }}
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1"
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1 btn-tap-active"
               >
                 <div className="relative flex flex-col items-center">
                   {/* Pill background for active state */}
