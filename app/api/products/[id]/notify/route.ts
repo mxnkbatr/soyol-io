@@ -5,7 +5,7 @@ import { ObjectId } from 'mongodb';
 
 export async function POST(
     req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         const { userId } = await auth();
@@ -13,7 +13,7 @@ export async function POST(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id } = await params;
+        const { id } = await context.params;
         if (!id) {
             return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
         }

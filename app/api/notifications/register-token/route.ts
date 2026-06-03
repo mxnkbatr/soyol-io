@@ -19,33 +19,35 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Token is required' }, { status: 400 });
         }
 
+        // Fetch user's promo preference before subscribing
         const usersCollection = await getCollection<User>('users');
-
         const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
         const existingTokens = user?.pushTokens || [];
         const isAlreadyRegistered = existingTokens.some((pt: PushToken) => pt.token === token);
+        const promoEnabled = user?.notificationPrefs?.promo !== false; // default true
 
         if (!isAlreadyRegistered) {
             const newToken: PushToken = {
                 token,
                 platform: (platform as string) || 'unknown',
-                createdAt: new Date()
+                createdAt: new Date(),
             };
-
+            
             await usersCollection.updateOne(
                 { _id: new ObjectId(userId) },
-                { 
-                    $push: { 
-                        pushTokens: newToken
-                    } as any // Cast to any carefully if Mongo types are still being strict
-                }
+                { $push: { pushTokens: newToken } as any }
             );
 
-            // Subscribe the token to the global 'all-users' topic
-            await subscribeTokenToTopic(token, 'all-users');
+            // Only subscribe to promo topic if the user wants it
+            if (promoEnabled) {
+                await subscribeTokenToTopic(token, 'all-users');
+            }
         } else {
-            // Self-healing: ensure it's subscribed in case topic registration failed earlier
-            await subscribeTokenToTopic(token, 'all-users');
+            // Self-heal: only re-subscribe if preference allows it
+            if (promoEnabled) {
+                await subscribeTokenToTopic(token, 'all-users');
+            }
+            // If promoEnabled is false, we do NOT subscribe — respecting the user preference
         }
 
         return NextResponse.json({ success: true });

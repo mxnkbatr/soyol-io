@@ -1,4 +1,3 @@
-
 import { MongoClient, ServerApiVersion } from 'mongodb';
 import { config } from 'dotenv';
 import path from 'path';
@@ -81,6 +80,15 @@ async function fixDb() {
         await usersCollection.createIndex({ phone: 1 }, { unique: true });
         await usersCollection.createIndex({ role: 1 });
 
+        // notifications collection indexes
+        const notificationsCollection = db.collection('notifications');
+        console.log('Creating notifications indexes...');
+        // Compound index to support the 60s polled count: { $or: [{ userId }, { userId: 'all' }], isRead: false }
+        await notificationsCollection.createIndex({ userId: 1, isRead: 1, createdAt: -1 });
+        // Index to support fetching sorted order notifications: { $or: [{ userId }, { userId: 'all' }] } -> .sort({ createdAt: -1 })
+        await notificationsCollection.createIndex({ userId: 1, createdAt: -1 });
+        // Fallback fallback single sorting index
+        await notificationsCollection.createIndex({ createdAt: -1 });
 
         console.log('Indexes created successfully.');
 

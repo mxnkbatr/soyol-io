@@ -1,6 +1,6 @@
 import { MongoClient, Db, Collection, Document } from 'mongodb';
 
-const MONGO_DB = process.env.MONGO_DB || 'Buddha';
+const MONGO_DB = process.env.MONGO_DB || 'Soyloo';
 
 const options = {
   maxPoolSize: 10,

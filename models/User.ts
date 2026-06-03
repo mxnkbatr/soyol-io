@@ -20,6 +20,15 @@ export interface PushToken {
     createdAt: Date;
 }
 
+export interface NotificationPrefs {
+    order: boolean;
+    delivery: boolean;
+    promo: boolean;
+    stock: boolean;
+    chat: boolean;
+    email: boolean;
+}
+
 export interface User {
     _id?: ObjectId;
     phone: string;
@@ -30,6 +39,7 @@ export interface User {
     image?: string;
     addresses?: Address[];
     pushTokens?: PushToken[];
+    notificationPrefs?: NotificationPrefs; // Typed preferences model
     lastSeen?: Date;
     createdAt: Date;
     updatedAt: Date;

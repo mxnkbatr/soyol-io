@@ -34,6 +34,9 @@ const protectedRoutes = [
   '/wishlist',
   '/addresses',
   '/settings',
+  '/vendor',
+  '/messages',
+  '/checkout',
 ];
 
 // Paths that are for admins only
@@ -41,7 +44,7 @@ const adminRoutes = [
   '/admin'
 ];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const forwarded = req.headers.get('x-forwarded-for');
   const ip = forwarded ? forwarded.split(',')[0] : '127.0.0.1';

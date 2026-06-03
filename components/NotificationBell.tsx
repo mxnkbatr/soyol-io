@@ -28,9 +28,12 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showAll, setShowAll] = useState(false); // Controls expansion state
 
   const bellRef = useRef<HTMLDivElement>(null);
-  const displayList = notifications.slice(0, 5);
+  
+  // Dynamically slice based on showAll state
+  const displayList = showAll ? notifications : notifications.slice(0, 5);
 
   const fetchNotifications = useCallback(async () => {
     if (!isSignedIn || !user?.id) return;
@@ -47,11 +50,13 @@ export default function NotificationBell() {
     setOpen((o) => !o);
   };
 
-  // Only trigger full notifications loading when the panel is opened
+  // Trigger full notifications loading when the panel is opened, reset expansion on close
   useEffect(() => {
     if (open) {
       setLoading(true);
       fetchNotifications().finally(() => setLoading(false));
+    } else {
+      setShowAll(false); // Reset back to showing 5 items when dropdown is closed
     }
   }, [open, fetchNotifications]);
 
@@ -270,15 +275,17 @@ export default function NotificationBell() {
                     })}
                   </ul>
                 )}
-                {displayList.length > 0 && notifications.length > 5 && (
+                
+                {/* Fixed View All link to cleanly expand list inline in dropdown and prevent 404s */}
+                {displayList.length > 0 && notifications.length > 5 && !showAll && (
                   <div className="px-3 pt-2">
-                    <Link
-                      href="/notifications"
-                      onClick={() => setOpen(false)}
-                      className="block w-full text-center py-3 bg-[#F2F2F7] text-[#111] text-[14px] font-bold rounded-full active:scale-[0.98] transition-all hover:bg-[#E5E5EA]"
+                    <button
+                      type="button"
+                      onClick={() => setShowAll(true)}
+                      className="block w-full text-center py-3 bg-[#F2F2F7] text-[#111] text-[14px] font-bold rounded-full active:scale-[0.98] transition-all hover:bg-[#E5E5EA] cursor-pointer"
                     >
-                      Бүгдийг харах
-                    </Link>
+                      Бүгдийг харах ({notifications.length})
+                    </button>
                   </div>
                 )}
               </div>

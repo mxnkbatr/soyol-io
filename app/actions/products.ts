@@ -5,6 +5,7 @@ import { ObjectId } from 'mongodb';
 import { revalidatePath } from 'next/cache';
 import { currentUser } from '@/lib/auth';
 import { sendPushToAllUsers } from '@/lib/fcm';
+import { Notification } from '@/models/Notification';
 
 export type ProductFormData = {
   name: string;
@@ -84,7 +85,7 @@ export async function createProduct(data: ProductFormData) {
     (async () => {
       try {
         const notifications = await getCollection('notifications');
-        await notifications.insertOne({
+        const notificationData: Omit<Notification, '_id'> = {
           userId: 'all',
           title: '🔥 Шинэ бараа ирлээ!',
           message: `${productData.name} яг одоо бэлэн байна.${productData.price ? ` Үнэ: ${productData.price}₮` : ''}`,
@@ -92,7 +93,8 @@ export async function createProduct(data: ProductFormData) {
           isRead: false,
           link: `/product/${result.insertedId.toString()}`,
           createdAt: new Date(),
-        });
+        };
+        await notifications.insertOne(notificationData);
       } catch (err) {
         console.error('FCM: Failed to save global product notification in DB:', err);
       }
@@ -204,7 +206,7 @@ export async function updateProduct(productId: string, data: Partial<ProductForm
           });
 
           const notificationsCollection = await getCollection('notifications');
-          await notificationsCollection.insertOne({
+          const restockNotification: Omit<Notification, '_id'> = {
             userId: 'all',
             title: '✅ Бараа нөөцлөгдлөө!',
             message: `${productName} дахин бэлэн боллоо!`,
@@ -212,45 +214,12 @@ export async function updateProduct(productId: string, data: Partial<ProductForm
             isRead: false,
             link: `/product/${productId}`,
             createdAt: new Date(),
-          });
+          };
+          await notificationsCollection.insertOne(restockNotification);
 
           // ── Personal restock watchers alert block ──
-          const watchers = existingProduct.restockWatchers || [];
-          if (watchers.length > 0) {
-            const { sendPushToUser } = await import('@/lib/fcm');
-            for (const watcher of watchers) {
-              try {
-                await sendPushToUser({
-                  userId: watcher,
-                  title: `✅ ${productName} дахин бэлэн боллоо!`,
-                  body: "Таны хүлээж байсан бараа нэмэгдлээ. Яараарай!",
-                  imageUrl,
-                  data: {
-                    url: `/product/${productId}`,
-                    type: 'restock_personal'
-                  }
-                });
-
-                await notificationsCollection.insertOne({
-                  userId: watcher,
-                  title: `✅ ${productName} дахин бэлэн боллоо!`,
-                  message: "Таны хүлээж байсан бараа нэмэгдлээ. Яараарай!",
-                  type: 'product',
-                  isRead: false,
-                  link: `/product/${productId}`,
-                  createdAt: new Date(),
-                });
-              } catch (watcherErr) {
-                console.error(`[Admin Product Restock Action] Error notifying watcher ${watcher}:`, watcherErr);
-              }
-            }
-
-            // Clear the watchers array to prevent repeated notifications on future updates
-            await products.updateOne(
-              { _id: new ObjectId(productId) },
-              { $set: { restockWatchers: [] } }
-            );
-          }
+          const { notifyRestockWatchers } = await import('@/lib/restockNotifications');
+          await notifyRestockWatchers(productId, productName);
         } catch (err) {
           console.error('[Admin Product Restock Action] Notification error:', err);
         }

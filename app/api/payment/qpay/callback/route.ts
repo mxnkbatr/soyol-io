@@ -12,8 +12,19 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
+
+        // 1. [Fix Issue 3] Validate Callback Secret / Signature (if configured in env)
+        const secret = process.env.QPAY_CALLBACK_SECRET;
+        if (secret) {
+            const provided = req.headers.get('x-qpay-signature') || searchParams.get('secret');
+            if (provided !== secret) {
+                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            }
+        }
+
         const orderId = searchParams.get('order_id');
-        const body = await req.json();
+
+        // 2. [Fix Issue 4] Body parsing completely removed here to avoid GET crashes
 
         if (!orderId) {
             return NextResponse.json({ error: 'Missing order_id' }, { status: 400 });

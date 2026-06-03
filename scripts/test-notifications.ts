@@ -7,7 +7,7 @@ import path from 'path';
 config({ path: path.resolve(__dirname, '../.env') });
 
 const MONGODB_URI = process.env.MONGODB_URI;
-const MONGO_DB = process.env.MONGO_DB || 'Buddha';
+const MONGO_DB = process.env.MONGO_DB || 'Soyloo';
 const TEST_USER_ID = process.env.NEXT_PUBLIC_ADMIN_USER_ID || 'user_2s...'; // Need a real user ID here or just fetch one
 
 if (!MONGODB_URI) {

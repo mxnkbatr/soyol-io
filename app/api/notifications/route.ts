@@ -124,13 +124,17 @@ export async function PATCH(req: Request) {
             });
         }
 
-        // Mode 1: Single mark-read (existing logic)
+        // Mode 1: Single mark-read
         if (!notificationId) {
             return NextResponse.json({ error: 'Missing notificationId or markAll' }, { status: 400 });
         }
 
+        // Modified query to include broadcast notifications
         await notificationsCollection.updateOne(
-            { _id: new ObjectId(notificationId), userId },
+            {
+                _id: new ObjectId(notificationId),
+                $or: [{ userId }, { userId: 'all' }],
+            },
             { $set: { isRead: true } }
         );
 

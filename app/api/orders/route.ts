@@ -12,14 +12,26 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const phoneParam = searchParams.get('phone');
 
-    // Guest phone-based tracking — no auth required
+    // Guest phone-based tracking — returns strictly partial data to prevent PII harvesting
     if (phoneParam) {
       const orders = await getCollection('orders');
       const results = await orders
         .find({ phone: phoneParam })
+        .project({
+          _id: 1,
+          status: 1,
+          createdAt: 1,
+        })
         .sort({ createdAt: -1 })
         .toArray();
-      return NextResponse.json({ orders: results });
+
+      const mappedResults = results.map(order => ({
+        id: order._id.toString(),
+        status: order.status,
+        createdAt: order.createdAt,
+      }));
+
+      return NextResponse.json({ orders: mappedResults });
     }
 
     const { userId, phone } = await auth();
@@ -188,10 +200,6 @@ export async function POST(req: NextRequest) {
       })().catch(() => {});
     }
 
-    // Inventory is NO LONGER decremented here on order creation.
-    // It will be lazily deducted when the order status changes to 'confirmed'
-    // via QPay or Administrator action to prevent stock hoarding.
-
     // Silent Registration: Save address if requested
     if (userId !== 'guest' && body.saveAddress && body.shipping) {
       try {
@@ -230,7 +238,6 @@ export async function POST(req: NextRequest) {
         );
       } catch (err) {
         console.error('Failed to save address silently:', err);
-        // Don't fail the order if address save fails
       }
     }
 
@@ -278,7 +285,6 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Only allow cancellation for now via this specific endpoint logic
-    // Admin status updates might go through a different flow or check role here
     if (status !== 'cancelled') {
       return NextResponse.json({ error: 'Invalid status update via this endpoint' }, { status: 400 });
     }

@@ -4,13 +4,12 @@ import { ObjectId } from 'mongodb';
 
 export const dynamic = 'force-dynamic';
 
-// FIXED: Signature rewritten to use inline destructuring for TypeScript validation
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const banners = await getCollection('banners');
     const result = await banners.deleteOne({ _id: new ObjectId(id) });
 
@@ -25,13 +24,12 @@ export async function DELETE(
   }
 }
 
-// FIXED: Signature rewritten to use inline destructuring for TypeScript validation
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
     const updates = await request.json();
 
     delete updates._id;

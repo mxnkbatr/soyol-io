@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCollection } from '@/lib/mongodb';
 import { auth } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
+import { Notification } from '@/models/Notification';
 
 export async function POST(req: NextRequest) {
     try {
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
                 });
 
                 const notificationsCollection = await getCollection('notifications');
-                await notificationsCollection.insertOne({
+                const notificationData: Omit<Notification, '_id'> = {
                     userId: 'all',
                     title: notificationTitle,
                     message: notificationBody,
@@ -52,7 +53,9 @@ export async function POST(req: NextRequest) {
                     isRead: false,
                     link: `/product/${insertedId}`,
                     createdAt: new Date(),
-                });
+                };
+                
+                await notificationsCollection.insertOne(notificationData);
             } catch (err) {
                 console.error('[Admin Product] Notification error:', err);
             }
@@ -125,7 +128,7 @@ export async function PUT(req: NextRequest) {
                     });
 
                     const notificationsCollection = await getCollection('notifications');
-                    await notificationsCollection.insertOne({
+                    const restockNotification: Omit<Notification, '_id'> = {
                         userId: 'all',
                         title: '✅ Бараа нөөцлөгдлөө!',
                         message: `${productName} дахин бэлэн боллоо!`,
@@ -133,45 +136,12 @@ export async function PUT(req: NextRequest) {
                         isRead: false,
                         link: `/product/${productId}`,
                         createdAt: new Date(),
-                    });
+                    };
+                    await notificationsCollection.insertOne(restockNotification);
 
                     // ── Personal restock watchers alert block ──
-                    const watchers = existingProduct.restockWatchers || [];
-                    if (watchers.length > 0) {
-                        const { sendPushToUser } = await import('@/lib/fcm');
-                        for (const watcher of watchers) {
-                            try {
-                                await sendPushToUser({
-                                    userId: watcher,
-                                    title: `✅ ${productName} дахин бэлэн боллоо!`,
-                                    body: "Таны хүлээж байсан бараа нэмэгдлээ. Яараарай!",
-                                    imageUrl,
-                                    data: {
-                                        url: `/product/${productId}`,
-                                        type: 'restock_personal'
-                                    }
-                                });
-
-                                await notificationsCollection.insertOne({
-                                    userId: watcher,
-                                    title: `✅ ${productName} дахин бэлэн боллоо!`,
-                                    message: "Таны хүлээж байсан бараа нэмэгдлээ. Яараарай!",
-                                    type: 'product',
-                                    isRead: false,
-                                    link: `/product/${productId}`,
-                                    createdAt: new Date(),
-                                });
-                            } catch (watcherErr) {
-                                console.error(`[Admin Product Restock] Error notifying watcher ${watcher}:`, watcherErr);
-                            }
-                        }
-
-                        // Clear the watchers array to prevent repeated notifications on future updates
-                        await productsCollection.updateOne(
-                            { _id: new ObjectId(productId) },
-                            { $set: { restockWatchers: [] } }
-                        );
-                    }
+                    const { notifyRestockWatchers } = await import('@/lib/restockNotifications');
+                    await notifyRestockWatchers(productId, productName);
                 } catch (err) {
                     console.error('[Admin Product Restock] Notification error:', err);
                 }
