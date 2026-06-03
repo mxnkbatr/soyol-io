@@ -20,7 +20,16 @@ export async function getWebPushToken(): Promise<string | null> {
     
     try {
         const messaging: Messaging = getMessaging(app);
-        const swReg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+        
+        // Pass Firebase config to the service worker via query string
+        const params = new URLSearchParams({
+            apiKey: firebaseConfig.apiKey || '',
+            projectId: firebaseConfig.projectId || '',
+            messagingSenderId: firebaseConfig.messagingSenderId || '',
+            appId: firebaseConfig.appId || '',
+        }).toString();
+
+        const swReg = await navigator.serviceWorker.register(`/firebase-messaging-sw.js?${params}`);
         const token = await getToken(messaging, { 
             vapidKey: VAPID_KEY, 
             serviceWorkerRegistration: swReg 
