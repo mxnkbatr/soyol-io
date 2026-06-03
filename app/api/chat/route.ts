@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     }
 
     const result = await streamText({
-      model: openrouter.chat('google/gemini-2.0-flash-001'),
+      model: openrouter('google/gemini-2.0-flash-001'),
       system: `
     Та бол "Soyol Video Shop" онлайн дэлгүүрийн мэргэжлийн борлуулалтын зөвлөх AI байна. 
     Чиний гол үүрэг бол хэрэглэгчийг ойлгож, тэдэнд тохирсон барааг санал болгож, худалдан авалт хийхэд нь туслах юм. 
