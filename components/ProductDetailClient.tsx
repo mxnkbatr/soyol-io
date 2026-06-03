@@ -402,7 +402,7 @@ export function ProductDetailClient({
         </div>
 
         <div
-          className="lg:max-w-6xl lg:mx-auto lg:px-6 lg:pb-12 pb-[calc(130px+env(safe-area-inset-bottom,0px))]"
+          className="lg:max-w-6xl lg:mx-auto lg:px-6 lg:pb-12 pb-[calc(160px+env(safe-area-inset-bottom,0px))]"
           style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 43px)" }}
         >
 
@@ -1097,17 +1097,25 @@ export function ProductDetailClient({
 
         {/* ── MOBILE STICKY BUYING BAR ── */}
         <div
-          className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] bg-white/80 border-t border-[#E5E5EA]/80 backdrop-blur-xl px-4 pt-3 pb-[calc(8px+env(safe-area-inset-bottom,0px))] flex items-center justify-between gap-3 shadow-[0_-4px_16px_rgba(0,0,0,0.02)] select-none"
+          className="lg:hidden fixed left-0 right-0 z-[110] bg-white border-t border-[#E5E5EA] px-4 pt-3 flex items-center justify-between gap-3 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] select-none"
+          style={{ 
+            bottom: "calc(49px + env(safe-area-inset-bottom, 0px))"
+          }}
         >
-          <div className="flex flex-col shrink-0 min-w-[100px]">
+          <div className="flex flex-col shrink-0 min-w-[110px]">
             {product.originalPrice && product.originalPrice > displayPrice && (
               <span className="text-[11px] text-gray-400 line-through font-medium leading-none mb-1">
-                {formatPrice(product.originalPrice)}
+                {formatPrice(product.originalPrice * quantity)}
               </span>
             )}
-            <span className="text-[20px] font-bold text-[#FF4500] leading-none tracking-tight">
-              {formatPrice(displayPrice)}
+            <span className="text-[19px] font-black text-[#FF4500] leading-none tracking-tight">
+              {formatPrice(displayPrice * quantity)}
             </span>
+            {quantity > 1 && (
+              <span className="text-[10px] text-gray-500 font-bold mt-1.5 bg-gray-100 px-1.5 py-0.5 rounded-md w-fit">
+                {quantity}ш × {formatPrice(displayPrice)}
+              </span>
+            )}
           </div>
 
           {isOutOfStock && !isPreorder ? (
@@ -1116,7 +1124,7 @@ export function ProductDetailClient({
               transition={SPRING_SNAP}
               onClick={handleNotify}
               disabled={notifying || requested}
-              className="flex-1 flex items-center justify-center gap-1.5 h-11 rounded-[16px] bg-[#1C1C1E] text-white font-bold text-[14px] disabled:opacity-40 cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-1.5 h-12 rounded-[18px] bg-[#1C1C1E] text-white font-bold text-[14px] disabled:opacity-40 cursor-pointer"
             >
               {notifying ? (
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1127,33 +1135,52 @@ export function ProductDetailClient({
               )}
             </motion.button>
           ) : (
-            <div className="flex items-center gap-2 flex-1">
-              <motion.button
-                whileTap={{ scale: 0.92 }}
-                onClick={handleAddToCart}
-                disabled={!canAddToCart}
-                className={`w-11 h-11 rounded-[16px] flex items-center justify-center border transition-all duration-150 shrink-0 ${
-                  addedToCart
-                    ? "bg-emerald-500 border-emerald-500 text-white"
-                    : "border-[#E5E5EA] bg-white text-gray-700 active:bg-gray-50"
-                }`}
-              >
-                {addedToCart ? (
-                  <Check className="w-5 h-5 nat-check" strokeWidth={2.5} />
-                ) : (
-                  <ShoppingBag className="w-5 h-5" strokeWidth={1.8} />
-                )}
-              </motion.button>
+            <div className="flex items-center gap-2.5 flex-1 justify-end">
+              {/* Mobile Quantity Selector in Sticky Bar */}
+              <div className="flex items-center gap-2 bg-[#F2F2F7] p-1 rounded-xl shrink-0">
+                <button
+                  onClick={() => { haptic("light"); setQuantity(Math.max(1, quantity - 1)); }}
+                  className="w-7 h-7 rounded-lg bg-white flex items-center justify-center shadow-sm active:bg-gray-100"
+                >
+                  <Minus className="w-3 h-3 text-gray-700" strokeWidth={3} />
+                </button>
+                <span className="w-4 text-center text-[13px] font-black text-gray-900">{quantity}</span>
+                <button
+                  onClick={() => { haptic("light"); setQuantity(Math.min(Math.max(displayInventory, 99), quantity + 1)); }}
+                  className="w-7 h-7 rounded-lg bg-white flex items-center justify-center shadow-sm active:bg-gray-100"
+                >
+                  <Plus className="w-3 h-3 text-gray-700" strokeWidth={3} />
+                </button>
+              </div>
 
-              <motion.button
-                whileTap={{ scale: 0.96 }}
-                transition={SPRING_SNAP}
-                onClick={handleBuyNow}
-                disabled={!canAddToCart || buying}
-                className={`flex-1 h-11 rounded-[16px] bg-[#FF4500] text-white font-bold text-[14px] flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(255,69,0,0.2)] active:opacity-90 transition-all ${buying ? "nat-buying" : ""}`}
-              >
-                {buying ? "Уншиж байна..." : <>Худалдан авах <ArrowRight className="w-4 h-4" strokeWidth={2.5} /></>}
-              </motion.button>
+              <div className="flex items-center gap-2">
+                <motion.button
+                  whileTap={{ scale: 0.92 }}
+                  onClick={handleAddToCart}
+                  disabled={!canAddToCart}
+                  className={`w-12 h-12 rounded-[18px] flex items-center justify-center border transition-all duration-150 shrink-0 ${
+                    addedToCart
+                      ? "bg-emerald-500 border-emerald-500 text-white"
+                      : "border-[#E5E5EA] bg-white text-gray-700 active:bg-gray-50 shadow-sm"
+                  }`}
+                >
+                  {addedToCart ? (
+                    <Check className="w-6 h-6 nat-check" strokeWidth={2.5} />
+                  ) : (
+                    <ShoppingBag className="w-6 h-6" strokeWidth={1.8} />
+                  )}
+                </motion.button>
+
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  transition={SPRING_SNAP}
+                  onClick={handleBuyNow}
+                  disabled={!canAddToCart || buying}
+                  className={`min-w-[120px] px-4 h-12 rounded-[18px] bg-[#FF4500] text-white font-black text-[14px] flex items-center justify-center gap-1.5 shadow-[0_6px_16px_rgba(255,69,0,0.25)] active:opacity-95 transition-all ${buying ? "nat-buying" : ""}`}
+                >
+                  {buying ? "..." : <>Худалдан авах</>}
+                </motion.button>
+              </div>
             </div>
           )}
         </div>
