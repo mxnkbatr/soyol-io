@@ -1136,23 +1136,6 @@ export function ProductDetailClient({
             </motion.button>
           ) : (
             <div className="flex items-center gap-2.5 flex-1 justify-end">
-              {/* Mobile Quantity Selector in Sticky Bar */}
-              <div className="flex items-center gap-2 bg-[#F2F2F7] p-1 rounded-xl shrink-0">
-                <button
-                  onClick={() => { haptic("light"); setQuantity(Math.max(1, quantity - 1)); }}
-                  className="w-7 h-7 rounded-lg bg-white flex items-center justify-center shadow-sm active:bg-gray-100"
-                >
-                  <Minus className="w-3 h-3 text-gray-700" strokeWidth={3} />
-                </button>
-                <span className="w-4 text-center text-[13px] font-black text-gray-900">{quantity}</span>
-                <button
-                  onClick={() => { haptic("light"); setQuantity(Math.min(Math.max(displayInventory, 99), quantity + 1)); }}
-                  className="w-7 h-7 rounded-lg bg-white flex items-center justify-center shadow-sm active:bg-gray-100"
-                >
-                  <Plus className="w-3 h-3 text-gray-700" strokeWidth={3} />
-                </button>
-              </div>
-
               <div className="flex items-center gap-2">
                 <motion.button
                   whileTap={{ scale: 0.92 }}
@@ -1176,7 +1159,7 @@ export function ProductDetailClient({
                   transition={SPRING_SNAP}
                   onClick={handleBuyNow}
                   disabled={!canAddToCart || buying}
-                  className={`min-w-[120px] px-4 h-12 rounded-[18px] bg-[#FF4500] text-white font-black text-[14px] flex items-center justify-center gap-1.5 shadow-[0_6px_16px_rgba(255,69,0,0.25)] active:opacity-95 transition-all ${buying ? "nat-buying" : ""}`}
+                  className={`min-w-[140px] px-6 h-12 rounded-[18px] bg-[#FF4500] text-white font-black text-[15px] flex items-center justify-center gap-1.5 shadow-[0_6px_16px_rgba(255,69,0,0.25)] active:opacity-95 transition-all ${buying ? "nat-buying" : ""}`}
                 >
                   {buying ? "..." : <>Худалдан авах</>}
                 </motion.button>
