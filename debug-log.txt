@@ -2324,3 +2324,34 @@
     ]
   }
 ]
+
+--- Request 2026-06-03T18:03:26.720Z ---
+[
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "hi"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Сайн байна уу? Таныг энд харах таатай байна. Та юу хайж байна вэ? 😊"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "hi"
+      }
+    ]
+  }
+]

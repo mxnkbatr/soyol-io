@@ -25,10 +25,17 @@ export async function POST(req: Request) {
 
     const modelMessages = await convertToModelMessages(messages);
 
-    // Prefer DeepSeek if API key is present, fallback to OpenRouter
+    // DeepSeek is the primary model as requested by the user.
+    // Ensure DEEPSEEK_API_KEY is set in your environment variables (.env).
+    if (!process.env.DEEPSEEK_API_KEY) {
+      console.error('DEEPSEEK_API_KEY is missing from environment variables.');
+      // If DeepSeek is missing, we can try to use OpenRouter as a backup, 
+      // but we should warn the user.
+    }
+
     const aiModel = process.env.DEEPSEEK_API_KEY 
       ? deepseek.chat('deepseek-chat')
-      : openrouter.chat('google/gemini-2.0-flash-001');
+      : openrouter.chat('google/gemini-2.0-flash-lite-preview-02-05'); // Fixed model name for OpenRouter fallback
 
     // LOGGING for debug
     try {
