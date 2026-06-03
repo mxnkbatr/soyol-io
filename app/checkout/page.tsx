@@ -329,7 +329,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] pt-[calc(52px+env(safe-area-inset-top,0px))] pb-28">
+    <div className="min-h-screen bg-[#F2F2F7] pt-[calc(52px+env(safe-area-inset-top,0px))] pb-40 lg:pb-28">
       <NativeHeader title="Захиалга баталгаажуулах" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-6 sm:gap-8 pb-[160px] lg:pb-0">
@@ -603,7 +603,10 @@ export default function CheckoutPage() {
           </div>
 
           {/* Mobile Fixed Bottom Button */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-[#E5E5EA]/60 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)] lg:hidden z-30 shadow-[0_-8px_32px_rgba(0,0,0,0.04)]">
+          <div 
+            className="fixed left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-[#E5E5EA]/60 px-5 pt-3 pb-3 lg:hidden z-30 shadow-[0_-8px_32px_rgba(0,0,0,0.04)]"
+            style={{ bottom: 'calc(49px + env(safe-area-inset-bottom, 0px))' }}
+          >
             <div className="flex items-center justify-between gap-5 max-w-lg mx-auto">
               <div className="flex flex-col">
                 <span className="text-[11px] text-[#8E8E93] font-medium uppercase tracking-wider">Нийт төлөх</span>

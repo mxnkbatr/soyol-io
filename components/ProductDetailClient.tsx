@@ -348,7 +348,8 @@ export function ProductDetailClient({
         @keyframes nat-badge-pop { 0%{transform:scale(0.7);opacity:0} 70%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
         .nat-badge-pop { animation: nat-badge-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; }
         .nat-buy-btn { background: linear-gradient(135deg, #FF4500 0%, #FF3000 100%); }
-        .nat-buy-btn:active { background: linear-gradient(135deg, #E64800 0%, #CC2800 100%); transform: scale(0.97); }
+        .nat-buy-btn:disabled { background: #8E8E93 !important; opacity: 0.5; cursor: not-allowed; box-shadow: none !important; }
+        .nat-buy-btn:active:not(:disabled) { background: linear-gradient(135deg, #E64800 0%, #CC2800 100%); transform: scale(0.97); }
         .nat-cart-btn:active { transform: scale(0.96); }
         @keyframes nat-shimmer { 0%{opacity:1} 50%{opacity:0.7} 100%{opacity:1} }
         .nat-buying { animation: nat-shimmer 0.8s ease infinite; }
@@ -1016,7 +1017,7 @@ export function ProductDetailClient({
                         transition={SPRING_SNAP}
                         onClick={handleAddToCart}
                         disabled={!canAddToCart}
-                        className={`flex items-center justify-center gap-1.5 h-[40px] px-5 rounded-xl font-bold text-[12px] transition-all duration-200 border-2 disabled:opacity-40 disabled:cursor-not-allowed ${
+                        className={`flex items-center justify-center gap-1.5 h-[40px] px-5 rounded-xl font-bold text-[12px] transition-all duration-200 border-2 disabled:opacity-40 disabled:bg-gray-50 disabled:cursor-not-allowed ${
                           addedToCart
                             ? "bg-emerald-500 border-emerald-500 text-white"
                             : "border-[#E5E5EA] bg-white text-gray-800 hover:border-gray-300 hover:bg-gray-50 cursor-pointer"
@@ -1035,7 +1036,7 @@ export function ProductDetailClient({
                         transition={SPRING_SNAP}
                         onClick={handleBuyNow}
                         disabled={!canAddToCart || buying}
-                        className={`flex items-center justify-center gap-1.5 h-[40px] px-6 rounded-xl nat-buy-btn text-white font-black text-[13px] disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(255,69,0,0.2)] cursor-pointer ${buying ? "nat-buying" : ""}`}
+                        className={`flex items-center justify-center gap-1.5 h-[40px] px-6 rounded-xl nat-buy-btn text-white font-black text-[13px] shadow-[0_4px_12px_rgba(255,69,0,0.2)] cursor-pointer ${buying ? "nat-buying" : ""}`}
                       >
                         {buying ? "..." : <>Худалдан авах <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} /></>}
                       </motion.button>
@@ -1093,7 +1094,7 @@ export function ProductDetailClient({
                   whileTap={{ scale: 0.92 }}
                   onClick={handleAddToCart}
                   disabled={!canAddToCart}
-                  className={`w-12 h-12 rounded-[18px] flex items-center justify-center border transition-all duration-150 shrink-0 ${
+                  className={`w-12 h-12 rounded-[18px] flex items-center justify-center border transition-all duration-150 shrink-0 disabled:opacity-40 disabled:bg-gray-50 disabled:cursor-not-allowed ${
                     addedToCart
                       ? "bg-emerald-500 border-emerald-500 text-white"
                       : "border-[#E5E5EA] bg-white text-gray-700 active:bg-gray-50 shadow-sm"
@@ -1111,7 +1112,7 @@ export function ProductDetailClient({
                   transition={SPRING_SNAP}
                   onClick={handleBuyNow}
                   disabled={!canAddToCart || buying}
-                  className={`min-w-[140px] px-6 h-12 rounded-[18px] bg-[#FF4500] text-white font-black text-[15px] flex items-center justify-center gap-1.5 shadow-[0_6px_16px_rgba(255,69,0,0.25)] active:opacity-95 transition-all ${buying ? "nat-buying" : ""}`}
+                  className={`min-w-[140px] px-6 h-12 rounded-[18px] nat-buy-btn text-white font-black text-[15px] flex items-center justify-center gap-1.5 shadow-[0_6px_16px_rgba(255,69,0,0.25)] active:opacity-95 transition-all ${buying ? "nat-buying" : ""}`}
                 >
                   {buying ? "..." : <>Худалдан авах</>}
                 </motion.button>
