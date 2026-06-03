@@ -24,10 +24,9 @@ export async function GET(req: Request) {
         if (countOnly) {
             const unreadCount = await notificationsCollection.countDocuments({
                 $or: [
-                    { userId },
-                    { userId: 'all' }
-                ],
-                isRead: false
+                    { userId, isRead: false },
+                    { userId: 'all', readBy: { $ne: userId } }
+                ]
             });
             return NextResponse.json({ unreadCount });
         }
@@ -45,7 +44,8 @@ export async function GET(req: Request) {
 
         const mappedNotifications = notifications.map(n => ({
             ...n,
-            id: n._id.toString()
+            id: n._id.toString(),
+            isRead: n.userId === 'all' ? (n.readBy?.includes(userId) || false) : n.isRead
         }));
 
         return NextResponse.json({ notifications: mappedNotifications });
@@ -107,20 +107,19 @@ export async function PATCH(req: Request) {
 
         // Mode 2: Mark-all-read
         if (markAll === true) {
-            const result = await notificationsCollection.updateMany(
-                {
-                    $or: [
-                        { userId },
-                        { userId: 'all' }
-                    ],
-                    isRead: false
-                },
+            const userResult = await notificationsCollection.updateMany(
+                { userId, isRead: false },
                 { $set: { isRead: true } }
+            );
+
+            const broadcastResult = await notificationsCollection.updateMany(
+                { userId: 'all', readBy: { $ne: userId } },
+                { $addToSet: { readBy: userId } }
             );
 
             return NextResponse.json({
                 success: true,
-                updatedCount: result.modifiedCount
+                updatedCount: userResult.modifiedCount + broadcastResult.modifiedCount
             });
         }
 
@@ -129,14 +128,26 @@ export async function PATCH(req: Request) {
             return NextResponse.json({ error: 'Missing notificationId or markAll' }, { status: 400 });
         }
 
-        // Modified query to include broadcast notifications
-        await notificationsCollection.updateOne(
-            {
-                _id: new ObjectId(notificationId),
-                $or: [{ userId }, { userId: 'all' }],
-            },
-            { $set: { isRead: true } }
-        );
+        const notification = await notificationsCollection.findOne({
+            _id: new ObjectId(notificationId),
+            $or: [{ userId }, { userId: 'all' }]
+        });
+
+        if (!notification) {
+            return NextResponse.json({ error: 'Notification not found or unauthorized' }, { status: 404 });
+        }
+
+        if (notification.userId === 'all') {
+            await notificationsCollection.updateOne(
+                { _id: new ObjectId(notificationId) },
+                { $addToSet: { readBy: userId } }
+            );
+        } else {
+            await notificationsCollection.updateOne(
+                { _id: new ObjectId(notificationId) },
+                { $set: { isRead: true } }
+            );
+        }
 
         return NextResponse.json({ success: true });
     } catch (error) {

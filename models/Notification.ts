@@ -5,6 +5,7 @@ export interface Notification {
     message: string;
     type: 'order' | 'message' | 'system' | 'sale' | 'new_product' | 'product' | 'restock' | 'restock_personal';
     isRead: boolean;
+    readBy?: string[];
     link?: string;
     createdAt: Date;
 }

@@ -62,6 +62,12 @@ export const usePushNotifications = () => {
                     console.log('FCM: Foreground notification:', notification);
                     const title = notification.title || 'Мэдэгдэл';
                     const body = notification.body || '';
+                    
+                    // Dispatch event to sync notification count instantly
+                    if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new Event('sync-notifications'));
+                    }
+
                     toast(
                         `${title}\n${body}`,
                         {
@@ -83,6 +89,12 @@ export const usePushNotifications = () => {
                 // Tap on notification — deep link
                 const actionListener = await PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
                     console.log('FCM: Action performed:', action);
+                    
+                    // Dispatch event to sync notification count instantly
+                    if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new Event('sync-notifications'));
+                    }
+
                     const url = action.notification.data?.url;
                     if (url) {
                         window.location.href = url;

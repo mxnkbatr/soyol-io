@@ -162,9 +162,10 @@ export async function sendPushToUser({
       });
 
       if (tokensToRemove.length > 0) {
-        await usersCollection.updateMany({}, {
-          $pull: { pushTokens: { token: { $in: tokensToRemove } } },
-        } as any);
+        await usersCollection.updateMany(
+          { 'pushTokens.token': { $in: tokensToRemove } },
+          { $pull: { pushTokens: { token: { $in: tokensToRemove } } } } as any
+        );
       }
     }
 

@@ -25,9 +25,24 @@ export function useNotificationCount(userId?: string) {
     // Initial fetch on mount
     fetchCount();
 
+    // Listen to sync-notifications event for real-time updates (e.g. from push notifications)
+    const handleSync = () => {
+      fetchCount();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('sync-notifications', handleSync);
+    }
+
     // Poll every 60 seconds
     const interval = setInterval(fetchCount, 60000);
-    return () => clearInterval(interval);
+    
+    return () => {
+      clearInterval(interval);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('sync-notifications', handleSync);
+      }
+    };
   }, [userId, fetchCount]);
 
   return { unreadCount, setUnreadCount, fetchCount };
