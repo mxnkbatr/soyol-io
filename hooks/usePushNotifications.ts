@@ -32,28 +32,42 @@ export const usePushNotifications = () => {
             if (Capacitor.isNativePlatform()) {
                 const { PushNotifications } = await import('@capacitor/push-notifications');
 
-                // Check permissions
-                let permStatus = await PushNotifications.checkPermissions();
+                toast.success('FCM: Native app detected', { duration: 5000 });
 
-                if (permStatus.receive === 'prompt') {
-                    permStatus = await PushNotifications.requestPermissions();
+                try {
+                    // Check permissions
+                    let permStatus = await PushNotifications.checkPermissions();
+                    console.log('FCM: Permissions check:', permStatus);
+                    toast(`FCM Permission Status: ${permStatus.receive}`, { icon: 'ℹ️', duration: 5000 });
+
+                    if (permStatus.receive === 'prompt') {
+                        toast('FCM: Requesting permissions...', { icon: '🔑', duration: 4000 });
+                        permStatus = await PushNotifications.requestPermissions();
+                        toast(`FCM Permission Request Result: ${permStatus.receive}`, { icon: 'ℹ️', duration: 5000 });
+                    }
+
+                    if (permStatus.receive !== 'granted') {
+                        toast.error(`FCM: Permission denied (${permStatus.receive}). Please allow notifications in iOS Settings.`, { duration: 8000 });
+                        return;
+                    }
+
+                    // Register with FCM
+                    toast('FCM: Registering for push notifications...', { icon: '📡', duration: 4000 });
+                    await PushNotifications.register();
+                } catch (error: any) {
+                    toast.error(`FCM Init Error: ${error?.message || error}`, { duration: 10000 });
+                    console.error('FCM: Native initialization failed:', error);
                 }
-
-                if (permStatus.receive !== 'granted') {
-                    console.warn('FCM: Push permission not granted');
-                    return;
-                }
-
-                // Register with FCM
-                await PushNotifications.register();
 
                 // Listeners
                 const registrationListener = await PushNotifications.addListener('registration', (token) => {
                     console.log('FCM: Native Token received:', token.value);
+                    toast.success('FCM Token registered successfully!', { duration: 5000 });
                     registerToken(token.value);
                 });
 
                 const errorListener = await PushNotifications.addListener('registrationError', (err) => {
+                    toast.error(`FCM Registration Error: ${err.error}`, { duration: 10000 });
                     console.error('FCM: Registration error:', err);
                 });
 
