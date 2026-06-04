@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useUser } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 
 export const usePushNotifications = () => {
     const { isSignedIn } = useUser();
+    const permissionGrantedRef = useRef(false);
 
     const registerToken = useCallback(async (token: string) => {
         try {
@@ -23,49 +24,73 @@ export const usePushNotifications = () => {
         }
     }, []);
 
+    // ──────────────────────────────────────────────────────────────────────────
+    // EFFECT 1: Ask for permission immediately on native (no login required)
+    // This ensures iOS shows the permission dialog on first app launch.
+    // ──────────────────────────────────────────────────────────────────────────
     useEffect(() => {
-        // Only initialize push notifications when user is signed in
+        if (!Capacitor.isNativePlatform()) return;
+
+        const requestPermission = async () => {
+            try {
+                const { PushNotifications } = await import('@capacitor/push-notifications');
+                let permStatus = await PushNotifications.checkPermissions();
+
+                if (permStatus.receive === 'prompt') {
+                    permStatus = await PushNotifications.requestPermissions();
+                }
+
+                if (permStatus.receive === 'granted') {
+                    permissionGrantedRef.current = true;
+                } else {
+                    console.warn('FCM: Push notification permission not granted');
+                }
+            } catch (error) {
+                console.error('FCM: Permission request failed:', error);
+            }
+        };
+
+        requestPermission();
+    }, []); // runs once on mount
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // EFFECT 2: Register FCM/APNs token & attach listeners (requires sign-in)
+    // ──────────────────────────────────────────────────────────────────────────
+    useEffect(() => {
         if (!isSignedIn) return;
 
         let cleanupFn: (() => void) | undefined;
 
         const initPush = async () => {
-            // NATIVE BRANCH (iOS/Android)
+            // NATIVE BRANCH (iOS / Android)
             if (Capacitor.isNativePlatform()) {
-                const { PushNotifications } = await import('@capacitor/push-notifications');
-
                 try {
-                    // 1. Request push notification permission
-                    let permStatus = await PushNotifications.checkPermissions();
-                    
-                    if (permStatus.receive === 'prompt') {
-                        permStatus = await PushNotifications.requestPermissions();
-                    }
+                    const { PushNotifications } = await import('@capacitor/push-notifications');
 
+                    // Re-check permission in case it was granted after first effect
+                    const permStatus = await PushNotifications.checkPermissions();
                     if (permStatus.receive !== 'granted') {
-                        console.warn('FCM: Push notification permission not granted');
+                        console.warn('FCM: Permission not granted – skipping registration');
                         return;
                     }
 
-                    // 2. Register with FCM/APNs
+                    // Register with FCM / APNs
                     await PushNotifications.register();
 
-                    // 3. Listen for FCM token (registration)
+                    // Token received
                     const registrationListener = await PushNotifications.addListener('registration', (token) => {
-                        console.log('FCM: Native Token received:', token.value);
+                        console.log('FCM: Native token received:', token.value);
                         registerToken(token.value);
                     });
 
-                    // 4. Handle foreground notifications
+                    // Foreground notification
                     const receivedListener = await PushNotifications.addListener('pushNotificationReceived', (notification) => {
                         console.log('FCM: Foreground notification:', notification);
-                        
-                        // Sync notification state globally
+
                         if (typeof window !== 'undefined') {
                             window.dispatchEvent(new Event('sync-notifications'));
                         }
 
-                        // Show UI toast for foreground message
                         toast(
                             `${notification.title}\n${notification.body}`,
                             {
@@ -81,22 +106,21 @@ export const usePushNotifications = () => {
                         );
                     });
 
-                    // 5. Handle notification tap (action performed)
+                    // Notification tap
                     const actionListener = await PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
                         console.log('FCM: Notification action performed:', action);
-                        
+
                         if (typeof window !== 'undefined') {
                             window.dispatchEvent(new Event('sync-notifications'));
                         }
 
-                        // Navigate if URL is provided in data
                         const url = action.notification.data?.url;
                         if (url) {
                             window.location.href = url;
                         }
                     });
 
-                    // Handle registration errors
+                    // Registration error
                     const errorListener = await PushNotifications.addListener('registrationError', (err) => {
                         console.error('FCM: Registration error:', err);
                     });
@@ -110,7 +134,7 @@ export const usePushNotifications = () => {
                 } catch (error) {
                     console.error('FCM: Native initialization failed:', error);
                 }
-            } 
+            }
             // WEB BRANCH
             else {
                 try {

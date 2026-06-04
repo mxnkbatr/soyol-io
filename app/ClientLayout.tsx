@@ -22,9 +22,13 @@ const swrDefaults = {
   errorRetryCount: 2,
 };
 
+function PushInit() {
+  usePushNotifications();
+  return null;
+}
+
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  usePushNotifications();
 
   const [isOffline, setIsOffline] = useState(false);
 
@@ -168,6 +172,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <SWRConfig value={swrDefaults}>
         <LanguageProvider>
           <AuthProvider>
+            <PushInit />
             <ErrorBoundary>
               <AnimatePresence>
                 {isOffline && (
