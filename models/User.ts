@@ -18,6 +18,7 @@ export interface PushToken {
     token: string;
     platform: string;
     createdAt: Date;
+    updatedAt?: Date;
 }
 
 export interface NotificationPrefs {

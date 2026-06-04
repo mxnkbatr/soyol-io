@@ -19,7 +19,6 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Token is required' }, { status: 400 });
         }
 
-        // Fetch user's promo preference before subscribing
         const usersCollection = await getCollection<User>('users');
         const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
         const existingTokens = user?.pushTokens || [];
@@ -27,27 +26,30 @@ export async function POST(req: Request) {
         const promoEnabled = user?.notificationPrefs?.promo !== false; // default true
 
         if (!isAlreadyRegistered) {
+            // New token — insert it
             const newToken: PushToken = {
                 token,
                 platform: (platform as string) || 'unknown',
                 createdAt: new Date(),
+                updatedAt: new Date(),
             };
-            
+
             await usersCollection.updateOne(
                 { _id: new ObjectId(userId) },
                 { $push: { pushTokens: newToken } as any }
             );
-
-            // Only subscribe to promo topic if the user wants it
-            if (promoEnabled) {
-                await subscribeTokenToTopic(token, 'all-users');
-            }
         } else {
-            // Self-heal: only re-subscribe if preference allows it
-            if (promoEnabled) {
-                await subscribeTokenToTopic(token, 'all-users');
-            }
-            // If promoEnabled is false, we do NOT subscribe — respecting the user preference
+            // Existing token — always bump updatedAt so we know it's still alive
+            await usersCollection.updateOne(
+                { _id: new ObjectId(userId), 'pushTokens.token': token },
+                { $set: { 'pushTokens.$.updatedAt': new Date() } }
+            );
+        }
+
+        // Always re-subscribe to FCM topic so tokens registered before APNs
+        // key was configured get properly linked to the topic.
+        if (promoEnabled) {
+            await subscribeTokenToTopic(token, 'all-users');
         }
 
         return NextResponse.json({ success: true });
