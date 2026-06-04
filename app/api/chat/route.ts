@@ -6,9 +6,15 @@ import { auth } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
 import { User } from '@/models/User';
 
+const apiKey = process.env.OPENROUTER_API_KEY || 
+               process.env.Deepseek_API || 
+               process.env.DEEPSEEK_API || 
+               process.env.OPENAI_API_KEY || 
+               '';
+
 const openrouter = createOpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: process.env.OPENROUTER_API_KEY,
+  apiKey: apiKey,
 });
 
 // Allow streaming responses up to 30 seconds
@@ -16,6 +22,10 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
+    if (!apiKey) {
+      throw new Error('API key is missing. Please configure OPENROUTER_API_KEY or Deepseek_API in Vercel environment variables.');
+    }
+
     const { messages } = await req.json();
 
     const modelMessages = await convertToModelMessages(messages);
