@@ -78,9 +78,24 @@ export const usePushNotifications = () => {
                     await PushNotifications.register();
 
                     // Token received
-                    const registrationListener = await PushNotifications.addListener('registration', (token) => {
-                        console.log('FCM: Native token received:', token.value);
-                        registerToken(token.value);
+                    const registrationListener = await PushNotifications.addListener('registration', async (token) => {
+                        console.log('FCM: Native APNs token received:', token.value);
+                        
+                        if (Capacitor.getPlatform() === 'ios') {
+                            try {
+                                const { FCM } = await import('@capacitor-community/fcm');
+                                const fcmResult = await FCM.getToken();
+                                console.log('FCM: Converted iOS FCM token:', fcmResult.token);
+                                registerToken(fcmResult.token);
+                            } catch (fcmError) {
+                                console.error('FCM: Failed to get FCM token via plugin:', fcmError);
+                                // Fallback to raw token just in case
+                                registerToken(token.value);
+                            }
+                        } else {
+                            // On Android, standard token is already FCM token
+                            registerToken(token.value);
+                        }
                     });
 
                     // Foreground notification
