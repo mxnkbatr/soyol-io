@@ -36,7 +36,6 @@ const protectedRoutes = [
   '/settings',
   '/vendor',
   '/messages',
-  '/checkout',
 ];
 
 // Paths that are for admins only
