@@ -44,19 +44,19 @@ export default function AdminDashboardPage() {
   const todayStr = new Date().toLocaleDateString('mn-MN', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' });
 
   return (
-    <div className="p-6 md:p-8 space-y-8 h-full overflow-y-auto scrollbar-hide bg-slate-950">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 h-full overflow-y-auto scrollbar-hide bg-slate-950 pb-24 lg:pb-8">
       {/* Header Greeting */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white flex items-center gap-2">
-            Сайн байна уу, {user?.name || 'Админ'} <span className="text-2xl animate-wave">👋</span>
+          <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
+            Сайн байна уу, {user?.name || 'Админ'} <span className="text-xl md:text-2xl animate-wave">👋</span>
           </h1>
-          <p className="text-slate-400 mt-1">Өнөөдөр: {todayStr}</p>
+          <p className="text-slate-400 mt-1 text-sm md:text-base">Өнөөдөр: {todayStr}</p>
         </div>
       </header>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         <StatCard
           title="Өнөөдрийн захиалга"
           value={loadingOrders ? '...' : todayOrders}
@@ -65,21 +65,21 @@ export default function AdminDashboardPage() {
           href="/admin/orders"
         />
         <StatCard
-          title="Нийт орлого (Хүргэгдсэн)"
+          title="Орлого"
           value={loadingOrders ? '...' : formatPrice(revenue)}
           icon={TrendingUp}
           color="emerald"
           href="/admin/orders"
         />
         <StatCard
-          title="Идэвхтэй бараа"
+          title="Бараа"
           value={loadingProducts ? '...' : products.length}
           icon={Package}
           color="amber"
           href="/admin/products"
         />
         <StatCard
-          title="Дуусч байгаа бараа"
+          title="Дууссан"
           value={loadingProducts ? '...' : inventoryLow.length}
           icon={AlertCircle}
           color="red"
@@ -90,21 +90,21 @@ export default function AdminDashboardPage() {
       {/* Two-column layout for Tables */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Recent Orders Table */}
-        <div className="xl:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col shadow-xl">
-          <div className="p-6 border-b border-slate-800 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white">Сүүлийн захиалгууд</h2>
-            <Link href="/admin/orders" className="text-sm text-amber-500 hover:text-amber-400 flex items-center gap-1 font-medium transition-colors">
-              Бүх захиалга <ArrowRight className="w-4 h-4" />
+        <div className="xl:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col shadow-xl overflow-hidden">
+          <div className="p-4 md:p-6 border-b border-slate-800 flex items-center justify-between">
+            <h2 className="text-base md:text-lg font-bold text-white">Сүүлийн захиалгууд</h2>
+            <Link href="/admin/orders" className="text-xs md:text-sm text-amber-500 hover:text-amber-400 flex items-center gap-1 font-medium transition-colors">
+              Бүх <ArrowRight className="w-3 md:w-4 h-3 md:h-4" />
             </Link>
           </div>
           <div className="p-0 overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[400px]">
               <thead>
-                <tr className="bg-slate-950/50 text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                  <th className="p-4 border-b border-slate-800">Захиалга#</th>
-                  <th className="p-4 border-b border-slate-800">Огноо</th>
-                  <th className="p-4 border-b border-slate-800">Дүн</th>
-                  <th className="p-4 border-b border-slate-800">Төлөв</th>
+                <tr className="bg-slate-950/50 text-slate-400 text-[10px] md:text-xs font-semibold uppercase tracking-wider">
+                  <th className="p-3 md:p-4 border-b border-slate-800">Захиалга#</th>
+                  <th className="p-3 md:p-4 border-b border-slate-800">Огноо</th>
+                  <th className="p-3 md:p-4 border-b border-slate-800">Дүн</th>
+                  <th className="p-3 md:p-4 border-b border-slate-800 text-right">Төлөв</th>
                 </tr>
               </thead>
               <tbody>
@@ -119,13 +119,13 @@ export default function AdminDashboardPage() {
                 ) : (
                   orders.slice(0, 5).map((order: any) => (
                     <tr key={order._id} className="hover:bg-slate-800/50 transition-colors border-b border-slate-800/50 last:border-0">
-                      <td className="p-4 text-sm font-medium text-white">{order._id.substring(0, 8).toUpperCase()}</td>
-                      <td className="p-4 text-sm text-slate-400">{new Date(order.createdAt).toLocaleDateString()}</td>
-                      <td className="p-4 text-sm font-bold text-amber-400">{formatPrice(order.total || order.totalPrice || 0)}</td>
-                      <td className="p-4">
-                        {order.status === 'pending' && <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/20">Хүлээгдэж байна</span>}
-                        {order.status === 'confirmed' && <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-blue-500/20 text-blue-400 border border-blue-500/20">Баталгаажсан</span>}
-                        {order.status === 'delivered' && <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/20">Хүргэгдсэн</span>}
+                      <td className="p-3 md:p-4 text-xs md:text-sm font-medium text-white">{order._id.substring(0, 8).toUpperCase()}</td>
+                      <td className="p-3 md:p-4 text-[10px] md:text-sm text-slate-400">{new Date(order.createdAt).toLocaleDateString()}</td>
+                      <td className="p-3 md:p-4 text-xs md:text-sm font-bold text-amber-400">{formatPrice(order.total || order.totalPrice || 0)}</td>
+                      <td className="p-3 md:p-4 text-right">
+                        {order.status === 'pending' && <span className="px-2 py-0.5 rounded-md text-[9px] md:text-xs font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/20">Хүлээгдэж</span>}
+                        {order.status === 'confirmed' && <span className="px-2 py-0.5 rounded-md text-[9px] md:text-xs font-medium bg-blue-500/20 text-blue-400 border border-blue-500/20">Батлагдсан</span>}
+                        {order.status === 'delivered' && <span className="px-2 py-0.5 rounded-md text-[9px] md:text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/20">Хүргэгдсэн</span>}
                       </td>
                     </tr>
                   ))

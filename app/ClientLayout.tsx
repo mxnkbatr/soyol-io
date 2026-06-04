@@ -192,7 +192,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
               {!isAdminRoute && !isSupportPage && <LuxuryNavbar />}
               <main className={isAdminRoute 
-                ? "min-h-screen relative z-0" 
+                ? "min-h-screen relative z-0 cap-admin-fullscreen" 
                 : isSupportPage
                 ? "min-h-screen relative z-0"
                 : "min-h-screen relative z-0 mobile-nav-pb"

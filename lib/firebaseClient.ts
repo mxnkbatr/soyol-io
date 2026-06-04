@@ -2,12 +2,12 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getMessaging, getToken, Messaging } from "firebase/messaging";
 
 export const firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyC7r7R6S9u6X8S6_8S6_8S6_8S6_8S6_8S", // Default fallback if env missing
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "soyol-c0a5c.firebaseapp.com",
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "soyol-c0a5c",
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "soyol-c0a5c.appspot.com",
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "347225812658",
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:347225812658:web:e0a96996d933390f0c0a5c",
 };
 
 const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;

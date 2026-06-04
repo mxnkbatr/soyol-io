@@ -13,6 +13,7 @@ import { mn } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import useSWR from 'swr';
 import { formatPrice } from '@/lib/utils';
+import { Capacitor } from '@capacitor/core';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -374,13 +375,21 @@ export default function AdminOrdersPage() {
                                     </button> 
                                   )} 
                                   {order.status === 'confirmed' && ( 
-                                    <button 
-                                      onClick={() => handleStatusQuickChange(order._id, 'delivered')} 
-                                      disabled={quickUpdating === order._id} 
-                                      className="px-4 py-2 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-xl border border-emerald-500/20 disabled:opacity-50" 
-                                    > 
-                                      {quickUpdating === order._id ? <Loader2 className="w-3 h-3 animate-spin" /> : '🚚 Хүргэх'} 
-                                    </button> 
+                                    <>
+                                      <a 
+                                        href={`tel:${order.phone}`}
+                                        className="px-4 py-2 bg-green-500/20 text-green-400 text-xs font-bold rounded-xl border border-green-500/20 flex items-center justify-center gap-1.5"
+                                      >
+                                        <Phone className="w-3.5 h-3.5" /> Залгах
+                                      </a>
+                                      <button 
+                                        onClick={() => handleStatusQuickChange(order._id, 'delivered')} 
+                                        disabled={quickUpdating === order._id} 
+                                        className="px-4 py-2 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-xl border border-emerald-500/20 disabled:opacity-50" 
+                                      > 
+                                        {quickUpdating === order._id ? <Loader2 className="w-3 h-3 animate-spin" /> : '🚚 Хүргэх'} 
+                                      </button> 
+                                    </>
                                   )} 
                                 </div> 
                               </div> 
@@ -455,13 +464,21 @@ export default function AdminOrdersPage() {
                                                             </button>
                                                         )}
                                                         {order.status === 'confirmed' && (
-                                                            <button
-                                                                onClick={() => handleStatusQuickChange(order._id, 'delivered')}
-                                                                disabled={quickUpdating === order._id}
-                                                                className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-lg border border-emerald-500/20 disabled:opacity-50 transition-colors"
-                                                            >
-                                                                {quickUpdating === order._id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Хүргэх'}
-                                                            </button>
+                                                            <>
+                                                                <a
+                                                                    href={`tel:${order.shipping?.phone || order.phone}`}
+                                                                    className="px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 text-xs font-bold rounded-lg border border-green-500/20 flex items-center gap-1.5 transition-colors"
+                                                                >
+                                                                    <Phone className="w-3.5 h-3.5" /> Залгах
+                                                                </a>
+                                                                <button
+                                                                    onClick={() => handleStatusQuickChange(order._id, 'delivered')}
+                                                                    disabled={quickUpdating === order._id}
+                                                                    className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-lg border border-emerald-500/20 disabled:opacity-50 transition-colors"
+                                                                >
+                                                                    {quickUpdating === order._id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Хүргэх'}
+                                                                </button>
+                                                            </>
                                                         )}
                                                         <button
                                                             onClick={() => openOrderDetails(order)}
@@ -588,6 +605,25 @@ export default function AdminOrdersPage() {
                                                         >
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                                                         </button>
+                                                        {Capacitor.isNativePlatform() ? (
+                                                            <button
+                                                                onClick={() => {
+                                                                    window.location.href = `tel:${selectedOrder.phone}`;
+                                                                }}
+                                                                className="p-1 hover:bg-green-800 bg-green-900/50 rounded transition-colors flex items-center justify-center"
+                                                                title="Залгах"
+                                                            >
+                                                                <Phone className="w-3.5 h-3.5 text-green-400" />
+                                                            </button>
+                                                        ) : (
+                                                            <a
+                                                                href={`tel:${selectedOrder.phone}`}
+                                                                className="p-1 hover:bg-green-800 bg-green-900/50 rounded transition-colors flex items-center justify-center"
+                                                                title="Залгах"
+                                                            >
+                                                                <Phone className="w-3.5 h-3.5 text-green-400" />
+                                                            </a>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>

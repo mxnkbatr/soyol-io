@@ -678,3 +678,15 @@ select {
     transform: none !important;
   }
 }
+
+/* Capacitor Admin App Fullscreen Spacing */
+.cap-admin-fullscreen {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: 0;
+}
+
+@media (max-width: 1023px) {
+  .cap-admin-fullscreen {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  }
+}

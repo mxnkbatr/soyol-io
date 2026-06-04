@@ -120,7 +120,7 @@ export default function AdminUsersPage() {
         <div className="flex-1 flex flex-col min-h-screen bg-slate-950 text-white">
             {/* Header */}
             <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-xl sticky top-0 z-30">
-                <div className="px-6 sm:px-8 py-5 flex items-center justify-between gap-4">
+                <div className="px-6 sm:px-8 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
                             Хэрэглэгчид
@@ -131,13 +131,13 @@ export default function AdminUsersPage() {
                         <p className="text-xs text-slate-400 mt-1">Хэрэглэгчдийн эрх удирдах</p>
                     </div>
 
-                    <div className="flex items-center gap-3 ml-auto">
+                    <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
                         {/* Sort dropdown */}
-                        <div className="relative">
+                        <div className="relative flex-1 sm:flex-none">
                             <select
                                 value={sortBy}
                                 onChange={e => setSortBy(e.target.value as typeof sortBy)}
-                                className="pl-8 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500/50 appearance-none cursor-pointer"
+                                className="w-full pl-8 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500/50 appearance-none cursor-pointer"
                             >
                                 <option value="date_desc">Шинэ эхэнд</option>
                                 <option value="date_asc">Хуучин эхэнд</option>
@@ -148,7 +148,7 @@ export default function AdminUsersPage() {
                         </div>
 
                         {/* Search */}
-                        <div className="relative w-full max-w-xs">
+                        <div className="relative flex-1 sm:max-w-xs">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                             <input
                                 type="text"
@@ -173,117 +173,210 @@ export default function AdminUsersPage() {
                         <p className="text-slate-400">Мэдээлэл авахад алдаа гарлаа</p>
                     </div>
                 ) : (
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="bg-slate-950/50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-800">
-                                        <th className="px-6 py-4">Хэрэглэгч</th>
-                                        <th className="px-6 py-4">Утас</th>
-                                        <th className="px-6 py-4">Эрх</th>
-                                        <th className="px-6 py-4">Бүртгэсэн огноо</th>
-                                        <th className="px-6 py-4 text-right">Үйлдэл</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-800/50">
-                                    {filteredUsers.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={5} className="px-6 py-20 text-center">
-                                                <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                                    <Search className="w-6 h-6 text-slate-500" />
-                                                </div>
-                                                <p className="text-slate-400 font-medium">Хэрэглэгч олдсонгүй</p>
-                                                <p className="text-slate-600 text-sm mt-1">Хайлтын утгаа өөрчилж үзнэ үү</p>
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        filteredUsers.map(user => {
-                                            const isAdmin = user.role === 'admin';
-                                            const isToggling = togglingId === user._id;
+                    <>
+                        {/* MOBILE CARD LIST — md-с дээш нуугдана */}
+                        <div className="md:hidden space-y-3 pb-20">
+                            {filteredUsers.length === 0 ? (
+                                <div className="py-20 text-center bg-slate-900 rounded-3xl border border-dashed border-slate-800 shadow-xl">
+                                    <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Search className="w-6 h-6 text-slate-500" />
+                                    </div>
+                                    <p className="text-slate-400 font-medium">Хэрэглэгч олдсонгүй</p>
+                                    <p className="text-slate-600 text-sm mt-1">Хайлтын утгаа өөрчилж үзнэ үү</p>
+                                </div>
+                            ) : (
+                                filteredUsers.map(user => {
+                                    const isAdmin = user.role === 'admin';
+                                    const isToggling = togglingId === user._id;
 
-                                            return (
-                                                <tr key={user._id} className="hover:bg-slate-800/30 transition-colors group">
-                                                    {/* Name */}
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isAdmin ? 'bg-amber-500/20' : 'bg-slate-800'}`}>
-                                                                {isAdmin
-                                                                    ? <Shield className="w-4 h-4 text-amber-500" />
-                                                                    : <User className="w-4 h-4 text-slate-400" />
-                                                                }
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-sm font-bold text-white">{user.name || 'Нэргүй'}</p>
-                                                                <p className="text-xs text-slate-500 font-mono">{user._id.slice(-8).toUpperCase()}</p>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-
-                                                    {/* Phone */}
-                                                    <td className="px-6 py-4 text-sm font-mono text-slate-300">
-                                                        {user.phone || '—'}
-                                                    </td>
-
-                                                    {/* Role Badge */}
-                                                    <td className="px-6 py-4">
-                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${isAdmin
-                                                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                                                                : 'bg-slate-800 text-slate-400 border-slate-700'
-                                                            }`}>
-                                                            {isAdmin ? <Shield className="w-3 h-3" /> : <User className="w-3 h-3" />}
-                                                            {isAdmin ? 'Админ' : 'Хэрэглэгч'}
-                                                        </span>
-                                                    </td>
-
-                                                    {/* Created At */}
-                                                    <td className="px-6 py-4 text-sm text-slate-400">
-                                                        {user.createdAt
-                                                            ? new Date(user.createdAt).toLocaleDateString('mn-MN', {
-                                                                year: 'numeric', month: '2-digit', day: '2-digit'
-                                                            })
-                                                            : '—'
+                                    return (
+                                        <div
+                                            key={user._id}
+                                            className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3"
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isAdmin ? 'bg-amber-500/20' : 'bg-slate-800'}`}>
+                                                        {isAdmin
+                                                            ? <Shield className="w-4 h-4 text-amber-500" />
+                                                            : <User className="w-4 h-4 text-slate-400" />
                                                         }
-                                                    </td>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-white leading-tight">{user.name || 'Нэргүй'}</p>
+                                                        <p className="text-[10px] text-slate-500 font-mono mt-0.5">#{user._id.slice(-8).toUpperCase()}</p>
+                                                    </div>
+                                                </div>
+                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border ${isAdmin
+                                                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                                        : 'bg-slate-800 text-slate-400 border-slate-700'
+                                                    }`}>
+                                                    {isAdmin ? 'Админ' : 'Хэрэглэгч'}
+                                                </span>
+                                            </div>
 
-                                                    {/* Actions */}
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center justify-end gap-2">
-                                                            {/* Change Password */}
-                                                            <button
-                                                                onClick={() => openPasswordModal(user)}
-                                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20"
-                                                            >
-                                                                <KeyRound className="w-3 h-3" />
-                                                                Нууц үг
-                                                            </button>
+                                            <div className="flex justify-between text-xs border-t border-slate-800 pt-2 text-slate-400">
+                                                <span>Утас:</span>
+                                                <span className="font-mono font-bold text-white">{user.phone || '—'}</span>
+                                            </div>
 
-                                                            {/* Toggle Role */}
-                                                            <button
-                                                                onClick={() => handleToggleRole(user)}
-                                                                disabled={isToggling}
-                                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border disabled:opacity-50 ${isAdmin
-                                                                        ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20'
-                                                                        : 'bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20'
-                                                                    }`}
-                                                            >
-                                                                {isToggling ? (
-                                                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                                                ) : isAdmin ? (
-                                                                    <><User className="w-3 h-3" /> Хэрэглэгч болгох</>
-                                                                ) : (
-                                                                    <><Shield className="w-3 h-3" /> Админ болгох</>
-                                                                )}
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
-                                    )}
-                                </tbody>
-                            </table>
+                                            <div className="flex justify-between text-xs text-slate-400">
+                                                <span>Огноо:</span>
+                                                <span className="font-medium text-slate-300">
+                                                    {user.createdAt
+                                                        ? new Date(user.createdAt).toLocaleDateString('mn-MN', {
+                                                            year: 'numeric', month: '2-digit', day: '2-digit'
+                                                        })
+                                                        : '—'
+                                                    }
+                                                </span>
+                                            </div>
+
+                                            <div className="flex gap-2 pt-2 border-t border-slate-800">
+                                                <button
+                                                    onClick={() => openPasswordModal(user)}
+                                                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all border bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20"
+                                                >
+                                                    <KeyRound className="w-3.5 h-3.5" />
+                                                    Нууц үг
+                                                </button>
+
+                                                <button
+                                                    onClick={() => handleToggleRole(user)}
+                                                    disabled={isToggling}
+                                                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all border disabled:opacity-50 ${isAdmin
+                                                            ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20'
+                                                            : 'bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20'
+                                                        }`}
+                                                >
+                                                    {isToggling ? (
+                                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                    ) : isAdmin ? (
+                                                        <><User className="w-3.5 h-3.5" /> Хэрэглэгч</>
+                                                    ) : (
+                                                        <><Shield className="w-3.5 h-3.5" /> Админ</>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
                         </div>
-                    </div>
+
+                        {/* DESKTOP TABLE — mobile-д нуугдана */}
+                        <div className="hidden md:block bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="bg-slate-950/50 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-800">
+                                            <th className="px-6 py-4">Хэрэглэгч</th>
+                                            <th className="px-6 py-4">Утас</th>
+                                            <th className="px-6 py-4">Эрх</th>
+                                            <th className="px-6 py-4">Бүртгэсэн огноо</th>
+                                            <th className="px-6 py-4 text-right">Үйлдэл</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-800/50">
+                                        {filteredUsers.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={5} className="px-6 py-20 text-center">
+                                                    <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                        <Search className="w-6 h-6 text-slate-500" />
+                                                    </div>
+                                                    <p className="text-slate-400 font-medium">Хэрэглэгч олдсонгүй</p>
+                                                    <p className="text-slate-600 text-sm mt-1">Хайлтын утгаа өөрчилж үзнэ үү</p>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            filteredUsers.map(user => {
+                                                const isAdmin = user.role === 'admin';
+                                                const isToggling = togglingId === user._id;
+
+                                                return (
+                                                    <tr key={user._id} className="hover:bg-slate-800/30 transition-colors group">
+                                                        {/* Name */}
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isAdmin ? 'bg-amber-500/20' : 'bg-slate-800'}`}>
+                                                                    {isAdmin
+                                                                        ? <Shield className="w-4 h-4 text-amber-500" />
+                                                                        : <User className="w-4 h-4 text-slate-400" />
+                                                                    }
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-sm font-bold text-white">{user.name || 'Нэргүй'}</p>
+                                                                    <p className="text-xs text-slate-500 font-mono">{user._id.slice(-8).toUpperCase()}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Phone */}
+                                                        <td className="px-6 py-4 text-sm font-mono text-slate-300">
+                                                            {user.phone || '—'}
+                                                        </td>
+
+                                                        {/* Role Badge */}
+                                                        <td className="px-6 py-4">
+                                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${isAdmin
+                                                                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                                                    : 'bg-slate-800 text-slate-400 border-slate-700'
+                                                                }`}>
+                                                                {isAdmin ? <Shield className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                                                                {isAdmin ? 'Админ' : 'Хэрэглэгч'}
+                                                            </span>
+                                                        </td>
+
+                                                        {/* Created At */}
+                                                        <td className="px-6 py-4 text-sm text-slate-400">
+                                                            {user.createdAt
+                                                                ? new Date(user.createdAt).toLocaleDateString('mn-MN', {
+                                                                    year: 'numeric', month: '2-digit', day: '2-digit'
+                                                                })
+                                                                : '—'
+                                                            }
+                                                        </td>
+
+                                                        {/* Actions */}
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                {/* Change Password */}
+                                                                <button
+                                                                    onClick={() => openPasswordModal(user)}
+                                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20"
+                                                                >
+                                                                    <KeyRound className="w-3 h-3" />
+                                                                    Нууц үг
+                                                                </button>
+
+                                                                {/* Toggle Role */}
+                                                                <button
+                                                                    onClick={() => handleToggleRole(user)}
+                                                                    disabled={isToggling}
+                                                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border disabled:opacity-50 ${isAdmin
+                                                                            ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20'
+                                                                            : 'bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20'
+                                                                        }`}
+                                                                >
+                                                                    {isToggling ? (
+                                                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                                                    ) : isAdmin ? (
+                                                                        <><User className="w-3 h-3" /> Хэрэглэгч болгох</>
+                                                                    ) : (
+                                                                        <><Shield className="w-3 h-3" /> Админ болгох</>
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </>
                 )}
             </main>
 

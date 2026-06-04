@@ -777,6 +777,21 @@ export default function LuxuryNavbar() {
                         {t("nav", "myOrders")}
                       </span>
                     </Link>
+                    {isAdmin && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-4 py-4 border-b border-slate-50 text-amber-500 font-semibold"
+                      >
+                        <LayoutDashboard
+                          className="w-5 h-5 text-amber-500"
+                          strokeWidth={1.5}
+                        />
+                        <span className="font-semibold text-[15px]">
+                          Админ Панел
+                        </span>
+                      </Link>
+                    )}
                     <button
                       type="button"
                       onClick={() => {

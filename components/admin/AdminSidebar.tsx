@@ -178,6 +178,45 @@ export default function AdminSidebar() {
             >
                 <SidebarContent />
             </aside>
+
+            {/* Mobile Bottom Tab Navigation */}
+            <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950 border-t border-slate-800/80 flex items-center justify-around px-2 py-1.5 lg:hidden pb-[calc(env(safe-area-inset-bottom,0px)+6px)] pt-2 shadow-[0_-8px_30px_rgb(0,0,0,0.5)]">
+                {[
+                    { href: '/admin', icon: BarChart3, label: 'Хяналт' },
+                    { href: '/admin/orders', icon: ShoppingCart, label: 'Захиалга', badge: pendingCount, badgeColor: 'bg-red-500' },
+                    { href: '/admin/products', icon: Package, label: 'Бараа' },
+                    { href: '/admin/messages', icon: MessageCircle, label: 'Мессеж', badge: unreadMessagesCount, badgeColor: 'bg-blue-500' },
+                ].map((tab) => {
+                    const active = isActive(tab.href);
+                    const Icon = tab.icon;
+                    return (
+                        <Link
+                            key={tab.href}
+                            href={tab.href}
+                            className={`flex flex-col items-center justify-center flex-1 py-1 relative transition-all ${
+                                active ? 'text-amber-500' : 'text-slate-400 active:text-slate-200'
+                            }`}
+                        >
+                            <div className="relative">
+                                <Icon className="w-5 h-5" />
+                                {!!tab.badge && tab.badge > 0 && (
+                                    <span className={`absolute -top-1.5 -right-2.5 px-1.5 py-0.5 rounded-full text-[8px] font-black text-white ${tab.badgeColor || 'bg-amber-500'} scale-90`}>
+                                        {tab.badge > 99 ? '99+' : tab.badge}
+                                    </span>
+                                )}
+                            </div>
+                            <span className="text-[10px] font-bold mt-1 tracking-tight">{tab.label}</span>
+                        </Link>
+                    );
+                })}
+                <button
+                    onClick={() => setSidebarOpen(true)}
+                    className="flex flex-col items-center justify-center flex-1 py-1 text-slate-400 hover:text-white active:text-slate-200 transition-all"
+                >
+                    <Menu className="w-5 h-5" />
+                    <span className="text-[10px] font-bold mt-1 tracking-tight">Цэс</span>
+                </button>
+            </nav>
         </>
     );
 }
