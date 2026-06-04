@@ -8,7 +8,7 @@ import { User } from '@/models/User';
 
 const openrouter = createOpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: process.env.OPENROUTER_API_KEY,
+  apiKey: process.env.OPENROUTER_API_KEY || process.env.Deepseek_API,
 });
 
 // Allow streaming responses up to 30 seconds
