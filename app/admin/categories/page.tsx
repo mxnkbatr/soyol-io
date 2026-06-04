@@ -398,8 +398,8 @@ export default function AdminCategoriesPage() {
                     {formData.subcategories.length === 0 ? (
                       <p className="text-xs text-slate-600 italic text-center py-2">Дэд ангилал байхгүй байна</p>
                     ) : (
-                      formData.subcategories.map((sub) => (
-                        <div key={sub.id} className="flex items-center justify-between bg-slate-800/50 px-3 py-2 rounded-lg border border-white/5">
+                     {formData.subcategories.map((sub, index) => (
+                        <div key={sub.id || `sub-${index}`} className="flex items-center justify-between bg-slate-800/50 px-3 py-2 rounded-lg border border-white/5">
                           <span className="text-sm text-slate-300">{sub.name}</span>
                           <button
                             onClick={() => removeSubcategory(sub.id)}

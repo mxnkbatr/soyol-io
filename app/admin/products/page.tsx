@@ -189,9 +189,9 @@ export default function AdminProductsPage() {
             >
               Ангилал бүгд
             </button>
-            {categories.map((cat: any) => (
+            {categories.map((cat: any, index: number) => (
               <button
-                key={cat.id}
+                key={cat._id || cat.id || `cat-${index}`}
                 onClick={() => setFilterCategory(cat.id)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${filterCategory === cat.id ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-slate-400 hover:text-white"}`}
               >
