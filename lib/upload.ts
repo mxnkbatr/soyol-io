@@ -6,6 +6,7 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
  * - Native: Uses Capacitor Camera to pick from gallery or take photo
  * - Web: Uses standard file input
  * - Uploads directly to Cloudinary
+ * Updated for Vercel auto-deploy.
  */
 
 interface UploadOptions {
