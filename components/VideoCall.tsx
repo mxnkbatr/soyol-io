@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Video, Phone, ArrowLeft, Loader2, Ban } from 'lucide-react';
+import { Video, Phone, ArrowLeft, Loader2, Ban, PhoneOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
   LiveKitRoom,
@@ -64,7 +64,7 @@ export default function VideoCall({
   // If we have token and we are in call
   if (inCall && token) {
     return (
-      <div className="relative h-full w-full bg-black overflow-hidden rounded-[2.5rem]">
+      <div className="relative h-full w-full bg-black overflow-hidden rounded-[2.5rem] safe-area-inset-bottom">
         <LiveKitRoom
           video={!initialVideoDisabled}
           audio={true}
@@ -73,6 +73,27 @@ export default function VideoCall({
           data-lk-theme="default"
           onDisconnected={onLeave}
           style={{ height: '100%', width: '100%' }}
+          options={{
+            adaptiveStream: true,
+            dynacast: true,
+            publishDefaults: {
+              videoEncoding: {
+                maxBitrate: 3_000_000, // Increase max bitrate to 3Mbps for better quality
+                maxFramerate: 30,
+              },
+              screenShareEncoding: {
+                maxBitrate: 3_000_000,
+                maxFramerate: 15,
+              },
+            },
+            videoCaptureDefaults: {
+              resolution: {
+                width: 1280,
+                height: 720,
+                frameRate: 30,
+              },
+            },
+          }}
         >
           {/* Default UI with custom top bar to show Room name / Kick capability */}
           <VideoConference />
@@ -81,7 +102,73 @@ export default function VideoCall({
           {/* Custom Overlay for Ban Feature */}
           <BanControls currentRoom={room} currentIdentity={identity} />
           
+          {/* Explicit Hang Up Button for Mobile */}
+          <div className="absolute top-4 right-4 z-50">
+            <button
+              onClick={onLeave}
+              className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-bold text-sm shadow-xl transition-all active:scale-95 border border-white/10"
+            >
+              <PhoneOff className="w-5 h-5" />
+              <span className="hidden sm:inline">Дуусгах</span>
+            </button>
+          </div>
+          
         </LiveKitRoom>
+
+        <style jsx global>{`
+          .lk-video-conference { 
+            background-color: #000 !important; 
+            height: 100% !important;
+          }
+          .lk-video-conference-inner {
+            padding: 8px !important;
+          }
+          .lk-control-bar { 
+            background-color: rgba(15, 23, 42, 0.9) !important; 
+            border-top: 1px solid rgba(255, 255, 255, 0.1) !important; 
+            backdrop-filter: blur(10px); 
+            padding: 12px !important;
+            height: auto !important;
+          }
+          .lk-button { 
+            border-radius: 12px !important; 
+            font-weight: 600 !important; 
+            font-size: 11px !important; 
+            padding: 10px !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+          }
+          .lk-button-primary { 
+            background-color: #f97316 !important; 
+            color: #fff !important; 
+          }
+          .lk-participant-name { 
+            font-size: 10px !important; 
+            font-weight: 600 !important; 
+            background: rgba(0,0,0,0.6) !important;
+            padding: 4px 8px !important;
+            border-radius: 8px !important;
+            backdrop-filter: blur(4px);
+          }
+          .lk-grid-layout { 
+            gap: 8px !important;
+            padding: 8px !important;
+          }
+          .lk-participant-tile {
+            border-radius: 20px !important;
+            overflow: hidden !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+          }
+          
+          @media (max-width: 768px) {
+            .lk-control-bar {
+              padding-bottom: env(safe-area-inset-bottom, 24px) !important;
+            }
+            .lk-button-group {
+              gap: 10px !important;
+            }
+          }
+        `}</style>
       </div>
     );
   }

@@ -7,6 +7,8 @@ import { CldUploadWidget } from 'next-cloudinary';
 import useSWR from 'swr';
 import toast from 'react-hot-toast';
 import VariantsManager, { ProductOption, ProductVariant } from './VariantsManager';
+import { Capacitor } from '@capacitor/core';
+import { pickAndUploadImage } from '@/lib/upload';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -60,6 +62,27 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
         variants: initialData?.variants || [],
         isCargo: initialData?.isCargo || false
     });
+
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleNativeUpload = async (isMain: boolean) => {
+        setIsUploading(true);
+        try {
+            const url = await pickAndUploadImage({ folder: 'products' });
+            if (url) {
+                if (isMain) {
+                    setFormData(prev => ({ ...prev, image: url }));
+                } else {
+                    setFormData(prev => ({ ...prev, images: [...(prev.images || []), url] }));
+                }
+                toast.success('Зураг амжилттай хуулагдлаа');
+            }
+        } catch (error) {
+            toast.error('Зураг хуулахад алдаа гарлаа');
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     const [attributeRows, setAttributeRows] = useState<{ key: string, value: string }[]>(
         initialData?.attributes
@@ -308,35 +331,52 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                                     )}
 
                                     {!formData.image && (
-                                        <CldUploadWidget
-                                            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default"}
-                                            onSuccess={(result: any) => {
-                                                const url = result?.info?.secure_url;
-                                                if (url) {
-                                                    setFormData(prev => ({ ...prev, image: url }));
-                                                }
-                                            }}
-                                            options={{
-                                                clientAllowedFormats: ['png', 'jpeg', 'webp', 'jpg'],
-                                                maxImageWidth: 2000,
-                                                maxImageHeight: 2000,
-                                                sources: ['local', 'url', 'camera']
-                                            }}
-                                        >
-                                            {({ open }) => (
+                                        <div className="flex flex-col gap-3">
+                                            {Capacitor.isNativePlatform() ? (
                                                 <button
                                                     type="button"
-                                                    onClick={() => open()}
+                                                    onClick={() => handleNativeUpload(true)}
+                                                    disabled={isUploading}
                                                     className="w-full py-12 bg-slate-950 border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center gap-3 text-slate-500 hover:text-amber-500 hover:border-amber-500/50 hover:bg-amber-500/5 transition-all group"
                                                 >
                                                     <div className="p-4 bg-slate-900 rounded-full group-hover:bg-amber-500/10 transition-colors">
-                                                        <ImageIcon className="w-8 h-8" />
+                                                        {isUploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <ImageIcon className="w-8 h-8" />}
                                                     </div>
-                                                    <span className="font-bold">Зураг сонгох</span>
+                                                    <span className="font-bold">{isUploading ? 'Хуулж байна...' : 'Зураг сонгох (Галерей)'}</span>
                                                     <span className="text-[10px] uppercase tracking-widest opacity-60">Үндсэн зураг заавал байх шаардлагатай</span>
                                                 </button>
+                                            ) : (
+                                                <CldUploadWidget
+                                                    uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default"}
+                                                    onSuccess={(result: any) => {
+                                                        const url = result?.info?.secure_url;
+                                                        if (url) {
+                                                            setFormData(prev => ({ ...prev, image: url }));
+                                                        }
+                                                    }}
+                                                    options={{
+                                                        clientAllowedFormats: ['png', 'jpeg', 'webp', 'jpg'],
+                                                        maxImageWidth: 2000,
+                                                        maxImageHeight: 2000,
+                                                        sources: ['local', 'url', 'camera']
+                                                    }}
+                                                >
+                                                    {({ open }) => (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => open()}
+                                                            className="w-full py-12 bg-slate-950 border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center gap-3 text-slate-500 hover:text-amber-500 hover:border-amber-500/50 hover:bg-amber-500/5 transition-all group"
+                                                        >
+                                                            <div className="p-4 bg-slate-900 rounded-full group-hover:bg-amber-500/10 transition-colors">
+                                                                <ImageIcon className="w-8 h-8" />
+                                                            </div>
+                                                            <span className="font-bold">Зураг сонгох</span>
+                                                            <span className="text-[10px] uppercase tracking-widest opacity-60">Үндсэн зураг заавал байх шаардлагатай</span>
+                                                        </button>
+                                                    )}
+                                                </CldUploadWidget>
                                             )}
-                                        </CldUploadWidget>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -366,35 +406,49 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                                 </div>
 
                                 {(formData.images || []).length < 8 && (
-                                    <CldUploadWidget
-                                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default"}
-                                        onSuccess={(result: any) => {
-                                            const url = result?.info?.secure_url;
-                                            if (url) {
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    images: [...(prev.images || []), url]
-                                                }));
-                                            }
-                                        }}
-                                        options={{
-                                            clientAllowedFormats: ['png', 'jpeg', 'webp', 'jpg'],
-                                            maxImageWidth: 2000,
-                                            maxImageHeight: 2000,
-                                            sources: ['local', 'url', 'camera']
-                                        }}
-                                    >
-                                        {({ open }) => (
+                                    <div className="flex flex-col gap-3">
+                                        {Capacitor.isNativePlatform() ? (
                                             <button
                                                 type="button"
-                                                onClick={() => open()}
+                                                onClick={() => handleNativeUpload(false)}
+                                                disabled={isUploading}
                                                 className="w-full flex items-center justify-center gap-2 py-4 bg-slate-950 border border-slate-800 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-sm font-bold border-dashed"
                                             >
-                                                <Plus className="w-4 h-4" />
-                                                Зураг нэмэх
+                                                {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                                                {isUploading ? 'Хуулж байна...' : 'Зураг нэмэх (Галерей)'}
                                             </button>
+                                        ) : (
+                                            <CldUploadWidget
+                                                uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default"}
+                                                onSuccess={(result: any) => {
+                                                    const url = result?.info?.secure_url;
+                                                    if (url) {
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            images: [...(prev.images || []), url]
+                                                        }));
+                                                    }
+                                                }}
+                                                options={{
+                                                    clientAllowedFormats: ['png', 'jpeg', 'webp', 'jpg'],
+                                                    maxImageWidth: 2000,
+                                                    maxImageHeight: 2000,
+                                                    sources: ['local', 'url', 'camera']
+                                                }}
+                                            >
+                                                {({ open }) => (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => open()}
+                                                        className="w-full flex items-center justify-center gap-2 py-4 bg-slate-950 border border-slate-800 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-sm font-bold border-dashed"
+                                                    >
+                                                        <Plus className="w-4 h-4" />
+                                                        Зураг нэмэх
+                                                    </button>
+                                                )}
+                                            </CldUploadWidget>
                                         )}
-                                    </CldUploadWidget>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -488,6 +542,7 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                                     <div className="relative">
                                         <input
                                             type="number"
+                                            inputMode="numeric"
                                             value={formData.price}
                                             onChange={(e) => handleChange('price', e.target.value)}
                                             className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-bold text-lg"
@@ -505,6 +560,7 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                                             <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 text-amber-500/80">Хуучин Үнэ (₮)</label>
                                             <input
                                                 type="number"
+                                                inputMode="numeric"
                                                 value={formData.originalPrice}
                                                 onChange={(e) => handleChange('originalPrice', e.target.value)}
                                                 className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all"
@@ -538,6 +594,7 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                                         >-</button>
                                         <input
                                             type="number"
+                                            inputMode="numeric"
                                             value={formData.inventory}
                                             onChange={(e) => handleChange('inventory', e.target.value)}
                                             className="flex-1 bg-transparent border-0 text-center text-2xl font-black text-white focus:outline-none focus:ring-0 p-0"
@@ -570,6 +627,7 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Борлуулагдсан тоо</label>
                                     <input
                                         type="number"
+                                        inputMode="numeric"
                                         min="0"
                                         value={formData.salesCount}
                                         onChange={(e) => handleChange('salesCount', e.target.value)}
@@ -640,44 +698,48 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                 </div>
 
                 {/* Organization Component */}
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-                    <div>
-                        <h3 className="text-sm font-bold text-white mb-4">Ангилал <span className="text-red-500">*</span></h3>
-                        <select
-                            value={formData.category}
-                            onChange={(e) => {
-                                handleChange('category', e.target.value);
-                                handleChange('subcategory', ''); // Reset subcategory when category changes
-                            }}
-                            className="w-full px-4 py-3 mb-4 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500/50 appearance-none text-sm transition-colors"
-                        >
-                            {categories.map((cat: any) => (
-                                <option key={cat.id} value={cat.id}>{cat.name}</option>
-                            ))}
-                        </select>
-                        
-                        {(() => {
-                            const selectedCat = categories.find((c: any) => c.id === formData.category);
-                            if (selectedCat && selectedCat.subcategories && selectedCat.subcategories.length > 0) {
-                                return (
-                                    <>
-                                        <h3 className="text-sm font-bold text-white mb-4 mt-2">Дэд Ангилал</h3>
-                                        <select
-                                            value={formData.subcategory}
-                                            onChange={(e) => handleChange('subcategory', e.target.value)}
-                                            className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500/50 appearance-none text-sm transition-colors"
-                                        >
-                                            <option value="">Сонгох...</option>
-                                            {selectedCat.subcategories.map((subcat: any) => (
-                                                <option key={subcat.id} value={subcat.id}>{subcat.name}</option>
-                                            ))}
-                                        </select>
-                                    </>
-                                );
-                            }
-                            return null;
-                        })()}
-                    </div>
+                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+                        <div>
+                            <h3 className="text-sm font-bold text-white mb-4">Ангилал <span className="text-red-500">*</span></h3>
+                            <select
+                                value={formData.category}
+                                onChange={(e) => {
+                                    handleChange('category', e.target.value);
+                                    handleChange('subcategory', ''); // Reset subcategory when category changes
+                                }}
+                                className="w-full px-4 py-3 mb-4 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500/50 appearance-none text-sm transition-colors"
+                            >
+                                {categories.length === 0 ? (
+                                    <option value="" key="no-cats-opt">Ачаалж байна...</option>
+                                ) : (
+                                    categories.map((cat: any, index: number) => (
+                                        <option key={cat.id || `cat-opt-${index}`} value={cat.id}>{cat.name}</option>
+                                    ))
+                                )}
+                            </select>
+                            
+                            {(() => {
+                                const selectedCat = categories.find((c: any) => c.id === formData.category);
+                                if (selectedCat && selectedCat.subcategories && selectedCat.subcategories.length > 0) {
+                                    return (
+                                        <>
+                                            <h3 className="text-sm font-bold text-white mb-4 mt-2">Дэд Ангилал</h3>
+                                            <select
+                                                value={formData.subcategory}
+                                                onChange={(e) => handleChange('subcategory', e.target.value)}
+                                                className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500/50 appearance-none text-sm transition-colors"
+                                            >
+                                                <option value="" key="none-subcat-opt">Сонгох...</option>
+                                                {selectedCat.subcategories.map((subcat: any, index: number) => (
+                                                    <option key={subcat.id || `subcat-opt-${index}`} value={subcat.id}>{subcat.name}</option>
+                                                ))}
+                                            </select>
+                                        </>
+                                    );
+                                }
+                                return null;
+                            })()}
+                        </div>
 
                     <div className="pt-6 border-t border-slate-800">
                         <h3 className="text-sm font-bold text-white mb-4">Харагдах Хэсгүүд</h3>

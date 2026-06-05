@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
     BarChart3, Package, Layers, ShoppingCart, MessageCircle,
-    ArrowLeft, Menu, X, Building2, LogOut, Image as ImageIcon, TrendingUp, Users
+    ArrowLeft, Menu, X, Building2, LogOut, Image as ImageIcon, TrendingUp, Users, Video
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useSWR from 'swr';
@@ -44,7 +44,8 @@ export default function AdminSidebar() {
         { href: '/admin/banners', icon: ImageIcon, label: 'Беннер удирдлага', shortcut: 'G + B' },
         { href: '/admin/orders', icon: ShoppingCart, label: 'Захиалгууд', badge: pendingCount, badgeColor: 'bg-red-500', shortcut: 'G + O' },
         { href: '/admin/categories', icon: Layers, label: 'Ангилал', shortcut: null },
-        { href: '/admin/messages', icon: MessageCircle, label: 'Мессеж & Дуудлага', badge: unreadMessagesCount, badgeColor: 'bg-blue-500', shortcut: 'G + M' },
+        { href: '/admin/messages', icon: MessageCircle, label: 'Мессеж', badge: unreadMessagesCount, badgeColor: 'bg-blue-500', shortcut: 'G + M' },
+        { href: '/admin/video', icon: Video, label: 'Видео дуудлага', shortcut: null },
     ];
 
     const isActive = (href: string) => {
@@ -165,14 +166,6 @@ export default function AdminSidebar() {
                 )}
             </AnimatePresence>
 
-            <button
-                onClick={() => setSidebarOpen(true)}
-                className="fixed top-4 left-4 z-30 p-2 rounded-xl bg-slate-900 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 transition-colors lg:hidden shadow-lg"
-                aria-label="Open sidebar"
-            >
-                <Menu className="w-5 h-5" />
-            </button>
-
             <aside
                 className={`fixed inset-y-0 left-0 z-50 w-[280px] bg-slate-950 border-r border-slate-800 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
             >
@@ -185,7 +178,7 @@ export default function AdminSidebar() {
                     { href: '/admin', icon: BarChart3, label: 'Хяналт' },
                     { href: '/admin/orders', icon: ShoppingCart, label: 'Захиалга', badge: pendingCount, badgeColor: 'bg-red-500' },
                     { href: '/admin/products', icon: Package, label: 'Бараа' },
-                    { href: '/admin/messages', icon: MessageCircle, label: 'Мессеж', badge: unreadMessagesCount, badgeColor: 'bg-blue-500' },
+                    { href: '/admin/video', icon: Video, label: 'Видео' },
                 ].map((tab) => {
                     const active = isActive(tab.href);
                     const Icon = tab.icon;
