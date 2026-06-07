@@ -1,7 +1,6 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
-/** Capacitor 8 types omit legacy `packageClassList`; kept for Apple Sign In native registration per project checklist. */
-const config: CapacitorConfig & { packageClassList?: string[] } = {
+const config: CapacitorConfig = {
   appId: 'mn.soyol.shop',
   appName: 'Soyol Shop',
   webDir: 'public',
@@ -16,7 +15,6 @@ const config: CapacitorConfig & { packageClassList?: string[] } = {
     androidScheme: 'https',
     errorPath: '/offline.html',
   },
-  packageClassList: ['SignInWithApplePlugin'],
   plugins: {
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"],
