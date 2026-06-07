@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useProducts } from "@/lib/hooks/useProducts";
+import { isReadyProduct, isPreOrderProduct } from "@/lib/productFilters";
 import { type Product } from "@/models/Product";
 import { triggerHaptic } from "@/lib/haptics";
 
@@ -84,35 +85,16 @@ export default function HomePage() {
   const { products: featuredProducts, isLoading: loadingFeatured } =
     useProducts({ featured: true });
 
-  // Normalize products by intended home categories:
-  // - section "Бэлэн" / "Захиалга" has priority
-  // - fallback to stockStatus when sections are missing
+  // Normalize display stockStatus for badges
   const hasSection = (p: Product, label: string) =>
     Array.isArray((p as any).sections) && (p as any).sections.includes(label);
-
-  const isReadyProduct = (p: Product) =>
-    hasSection(p, "Бэлэн") ||
-    (!hasSection(p, "Захиалга") && p.stockStatus === "in-stock");
-
-  const isPreOrderProduct = (p: Product) =>
-    hasSection(p, "Захиалга") ||
-    (!hasSection(p, "Бэлэн") && p.stockStatus === "pre-order");
 
   const normalizedProducts = allProducts.map((p) => {
     const ready = isReadyProduct(p);
     const preorder = isPreOrderProduct(p);
 
-    // If both labels exist, respect current filter on UI; default to ready in "all"
-    if (ready && preorder) {
-      if (activeFilter === "Захиалга")
-        return { ...p, stockStatus: "pre-order" as any };
-      return { ...p, stockStatus: "in-stock" as any };
-    }
-
-    if (ready) return { ...p, stockStatus: "in-stock" as any };
-    if (preorder) return { ...p, stockStatus: "pre-order" as any };
-
-    // Final fallback
+    if (ready) return { ...p, stockStatus: "in-stock" as const };
+    if (preorder) return { ...p, stockStatus: "pre-order" as const };
     return p;
   });
 

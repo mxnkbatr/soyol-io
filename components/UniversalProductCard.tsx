@@ -15,6 +15,7 @@ import type { Product } from "@/models/Product";
 import ProductBadge from "@/components/ProductBadge";
 import { triggerHaptic, hapticSuccess } from "@/lib/haptics";
 import { isWithin24Hours } from "@/lib/utils";
+import { isReadyProduct, isPreOrderProduct } from "@/lib/productFilters";
 
 interface UniversalProductCardProps {
   product: Product;
@@ -140,14 +141,15 @@ const UniversalProductCard = memo(({
       >
         <div className="bg-white rounded-[24px] overflow-hidden border border-[#E5E5EA]/45 shadow-[0_4px_16px_rgba(0,0,0,0.02)] transition-all duration-300 hover:shadow-[0_12px_32px_rgba(0,0,0,0.05)] hover:-translate-y-0.5">
           {/* ── Image area ─────────────────────────────── */}
-          <div className="relative aspect-square bg-[#F6F6F9] overflow-hidden rounded-t-[24px]">
+          <div className="relative aspect-square w-full bg-[#F6F6F9] overflow-hidden rounded-t-[24px]">
             <SafeImage
               src={allImages[0]}
               alt={product.name}
               fill
-              className="object-cover sm:object-contain sm:p-5 transition-transform duration-500 group-hover:scale-[1.03]"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              priority={index < 4}
+              className="object-cover object-center transition-transform duration-500 lg:group-hover:scale-[1.03]"
+              sizes="(max-width: 1024px) 45vw, 200px"
+              quality={65}
+              priority={index < 2}
               fallbackSrc={PRODUCT_PLACEHOLDER}
             />
 
@@ -155,10 +157,7 @@ const UniversalProductCard = memo(({
             <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 items-start">
               {/* Ready Badge */}
               {(statusBadgeMode === "ready" ||
-                (statusBadgeMode === "default" && (
-                  product.sections?.includes("Бэлэн") ||
-                  (!product.sections?.includes("Захиалга") && product.stockStatus === "in-stock")
-                ))) && (
+                (statusBadgeMode === "default" && isReadyProduct(product))) && (
                   <div className="flex items-center gap-1 px-2.5 py-1 bg-[#34C759]/10 border border-[#34C759]/20 backdrop-blur-md rounded-full shadow-sm">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#34C759]" />
                     <span className="text-[9px] font-bold text-[#34C759] uppercase tracking-wider leading-none">
@@ -169,10 +168,7 @@ const UniversalProductCard = memo(({
 
               {/* Order Badge */}
               {(statusBadgeMode === "preorder" ||
-                (statusBadgeMode === "default" && (
-                  product.sections?.includes("Захиалга") ||
-                  (!product.sections?.includes("Бэлэн") && product.stockStatus === "pre-order")
-                ))) && (
+                (statusBadgeMode === "default" && isPreOrderProduct(product))) && (
                   <div className="flex items-center gap-1 px-2.5 py-1 bg-[#FF9500]/10 border border-[#FF9500]/20 backdrop-blur-md rounded-full shadow-sm">
                     <Clock className="w-2.5 h-2.5 text-[#FF9500]" strokeWidth={2.5} />
                     <span className="text-[9px] font-bold text-[#FF9500] uppercase tracking-wider leading-none">

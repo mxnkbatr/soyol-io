@@ -120,22 +120,19 @@ export default function DiscoveryProductCard({
               }
               setTimeout(() => { isDragging.current = false; }, 10);
             }}
-            animate={{ x: `-${activeIdx * 100}%` }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="flex w-full h-full"
+            className="absolute inset-0"
           >
-            {allImages.map((img, i) => (
-              <div key={i} className="w-full h-full shrink-0 relative">
-                <Image
-                  src={img}
-                  alt={product.name}
-                  fill
-                  className="object-contain p-4"
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  onError={(e) => { (e.target as HTMLImageElement).src = '/soyol-logo.png'; }}
-                />
-              </div>
-            ))}
+            <Image
+              key={activeIdx}
+              src={allImages[activeIdx]}
+              alt={product.name}
+              fill
+              className="object-contain p-4"
+              sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 25vw"
+              quality={70}
+              priority={index < 4 && activeIdx === 0}
+              onError={(e) => { (e.target as HTMLImageElement).src = '/soyol-logo.png'; }}
+            />
           </motion.div>
         ) : (
           <motion.div
@@ -148,7 +145,9 @@ export default function DiscoveryProductCard({
               alt={product.name}
               fill
               className="object-contain p-4"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 25vw"
+              quality={70}
+              priority={index < 4}
               onError={(e) => { (e.target as HTMLImageElement).src = '/soyol-logo.png'; }}
             />
           </motion.div>

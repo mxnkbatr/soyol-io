@@ -222,13 +222,13 @@ export default function CategoryPageClient({ initialCategory, initialProducts, c
                     transition={{ delay: Math.min(index * 0.03, 0.3), duration: 0.3 }}
                     className="group bg-white rounded-[28px] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                   >
-                    <Link href={`/product/${product.id}`} className="block relative aspect-[4/5] overflow-hidden bg-slate-50">
+                    <Link href={`/product/${product.id}`} className="block relative aspect-square w-full overflow-hidden bg-slate-50">
                       <Image
                         src={(product.images && product.images.length > 0) ? product.images[0] : '/soyol-logo.png'}
                         alt={product.name}
                         fill
-                        className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
-                        sizes="(max-width: 768px) 50vw, 25vw"
+                        className="object-cover object-center transition-transform duration-500 lg:group-hover:scale-105"
+                        sizes="(max-width: 1024px) 50vw, 25vw"
                         priority={index < 4}
                       />
 

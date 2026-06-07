@@ -108,11 +108,12 @@ export default function BannerSlider() {
             <SafeImage
               src={banners[currentIndex]?.image || ''}
               alt={banners[currentIndex]?.title || `Banner ${currentIndex + 1}`}
-              width={1600}
-              height={686}
+              width={828}
+              height={355}
               priority={currentIndex === 0}
               className="h-full w-full object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1600px) 100vw, 1600px"
+              sizes="100vw"
+              quality={70}
               fallbackSrc={BANNER_PLACEHOLDER}
             />
           </div>

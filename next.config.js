@@ -22,6 +22,12 @@ const nextConfig = {
           { key: "Access-Control-Allow-Credentials", value: "true" },
         ],
       },
+      {
+        source: "/(.*\\.(?:svg|png|jpg|jpeg|webp|avif|ico|woff2))",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
     ];
   },
   images: {
@@ -33,7 +39,9 @@ const nextConfig = {
     ],
     loader: "custom",
     loaderFile: "./lib/imageLoader.ts",
-    minimumCacheTTL: 3600,
+    minimumCacheTTL: 604800,
+    deviceSizes: [384, 640, 828, 1080],
+    imageSizes: [64, 128, 256],
   },
   experimental: {
     serverActions: { bodySizeLimit: "10mb" },
@@ -41,7 +49,7 @@ const nextConfig = {
       dynamic: 30,
       static: 300,
     },
-    optimizePackageImports: ['lucide-react', 'framer-motion'],
+    optimizePackageImports: ['lucide-react', 'framer-motion', 'react-hot-toast'],
   },
 };
 

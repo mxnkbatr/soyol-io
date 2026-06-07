@@ -28,7 +28,14 @@ export async function GET(request: NextRequest) {
                 id: banner._id.toString(),
             }));
 
-        return NextResponse.json({ banners: mappedResults });
+        return NextResponse.json(
+            { banners: mappedResults },
+            {
+                headers: {
+                    'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+                },
+            },
+        );
     } catch (error) {
         console.error('[Banners API] GET Error:', error);
         return NextResponse.json({ banners: [] }, { status: 500 });

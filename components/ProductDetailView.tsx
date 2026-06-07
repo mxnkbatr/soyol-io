@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { isReadyProduct, isPreOrderProduct } from "@/lib/productFilters";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -168,8 +169,8 @@ export function ProductDetailView({
     ? !selectedVariant || displayInventory <= 0
     : displayInventory <= 0;
 
-  const isPreorder = product.sections?.includes("Захиалга") || product.stockStatus === "pre-order";
-  const isReady = product.sections?.includes("Бэлэн") || product.stockStatus === "in-stock";
+  const isReady = isReadyProduct(product);
+  const isPreorder = isPreOrderProduct(product);
 
   const canAddToCart =
     !isOutOfStock &&
@@ -460,6 +461,8 @@ export function ProductDetailView({
                       alt={product.name}
                       fill
                       className="object-contain pointer-events-none"
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      quality={80}
                       priority={activeImageIndex === 0}
                       fallbackSrc={PRODUCT_PLACEHOLDER}
                     />
@@ -1163,7 +1166,16 @@ export function ProductDetailView({
               className="relative w-full max-w-3xl aspect-square rounded-3xl overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <SafeImage src={images[activeImageIndex]} alt="" fill className="object-contain" priority fallbackSrc={PRODUCT_PLACEHOLDER} />
+              <SafeImage
+                src={images[activeImageIndex]}
+                alt=""
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 768px"
+                quality={85}
+                priority
+                fallbackSrc={PRODUCT_PLACEHOLDER}
+              />
               {images.length > 1 && (
                 <>
                   <button

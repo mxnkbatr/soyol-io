@@ -15,6 +15,11 @@ export default function SafeImage({
   fallbackSrc = PRODUCT_PLACEHOLDER,
   onError,
   alt,
+  quality = 70,
+  loading,
+  priority,
+  fill,
+  className,
   ...props
 }: SafeImageProps) {
   const initial = src && String(src).trim() ? src : fallbackSrc;
@@ -24,11 +29,20 @@ export default function SafeImage({
     setImgSrc(src && String(src).trim() ? src : fallbackSrc);
   }, [src, fallbackSrc]);
 
+  const mergedClassName = fill
+    ? ['absolute inset-0 h-full w-full', className].filter(Boolean).join(' ')
+    : className;
+
   return (
     <Image
       {...props}
+      fill={fill}
       alt={alt}
       src={imgSrc}
+      quality={quality}
+      priority={priority}
+      className={mergedClassName}
+      loading={loading ?? (priority ? undefined : 'lazy')}
       onError={(event) => {
         if (imgSrc !== fallbackSrc) {
           setImgSrc(fallbackSrc);

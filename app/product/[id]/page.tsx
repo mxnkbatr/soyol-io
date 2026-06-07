@@ -1,11 +1,10 @@
-import { Suspense } from "react";
+import { Suspense, cache } from "react";
 import { notFound } from "next/navigation";
-import { unstable_cache } from "next/cache";
 import { ObjectId } from "mongodb";
 import ProductDetailClient from "@/components/ProductDetailClient";
 import ProductLoading from "./loading";
 
-export const revalidate = 86400;
+export const revalidate = 3600;
 
 type ProductResponse = {
   _id: string | ObjectId;
@@ -83,18 +82,7 @@ async function fetchProductPageData(id: string) {
   return { product, relatedProducts, categoryName: categoryDoc?.name || product.category || "" };
 }
 
-const getCachedProductPageData = unstable_cache(
-  async (id: string) => fetchProductPageData(id),
-  ["product-page"],
-  { revalidate: 86400 },
-);
-
-async function getProductPageData(id: string) {
-  if (process.env.NODE_ENV === "development") {
-    return fetchProductPageData(id);
-  }
-  return getCachedProductPageData(id);
-}
+const getProductPageData = cache(async (id: string) => fetchProductPageData(id));
 
 function toPlainObjectId(value: string | ObjectId | undefined): string {
   if (!value) return "";
