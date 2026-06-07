@@ -43,7 +43,9 @@ next-env.d.ts
 # prisma
 /prisma/migrations
 
-# android secrets
+# local uploads & backups
+/public/uploads/
+/backups/
 android/*.json
 android/app/google-services.json
 !android/app/google-services.json.example

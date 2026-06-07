@@ -16,7 +16,7 @@ if (!MONGODB_URI) {
 
 const banners = [
     {
-        image: 'https://res.cloudinary.com/dc127wztz/image/upload/w_1000,c_scale,q_auto,f_auto/v1770896452/banner1_nw6nok.png',
+        image: 'https://res.cloudinary.com/dc127wztz/image/upload/v1770896452/banner1_nw6nok.png',
         title: 'New Collection',
         active: true,
         order: 0,
@@ -24,7 +24,7 @@ const banners = [
         updatedAt: new Date(),
     },
     {
-        image: 'https://res.cloudinary.com/dc127wztz/image/upload/w_1000,c_scale,q_auto,f_auto/v1770896152/banner_qhjffv.png',
+        image: 'https://res.cloudinary.com/dc127wztz/image/upload/v1770896152/banner_qhjffv.png',
         title: 'Flash Sale',
         active: true,
         order: 1,

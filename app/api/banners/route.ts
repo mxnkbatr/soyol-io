@@ -4,6 +4,14 @@ import { auth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
+function isValidBannerImage(url?: string | null): boolean {
+  if (!url) return false;
+  if (url.startsWith('/uploads/')) return false;
+  if (url.startsWith('http://') || url.startsWith('https://')) return true;
+  if (url.startsWith('/api/media/')) return true;
+  return url.startsWith('/');
+}
+
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
@@ -13,10 +21,12 @@ export async function GET(request: NextRequest) {
         const query = showAll ? {} : { active: true };
         const results = await banners.find(query).sort({ order: 1 }).toArray();
 
-        const mappedResults = results.map((banner) => ({
-            ...banner,
-            id: banner._id.toString(),
-        }));
+        const mappedResults = results
+            .filter((banner) => isValidBannerImage(banner.image))
+            .map((banner) => ({
+                ...banner,
+                id: banner._id.toString(),
+            }));
 
         return NextResponse.json({ banners: mappedResults });
     } catch (error) {

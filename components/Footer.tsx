@@ -80,7 +80,7 @@ export default function Footer() {
             <Link href="/" className="inline-block shrink-0">
               <div className="relative w-96 h-40">
                 <Image
-                  src="https://res.cloudinary.com/dc127wztz/image/upload/q_auto/f_auto/v1775638954/soyol-footer-logo_wuxvpt.png"
+                  src="https://res.cloudinary.com/dc127wztz/image/upload/v1775638954/soyol-footer-logo_wuxvpt.png"
                   alt="Soyol Video Shop"
                   fill
                   className="object-contain object-left"

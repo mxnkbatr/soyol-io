@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
 import { motion } from "framer-motion";
-import Image from "next/image";
+import SafeImage, { PRODUCT_PLACEHOLDER } from "@/components/SafeImage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Heart, ShoppingCart, Clock } from "lucide-react";
@@ -53,7 +53,7 @@ const UniversalProductCard = memo(({
         if (!combined.includes(img)) combined.push(img);
       });
     }
-    return combined.length > 0 ? combined : ["/soyol-logo.png"];
+    return combined.length > 0 ? combined : [PRODUCT_PLACEHOLDER];
   })();
 
   const hasMultiple = allImages.length > 1;
@@ -141,13 +141,14 @@ const UniversalProductCard = memo(({
         <div className="bg-white rounded-[24px] overflow-hidden border border-[#E5E5EA]/45 shadow-[0_4px_16px_rgba(0,0,0,0.02)] transition-all duration-300 hover:shadow-[0_12px_32px_rgba(0,0,0,0.05)] hover:-translate-y-0.5">
           {/* ── Image area ─────────────────────────────── */}
           <div className="relative aspect-square bg-[#F6F6F9] overflow-hidden rounded-t-[24px]">
-            <Image
+            <SafeImage
               src={allImages[0]}
               alt={product.name}
               fill
               className="object-cover sm:object-contain sm:p-5 transition-transform duration-500 group-hover:scale-[1.03]"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               priority={index < 4}
+              fallbackSrc={PRODUCT_PLACEHOLDER}
             />
 
             {/* ── Top-left badges ───────────────────────── */}

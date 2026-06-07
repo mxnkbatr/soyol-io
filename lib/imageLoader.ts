@@ -1,27 +1,38 @@
+const TRANSFORMATION_PREFIXES = ['f_', 'q_', 'w_', 'h_', 'c_', 'g_', 'e_', 'b_', 'a_', 'r_', 'dpr_', 'ar_', 'fl_'];
+
+function isTransformationSegment(segment: string): boolean {
+  if (/^v\d+$/.test(segment)) return false;
+  if (segment.includes(',')) return true;
+  if (segment.includes('.')) return false;
+  return TRANSFORMATION_PREFIXES.some((prefix) => segment.startsWith(prefix));
+}
+
+function stripExistingTransformations(resourcePath: string): string {
+  const segments = resourcePath.split('/');
+  while (segments.length > 0 && isTransformationSegment(segments[0])) {
+    segments.shift();
+  }
+  return segments.join('/');
+}
+
 export default function imageLoader({ src, width, quality }: { src: string; width?: number; quality?: number }) {
   if (!src) return '';
-  
-  // Cloudinary optimization
-  if (src.includes('res.cloudinary.com')) {
+
+  if (src.includes('res.cloudinary.com') && src.includes('/upload/')) {
     const params = [
       'f_auto',
-      'q_auto',
-      'dpr_auto',
+      quality ? `q_${quality}` : 'q_auto',
       width ? `w_${width}` : '',
-      quality ? `q_${quality}` : '',
-      'c_limit' // Prevent upscaling beyond original size
-    ].filter(Boolean).join(',');
-    
-    // Check if URL already has transformations
-    // Cloudinary URLs look like: .../upload/v12345/path/to/image.jpg
-    // or .../upload/w_100,c_fill/v12345/...
-    if (src.includes('/upload/')) {
-      // If there are already transformations (e.g., /upload/w_100/...), we should be careful
-      // But usually, we can just insert ours after /upload/
-      const parts = src.split('/upload/');
-      return `${parts[0]}/upload/${params}/${parts[1]}`;
-    }
+      'c_limit',
+    ]
+      .filter(Boolean)
+      .join(',');
+
+    const [base, resourcePath = ''] = src.split('/upload/');
+    const cleanResourcePath = stripExistingTransformations(resourcePath);
+
+    return `${base}/upload/${params}/${cleanResourcePath}`;
   }
-  
+
   return src;
 }

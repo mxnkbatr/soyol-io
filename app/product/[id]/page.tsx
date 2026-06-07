@@ -1,9 +1,9 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { unstable_cache } from "next/cache";
-import dynamic from "next/dynamic";
-const ProductDetailClient = dynamic(() => import("../../../components/ProductDetailClient").then(m => m.ProductDetailClient), { ssr: true });
-import { CacheTags } from "@/lib/cache-tags";
 import { ObjectId } from "mongodb";
+import ProductDetailClient from "@/components/ProductDetailClient";
+import ProductLoading from "./loading";
 
 export const revalidate = 86400;
 
@@ -39,25 +39,71 @@ type ProductResponse = {
   rating?: number;
 };
 
-async function fetchProductFromDb(id: string): Promise<ProductResponse | null> {
+async function fetchProductPageData(id: string) {
   const { getCollection } = await import("@/lib/mongodb");
+
   let objectId: InstanceType<typeof ObjectId>;
   try {
     objectId = new ObjectId(id);
   } catch {
     return null;
   }
+
   const products = await getCollection("products");
-  const product = await products.findOne({ _id: objectId } as any);
+  const product = (await products.findOne({ _id: objectId } as any)) as ProductResponse | null;
   if (!product) return null;
-  return product as unknown as ProductResponse;
+
+  const categories = await getCollection("categories");
+  const [relatedProducts, categoryDoc] = await Promise.all([
+    products
+      .find({
+        category: product.category,
+        _id: { $ne: objectId },
+      } as any)
+      .project({
+        name: 1,
+        image: 1,
+        price: 1,
+        rating: 1,
+        category: 1,
+        featured: 1,
+        stockStatus: 1,
+        isCargo: 1,
+        inventory: 1,
+      })
+      .limit(4)
+      .toArray(),
+    product.category
+      ? categories.findOne({
+          $or: [{ id: product.category }, { slug: product.category }],
+        } as any)
+      : Promise.resolve(null),
+  ]);
+
+  return { product, relatedProducts, categoryName: categoryDoc?.name || product.category || "" };
 }
 
-const getCachedProduct = unstable_cache(
-  async (id: string) => fetchProductFromDb(id),
-  ['product-detail'],
-  { revalidate: 86400 }
+const getCachedProductPageData = unstable_cache(
+  async (id: string) => fetchProductPageData(id),
+  ["product-page"],
+  { revalidate: 86400 },
 );
+
+async function getProductPageData(id: string) {
+  if (process.env.NODE_ENV === "development") {
+    return fetchProductPageData(id);
+  }
+  return getCachedProductPageData(id);
+}
+
+function toPlainObjectId(value: string | ObjectId | undefined): string {
+  if (!value) return "";
+  return typeof value === "string" ? value : value.toString();
+}
+
+function serializeForClient<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value));
+}
 
 export async function generateMetadata({
   params,
@@ -66,8 +112,9 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   try {
-    const product = await getCachedProduct(id);
-    if (!product) return {};
+    const data = await getProductPageData(id);
+    if (!data) return {};
+    const { product } = data;
     return {
       title: product.isCargo ? `${product.name} + Карго` : product.name,
       description: product.description || product.name,
@@ -86,6 +133,62 @@ export async function generateMetadata({
   }
 }
 
+async function ProductContent({ id }: { id: string }) {
+  const data = await getProductPageData(id);
+  if (!data) notFound();
+
+  const { product, relatedProducts, categoryName } = data;
+
+  const mappedRelatedProducts = relatedProducts.map((p: any) => ({
+    id: toPlainObjectId(p._id),
+    name: p.name,
+    image: p.image || "",
+    price: p.price,
+    rating: p.rating || 0,
+    category: p.category,
+    featured: p.featured,
+    stockStatus: p.stockStatus,
+    isCargo: p.isCargo || false,
+    inventory: p.inventory,
+  }));
+
+  const productData = serializeForClient({
+    id: toPlainObjectId(product._id),
+    name: product.name,
+    description: product.description ?? null,
+    price: product.price,
+    originalPrice: product.originalPrice,
+    discountPercent: product.discountPercent,
+    image: product.image || null,
+    images: product.images || [],
+    category: product.category,
+    categoryName,
+    stockStatus: product.stockStatus || "in-stock",
+    inventory: product.inventory ?? 0,
+    brand: product.brand || undefined,
+    model: product.model || undefined,
+    paymentMethods: product.paymentMethods || undefined,
+    sections: product.sections || [],
+    attributes: product.attributes || {},
+    options: product.options || [],
+    variants: product.variants || [],
+    shippingOrigin: product.shippingOrigin || undefined,
+    shippingDestination: product.shippingDestination || undefined,
+    dispatchTime: product.dispatchTime || undefined,
+    sizeGuideUrl: product.sizeGuideUrl || undefined,
+    wholesale: product.wholesale || false,
+    featured: product.featured || false,
+    isCargo: product.isCargo || false,
+    deliveryFee: product.deliveryFee ?? 0,
+    createdAt: product.createdAt ? new Date(product.createdAt).toISOString() : new Date().toISOString(),
+    updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : new Date().toISOString(),
+    rating: product.rating || 0,
+    relatedProducts: mappedRelatedProducts,
+  });
+
+  return <ProductDetailClient product={productData as any} initialReviews={[]} />;
+}
+
 export default async function ProductDetailPage({
   params,
 }: {
@@ -93,72 +196,9 @@ export default async function ProductDetailPage({
 }) {
   const { id } = await params;
 
-  try {
-    const product = await getCachedProduct(id);
-
-    if (!product) {
-      notFound();
-    }
-
-    const { getCollection } = await import("@/lib/mongodb");
-    const products = await getCollection("products");
-
-    const relatedProducts = await products
-      .find({
-        category: product.category,
-        _id: { $ne: new ObjectId(id) }
-      } as any)
-      .limit(4)
-      .toArray();
-
-    const mappedRelatedProducts = relatedProducts.map((p: any) => ({
-      id: p._id.toString(),
-      name: p.name,
-      image: p.image || '',
-      price: p.price,
-      rating: p.rating || 0,
-      category: p.category,
-      featured: p.featured,
-      stockStatus: p.stockStatus,
-      isCargo: p.isCargo || false,
-      inventory: p.inventory
-    }));
-
-    const productData = {
-      id: product._id.toString(),
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      originalPrice: product.originalPrice,
-      discountPercent: product.discountPercent,
-      image: product.image || null,
-      images: product.images || [],
-      category: product.category,
-      stockStatus: product.stockStatus || 'in-stock',
-      inventory: product.inventory ?? 0,
-      brand: product.brand || undefined,
-      model: product.model || undefined,
-      paymentMethods: product.paymentMethods || undefined,
-      sections: product.sections || [],
-      attributes: product.attributes || {},
-      options: product.options || [],
-      variants: product.variants || [],
-      shippingOrigin: product.shippingOrigin || undefined,
-      shippingDestination: product.shippingDestination || undefined,
-      dispatchTime: product.dispatchTime || undefined,
-      sizeGuideUrl: product.sizeGuideUrl || undefined,
-      wholesale: product.wholesale || false,
-      featured: product.featured || false,
-      isCargo: product.isCargo || false,
-      deliveryFee: product.deliveryFee ?? 0,
-      createdAt: product.createdAt ? new Date(product.createdAt).toISOString() : new Date().toISOString(),
-      updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : new Date().toISOString(),
-      rating: product.rating || 0,
-      relatedProducts: mappedRelatedProducts,
-    };
-
-    return <ProductDetailClient product={productData as any} initialReviews={[]} />;
-  } catch {
-    notFound();
-  }
+  return (
+    <Suspense fallback={<ProductLoading />}>
+      <ProductContent id={id} />
+    </Suspense>
+  );
 }

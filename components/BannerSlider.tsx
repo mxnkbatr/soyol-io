@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
+import SafeImage, { BANNER_PLACEHOLDER } from '@/components/SafeImage';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -104,14 +104,16 @@ export default function BannerSlider() {
           transition={{ opacity: { duration: 0.3, ease: 'easeInOut' } }}
           className="absolute inset-0 w-full h-full"
         >
-          <div className="relative w-full h-full">
-            <Image
+          <div className="relative h-full w-full">
+            <SafeImage
               src={banners[currentIndex]?.image || ''}
               alt={banners[currentIndex]?.title || `Banner ${currentIndex + 1}`}
-              fill
+              width={1600}
+              height={686}
               priority={currentIndex === 0}
-              className="object-cover"
+              className="h-full w-full object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1600px) 100vw, 1600px"
+              fallbackSrc={BANNER_PLACEHOLDER}
             />
           </div>
 

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" fill="none">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="675" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1C1C1E"/>
+      <stop offset="1" stop-color="#FF4500"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg2)"/>
+  <circle cx="150" cy="520" r="200" fill="#FF7900" fill-opacity="0.25"/>
+  <text x="80" y="270" fill="white" font-family="system-ui,sans-serif" font-size="80" font-weight="900">ХЯМДРАЛ</text>
+  <text x="80" y="350" fill="#FFD60A" font-family="system-ui,sans-serif" font-size="40" font-weight="700">Flash Sale</text>
+  <text x="80" y="420" fill="white" fill-opacity="0.88" font-family="system-ui,sans-serif" font-size="28">Онцгой хямдралтай бараа</text>
+  <text x="80" y="510" fill="white" font-family="system-ui,sans-serif" font-size="56" font-weight="800">Soyol Shop</text>
+</svg>

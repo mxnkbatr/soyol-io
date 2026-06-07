@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="675" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF7900"/>
+      <stop offset="1" stop-color="#FF4500"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <circle cx="980" cy="120" r="180" fill="white" fill-opacity="0.08"/>
+  <circle cx="1100" cy="580" r="240" fill="white" fill-opacity="0.06"/>
+  <text x="80" y="280" fill="white" font-family="system-ui,sans-serif" font-size="72" font-weight="800">Шинэ бүлэг</text>
+  <text x="80" y="360" fill="white" fill-opacity="0.92" font-family="system-ui,sans-serif" font-size="36" font-weight="600">New Collection</text>
+  <text x="80" y="430" fill="white" fill-opacity="0.85" font-family="system-ui,sans-serif" font-size="28">Soyol Video Shop</text>
+  <rect x="80" y="480" width="220" height="56" rx="28" fill="white" fill-opacity="0.18"/>
+  <text x="190" y="516" text-anchor="middle" fill="white" font-family="system-ui,sans-serif" font-size="22" font-weight="700">Одоо үзэх</text>
+</svg>

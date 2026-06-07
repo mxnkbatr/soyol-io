@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
+import SafeImage, { BANNER_PLACEHOLDER } from '@/components/SafeImage';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { Banner } from '@/models/Banner';
@@ -57,17 +57,19 @@ export default function MobileHero() {
                         }}
                         animate={{ x: `-${currentIndex * 100}%` }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className="flex w-full h-full cursor-grab active:cursor-grabbing"
+                        className="absolute inset-0 flex h-full cursor-grab active:cursor-grabbing"
                     >
                         {banners.map((banner, index) => (
-                            <div key={index} className="relative min-w-full h-full">
-                                <Image
+                            <div key={index} className="relative h-full w-full shrink-0 flex-[0_0_100%]">
+                                <SafeImage
                                     src={banner.image || ''}
                                     alt={banner.title || `Banner ${index + 1}`}
-                                    fill
+                                    width={1200}
+                                    height={675}
                                     priority={index === 0}
-                                    className="object-cover"
+                                    className="h-full w-full object-cover"
                                     sizes="100vw"
+                                    fallbackSrc={BANNER_PLACEHOLDER}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent pointer-events-none" />
                             </div>
