@@ -10,6 +10,7 @@ export const usePushNotifications = () => {
     const permissionGrantedRef = useRef(false);
 
     const registerToken = useCallback(async (token: string) => {
+        if (!token?.trim()) return;
         try {
             const res = await fetch('/api/notifications/register-token', {
                 method: 'POST',
@@ -23,11 +24,22 @@ export const usePushNotifications = () => {
             if (!res.ok) {
                 const body = await res.json().catch(() => ({}));
                 console.error('FCM: Token registration failed:', res.status, body);
+                return;
             }
+            console.log('FCM: Token saved to server successfully');
         } catch (error) {
             console.error('FCM: Token registration failed:', error);
         }
     }, []);
+
+    const getIosFcmToken = useCallback(async () => {
+        const { FCM } = await import('@capacitor-community/fcm');
+        const fcmResult = await FCM.getToken();
+        if (fcmResult.token) {
+            console.log('FCM: iOS FCM token:', fcmResult.token);
+            await registerToken(fcmResult.token);
+        }
+    }, [registerToken]);
 
     const ensureNativePermission = useCallback(async () => {
         const { PushNotifications } = await import('@capacitor/push-notifications');
@@ -77,27 +89,18 @@ export const usePushNotifications = () => {
                         return;
                     }
 
-                    // Register with FCM / APNs
-                    await PushNotifications.register();
-
-                    // Token received
+                    // Listeners MUST be added before register() or iOS may miss the token event
                     const registrationListener = await PushNotifications.addListener('registration', async (token) => {
-                        console.log('FCM: Native APNs token received:', token.value);
-                        
+                        console.log('FCM: Native device token received:', token.value);
+
                         if (Capacitor.getPlatform() === 'ios') {
                             try {
-                                const { FCM } = await import('@capacitor-community/fcm');
-                                const fcmResult = await FCM.getToken();
-                                console.log('FCM: Converted iOS FCM token:', fcmResult.token);
-                                registerToken(fcmResult.token);
+                                await getIosFcmToken();
                             } catch (fcmError) {
                                 console.error('FCM: Failed to get FCM token via plugin:', fcmError);
-                                // Fallback to raw token just in case
-                                registerToken(token.value);
                             }
                         } else {
-                            // On Android, standard token is already FCM token
-                            registerToken(token.value);
+                            await registerToken(token.value);
                         }
                     });
 
@@ -143,6 +146,17 @@ export const usePushNotifications = () => {
                         console.error('FCM: Registration error:', err);
                     });
 
+                    await PushNotifications.register();
+
+                    // iOS fallback: FCM token may be ready slightly after register()
+                    if (Capacitor.getPlatform() === 'ios') {
+                        setTimeout(() => {
+                            getIosFcmToken().catch((err) => {
+                                console.error('FCM: iOS fallback token fetch failed:', err);
+                            });
+                        }, 2500);
+                    }
+
                     cleanupFn = () => {
                         registrationListener.remove();
                         receivedListener.remove();
@@ -172,5 +186,5 @@ export const usePushNotifications = () => {
         return () => {
             if (cleanupFn) cleanupFn();
         };
-    }, [isSignedIn, registerToken, ensureNativePermission]);
+    }, [isSignedIn, registerToken, ensureNativePermission, getIosFcmToken]);
 };
