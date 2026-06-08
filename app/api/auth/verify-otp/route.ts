@@ -70,7 +70,7 @@ export async function POST(req: Request) {
 
     // Generate JWT
     const token = await new SignJWT({
-      userId: user._id.toString(),
+      sub: user._id.toString(),
       phone: user.phone,
       role: user.role
     })

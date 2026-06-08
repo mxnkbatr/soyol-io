@@ -21,8 +21,8 @@ export async function auth(): Promise<{ userId: string | null; phone: string | n
 
         const { payload } = await jwtVerify(token, JWT_SECRET);
 
-        // JWT standard uses 'sub' for subject (user id)
-        const userId = payload.sub;
+        // Most routes use `sub`; OTP login historically used `userId` in the payload.
+        const userId = (payload.sub || payload.userId) as string | undefined;
 
         if (!userId) return { userId: null, phone: null, role: null };
 
