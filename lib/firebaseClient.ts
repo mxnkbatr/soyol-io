@@ -18,9 +18,8 @@ export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getA
 export async function getWebPushToken(): Promise<string | null> {
     if (typeof window === "undefined") return null;
     
-    // If VAPID key is missing, don't even try to avoid cryptic Firebase errors
-    if (!VAPID_KEY || VAPID_KEY.startsWith("BDe5S")) {
-        console.warn("FCM: Web Push VAPID key is missing or invalid. Push notifications will not work on web.");
+    if (!VAPID_KEY) {
+        console.warn("FCM: NEXT_PUBLIC_FIREBASE_VAPID_KEY is not set. Web push notifications will not work.");
         return null;
     }
     

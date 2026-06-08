@@ -11,50 +11,53 @@ export const usePushNotifications = () => {
 
     const registerToken = useCallback(async (token: string) => {
         try {
-            await fetch('/api/notifications/register-token', {
+            const res = await fetch('/api/notifications/register-token', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({
                     token,
                     platform: Capacitor.getPlatform(), // 'ios', 'android', or 'web'
                 }),
             });
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                console.error('FCM: Token registration failed:', res.status, body);
+            }
         } catch (error) {
             console.error('FCM: Token registration failed:', error);
         }
     }, []);
 
+    const ensureNativePermission = useCallback(async () => {
+        const { PushNotifications } = await import('@capacitor/push-notifications');
+        let permStatus = await PushNotifications.checkPermissions();
+
+        if (permStatus.receive === 'prompt') {
+            permStatus = await PushNotifications.requestPermissions();
+        }
+
+        if (permStatus.receive === 'granted') {
+            permissionGrantedRef.current = true;
+            return true;
+        }
+
+        console.warn('FCM: Push notification permission not granted');
+        return false;
+    }, []);
+
     // ──────────────────────────────────────────────────────────────────────────
-    // EFFECT 1: Ask for permission immediately on native (no login required)
-    // This ensures iOS shows the permission dialog on first app launch.
+    // Ask permission on native launch (before login), so iOS dialog shows early.
     // ──────────────────────────────────────────────────────────────────────────
     useEffect(() => {
         if (!Capacitor.isNativePlatform()) return;
-
-        const requestPermission = async () => {
-            try {
-                const { PushNotifications } = await import('@capacitor/push-notifications');
-                let permStatus = await PushNotifications.checkPermissions();
-
-                if (permStatus.receive === 'prompt') {
-                    permStatus = await PushNotifications.requestPermissions();
-                }
-
-                if (permStatus.receive === 'granted') {
-                    permissionGrantedRef.current = true;
-                } else {
-                    console.warn('FCM: Push notification permission not granted');
-                }
-            } catch (error) {
-                console.error('FCM: Permission request failed:', error);
-            }
-        };
-
-        requestPermission();
-    }, []); // runs once on mount
+        ensureNativePermission().catch((error) => {
+            console.error('FCM: Permission request failed:', error);
+        });
+    }, [ensureNativePermission]);
 
     // ──────────────────────────────────────────────────────────────────────────
-    // EFFECT 2: Register FCM/APNs token & attach listeners (requires sign-in)
+    // Register FCM/APNs token & attach listeners (requires sign-in)
     // ──────────────────────────────────────────────────────────────────────────
     useEffect(() => {
         if (!isSignedIn) return;
@@ -67,9 +70,9 @@ export const usePushNotifications = () => {
                 try {
                     const { PushNotifications } = await import('@capacitor/push-notifications');
 
-                    // Re-check permission in case it was granted after first effect
-                    const permStatus = await PushNotifications.checkPermissions();
-                    if (permStatus.receive !== 'granted') {
+                    const hasPermission =
+                        permissionGrantedRef.current || (await ensureNativePermission());
+                    if (!hasPermission) {
                         console.warn('FCM: Permission not granted – skipping registration');
                         return;
                     }
@@ -169,5 +172,5 @@ export const usePushNotifications = () => {
         return () => {
             if (cleanupFn) cleanupFn();
         };
-    }, [isSignedIn, registerToken]);
+    }, [isSignedIn, registerToken, ensureNativePermission]);
 };
