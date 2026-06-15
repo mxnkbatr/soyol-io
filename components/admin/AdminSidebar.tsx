@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
     BarChart3, Package, Layers, ShoppingCart, MessageCircle,
-    ArrowLeft, Menu, X, Building2, LogOut, Image as ImageIcon, TrendingUp, Users, Video
+    ArrowLeft, Menu, X, Building2, LogOut, Image as ImageIcon, TrendingUp, Users, Video, Bell
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useSWR from 'swr';
@@ -43,6 +43,7 @@ export default function AdminSidebar() {
         { href: '/admin/products', icon: Package, label: 'Бүтээгдэхүүн', shortcut: 'G + P' },
         { href: '/admin/banners', icon: ImageIcon, label: 'Беннер удирдлага', shortcut: 'G + B' },
         { href: '/admin/orders', icon: ShoppingCart, label: 'Захиалгууд', badge: pendingCount, badgeColor: 'bg-red-500', shortcut: 'G + O' },
+        { href: '/admin/notifications', icon: Bell, label: 'Мэдэгдэл илгээх', shortcut: null },
         { href: '/admin/categories', icon: Layers, label: 'Ангилал', shortcut: null },
         { href: '/admin/messages', icon: MessageCircle, label: 'Мессеж', badge: unreadMessagesCount, badgeColor: 'bg-blue-500', shortcut: 'G + M' },
         { href: '/admin/video', icon: Video, label: 'Видео дуудлага', shortcut: null },
