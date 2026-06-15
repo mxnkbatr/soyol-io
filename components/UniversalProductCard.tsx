@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 import type { Product } from "@/models/Product";
 import ProductBadge from "@/components/ProductBadge";
 import { triggerHaptic, hapticSuccess } from "@/lib/haptics";
+import { prefetchImages } from "@/lib/imagePrefetch";
 import { isWithin24Hours } from "@/lib/utils";
 import { isReadyProduct, isPreOrderProduct } from "@/lib/productFilters";
 
@@ -114,7 +115,7 @@ const UniversalProductCard = memo(({
           observer.unobserve(entry.target);
         }
       },
-      { threshold: 0.1, rootMargin: "50px" }
+      { threshold: 0.05, rootMargin: "300px" }
     );
 
     if (cardRef.current) {
@@ -135,6 +136,8 @@ const UniversalProductCard = memo(({
     >
       <div
         className="block cursor-pointer"
+        onMouseEnter={() => prefetchImages([allImages[0]], 320, 60)}
+        onTouchStart={() => prefetchImages([allImages[0]], 320, 60)}
         onClick={(e) => {
           router.push(`/product/${product.id}`);
         }}
@@ -147,9 +150,9 @@ const UniversalProductCard = memo(({
               alt={product.name}
               fill
               className="object-cover object-center transition-transform duration-500 lg:group-hover:scale-[1.03]"
-              sizes="(max-width: 1024px) 45vw, 200px"
-              quality={65}
-              priority={index < 2}
+              sizes="(max-width: 1024px) 42vw, 200px"
+              quality={60}
+              priority={index < 8}
               fallbackSrc={PRODUCT_PLACEHOLDER}
             />
 

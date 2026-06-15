@@ -59,6 +59,7 @@ function GoogleLoginButton({
         const res = await fetch('/api/auth/google', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ access_token: tokenResponse.access_token }),
         });
 
@@ -133,6 +134,7 @@ export default function SocialAuthButtons({ mode }: SocialAuthButtonsProps) {
         const res = await fetch('/api/auth/apple', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             identityToken,
             fullName: {

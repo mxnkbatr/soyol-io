@@ -1,4 +1,5 @@
 import { mutate } from 'swr';
+import { extractProductImageUrls, prefetchImages } from '@/lib/imagePrefetch';
 
 const fetcher = (url: string) =>
   fetch(url, { credentials: 'include' }).then((res) => {
@@ -6,7 +7,7 @@ const fetcher = (url: string) =>
     return res.json();
   });
 
-/** Warm SWR cache so tab switches feel instant (native app). */
+/** Warm SWR cache + prefetch product thumbnails (native app). */
 export async function warmAppCache() {
   const endpoints = [
     '/api/banners',
@@ -14,12 +15,21 @@ export async function warmAppCache() {
     '/api/categories',
   ];
 
-  await Promise.allSettled(
+  const results = await Promise.allSettled(
     endpoints.map(async (url) => {
       const data = await fetcher(url);
       mutate(url, data, { revalidate: false });
+      return { url, data };
     }),
   );
+
+  const productsPayload = results.find(
+    (r) => r.status === 'fulfilled' && r.value.url.includes('/api/products'),
+  );
+  if (productsPayload?.status === 'fulfilled') {
+    const products = productsPayload.value.data?.products || [];
+    prefetchImages(extractProductImageUrls(products, 24), 280, 60);
+  }
 }
 
 export const TAB_ROUTES = [

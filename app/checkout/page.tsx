@@ -329,7 +329,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] pt-[calc(52px+env(safe-area-inset-top,0px))] pb-40 lg:pb-28">
+    <div className="min-h-screen bg-[#F2F2F7] native-header-offset pb-40 lg:pb-28 lg:pt-0">
       <NativeHeader title="Захиалга баталгаажуулах" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-6 sm:gap-8 pb-[160px] lg:pb-0">

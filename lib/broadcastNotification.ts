@@ -2,7 +2,7 @@ import { getCollection } from './mongodb';
 import { sendPushToAllUsers } from './fcm';
 import { Notification } from '@/models/Notification';
 
-type BroadcastType = Extract<Notification['type'], 'admin_broadcast'>;
+type BroadcastType = Extract<Notification['type'], 'admin_broadcast' | 'product_promo'>;
 
 export async function broadcastNotificationToAll({
   title,
@@ -10,12 +10,14 @@ export async function broadcastNotificationToAll({
   link = '/',
   type = 'admin_broadcast',
   imageUrl,
+  productId,
 }: {
   title: string;
   message: string;
   link?: string;
   type?: BroadcastType;
   imageUrl?: string;
+  productId?: string;
 }) {
   const fcmResult = await sendPushToAllUsers({
     title,
@@ -24,6 +26,7 @@ export async function broadcastNotificationToAll({
     data: {
       url: link,
       type,
+      ...(productId ? { productId } : {}),
     },
   });
 

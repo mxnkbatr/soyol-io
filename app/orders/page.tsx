@@ -15,7 +15,7 @@ import { CANCELLABLE_STATUSES, type OrderStatus } from "@/types/order-types";
 import { useAuth } from "@/context/AuthContext";
 import { formatPrice } from "@/lib/utils";
 
-const TABS = ['Бүгд', 'Хүлээгдэж буй', 'Баталгаажсан', 'Хүргэлтэнд', 'Дууссан', 'Цуцлагдсан'];
+const TABS = ['Бүгд', 'Хүлээгдэж буй', 'Баталгаажсан', 'Хүргэлтэнд'];
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -107,8 +107,6 @@ export default function MyOrdersPage() {
     if (activeTab === 'Хүлээгдэж буй') return order.status === 'pending';
     if (activeTab === 'Баталгаажсан') return order.status === 'confirmed';
     if (activeTab === 'Хүргэлтэнд') return order.status === 'processing' || order.status === 'shipped';
-    if (activeTab === 'Дууссан') return order.status === 'delivered';
-    if (activeTab === 'Цуцлагдсан') return order.status === 'cancelled';
     return true;
   });
 
@@ -326,4 +324,4 @@ export default function MyOrdersPage() {
       </div>
     </div>
   );
-}
+}

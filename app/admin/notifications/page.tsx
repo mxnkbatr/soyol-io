@@ -1,8 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Bell, Send, Loader2, Smartphone, Clock } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
+import useSWR from 'swr';
+import {
+  Bell,
+  Send,
+  Loader2,
+  Smartphone,
+  Clock,
+  Search,
+  Package,
+  X,
+  ChevronDown,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
+import { formatPrice } from '@/lib/utils';
+import { buildFeaturedProductNotification } from '@/lib/productPromotionNotification';
 
 type BroadcastHistory = {
   _id: string;
@@ -12,13 +26,46 @@ type BroadcastHistory = {
   createdAt: string;
 };
 
+type AdminProduct = {
+  _id: string;
+  name: string;
+  price?: number;
+  originalPrice?: number;
+  discountPercent?: number;
+  inventory?: number;
+  image?: string | null;
+  images?: string[];
+  variants?: Array<{ inventory?: number }>;
+};
+
+const fetcher = (url: string) =>
+  fetch(url, { cache: 'no-store' }).then((r) => r.json());
+
 export default function AdminNotificationsPage() {
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [link, setLink] = useState('/');
+  const [imageUrl, setImageUrl] = useState<string | undefined>();
+  const [selectedProduct, setSelectedProduct] = useState<AdminProduct | null>(null);
+  const [productSearch, setProductSearch] = useState('');
+  const [showProductList, setShowProductList] = useState(false);
   const [sending, setSending] = useState(false);
   const [history, setHistory] = useState<BroadcastHistory[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const productPickerRef = useRef<HTMLDivElement>(null);
+
+  const productsUrl = useMemo(() => {
+    const params = new URLSearchParams({ admin: 'true', limit: '40' });
+    if (productSearch.trim()) params.set('q', productSearch.trim());
+    return `/api/products?${params}`;
+  }, [productSearch]);
+
+  const { data: productsData, isLoading: loadingProducts } = useSWR(
+    showProductList || productSearch ? productsUrl : null,
+    fetcher,
+  );
+
+  const productResults: AdminProduct[] = productsData?.products || [];
 
   const loadHistory = async () => {
     try {
@@ -38,6 +85,33 @@ export default function AdminNotificationsPage() {
     loadHistory();
   }, []);
 
+  useEffect(() => {
+    const onClickOutside = (e: MouseEvent) => {
+      if (productPickerRef.current && !productPickerRef.current.contains(e.target as Node)) {
+        setShowProductList(false);
+      }
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+  const applyProduct = (product: AdminProduct) => {
+    const promo = buildFeaturedProductNotification(product, product._id, 'promo');
+    setSelectedProduct(product);
+    setTitle(promo.title);
+    setMessage(promo.body);
+    setLink(promo.link);
+    setImageUrl(promo.imageUrl);
+    setShowProductList(false);
+    setProductSearch('');
+  };
+
+  const clearProduct = () => {
+    setSelectedProduct(null);
+    setImageUrl(undefined);
+    setLink('/');
+  };
+
   const handleSend = async () => {
     if (!title.trim() || !message.trim()) {
       toast.error('Гарчиг болон текст оруулна уу');
@@ -54,7 +128,13 @@ export default function AdminNotificationsPage() {
       const res = await fetch('/api/admin/broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), message: message.trim(), link: link.trim() || '/' }),
+        body: JSON.stringify({
+          title: title.trim(),
+          message: message.trim(),
+          link: link.trim() || '/',
+          productId: selectedProduct?._id,
+          imageUrl,
+        }),
       });
       const data = await res.json();
 
@@ -68,6 +148,8 @@ export default function AdminNotificationsPage() {
       setTitle('');
       setMessage('');
       setLink('/');
+      setImageUrl(undefined);
+      setSelectedProduct(null);
       loadHistory();
     } catch {
       toast.error('Сүлжээний алдаа');
@@ -84,14 +166,122 @@ export default function AdminNotificationsPage() {
           Мэдэгдэл илгээх
         </h1>
         <p className="text-slate-400 mt-2 text-sm">
-          Бүх хэрэглэгчийн гар утсанд push мэдэгдэл илгээнэ. Апп хаалттай байсан ч харагдана.
+          Бүх хэрэглэгчийн гар утсанд push мэдэгдэл илгээнэ. Бараа сонговол дархад тухайн бараа руу орно.
         </p>
       </header>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Form */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
           <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider">Шинэ мэдэгдэл</h2>
+
+          {/* Product picker */}
+          <div ref={productPickerRef}>
+            <label className="block text-[10px] text-slate-500 font-bold uppercase mb-2">
+              Бараа сонгох
+            </label>
+
+            {selectedProduct ? (
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-950 border border-amber-500/30">
+                <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-slate-800 shrink-0">
+                  {(selectedProduct.images?.[0] || selectedProduct.image) ? (
+                    <Image
+                      src={selectedProduct.images?.[0] || selectedProduct.image || ''}
+                      alt={selectedProduct.name}
+                      fill
+                      className="object-cover"
+                      sizes="56px"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Package className="w-6 h-6 text-slate-600" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-white truncate">{selectedProduct.name}</p>
+                  <p className="text-xs text-amber-400 mt-0.5">
+                    {selectedProduct.price ? formatPrice(selectedProduct.price) : '—'}
+                    {selectedProduct.inventory != null && (
+                      <span className="text-slate-500"> · {selectedProduct.inventory} үлдсэн</span>
+                    )}
+                  </p>
+                  <p className="text-[10px] text-slate-500 mt-0.5 truncate">/product/{selectedProduct._id}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearProduct}
+                  className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                  title="Бараа хасах"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  value={productSearch}
+                  onChange={(e) => {
+                    setProductSearch(e.target.value);
+                    setShowProductList(true);
+                  }}
+                  onFocus={() => setShowProductList(true)}
+                  placeholder="Барааны нэрээр хайх..."
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-10 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowProductList((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-500 hover:text-white"
+                >
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showProductList ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showProductList && (
+                  <div className="absolute z-20 left-0 right-0 mt-2 max-h-64 overflow-y-auto rounded-xl border border-slate-700 bg-slate-950 shadow-xl">
+                    {loadingProducts ? (
+                      <div className="flex justify-center py-6">
+                        <Loader2 className="w-5 h-5 animate-spin text-amber-500" />
+                      </div>
+                    ) : productResults.length === 0 ? (
+                      <p className="text-xs text-slate-500 text-center py-6">Бараа олдсонгүй</p>
+                    ) : (
+                      productResults.map((product) => {
+                        const thumb = product.images?.[0] || product.image;
+                        return (
+                          <button
+                            key={product._id}
+                            type="button"
+                            onClick={() => applyProduct(product)}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-900 text-left border-b border-slate-800/80 last:border-0"
+                          >
+                            <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-slate-800 shrink-0">
+                              {thumb ? (
+                                <Image src={thumb} alt="" fill className="object-cover" sizes="40px" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Package className="w-4 h-4 text-slate-600" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-white truncate">{product.name}</p>
+                              <p className="text-[11px] text-slate-500">
+                                {product.price ? formatPrice(product.price) : '—'}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            <p className="text-[10px] text-slate-600 mt-1.5">
+              Бараа сонгоход гарчиг, текст, холбоос автоматаар бөглөгдөнө
+            </p>
+          </div>
 
           <div>
             <label className="block text-[10px] text-slate-500 font-bold uppercase mb-2">Гарчиг *</label>
@@ -112,19 +302,24 @@ export default function AdminNotificationsPage() {
               onChange={(e) => setMessage(e.target.value)}
               maxLength={300}
               rows={4}
-              placeholder="Жишээ: Зөвхөн өнөөдөр 50% хямдрал! Одоо үзээрэй."
+              placeholder="Жишээ: 35% хямдрал · 45,000 ₮ · 12 ширхэг үлдсэн"
               className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 resize-none"
             />
             <p className="text-[10px] text-slate-600 mt-1 text-right">{message.length}/300</p>
           </div>
 
           <div>
-            <label className="block text-[10px] text-slate-500 font-bold uppercase mb-2">Холбоос (заавал биш)</label>
+            <label className="block text-[10px] text-slate-500 font-bold uppercase mb-2">
+              Холбоос {selectedProduct ? '(бараа)' : '(заавал биш)'}
+            </label>
             <input
               value={link}
               onChange={(e) => setLink(e.target.value)}
-              placeholder="/sale эсвэл /"
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50"
+              readOnly={!!selectedProduct}
+              placeholder="/product/... эсвэл /"
+              className={`w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500/50 ${
+                selectedProduct ? 'opacity-70 cursor-not-allowed' : ''
+              }`}
             />
           </div>
 
@@ -138,7 +333,6 @@ export default function AdminNotificationsPage() {
           </button>
         </div>
 
-        {/* Preview */}
         <div className="space-y-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -147,9 +341,15 @@ export default function AdminNotificationsPage() {
             </h2>
             <div className="bg-slate-950 rounded-2xl p-4 border border-slate-800 max-w-sm mx-auto">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shrink-0">
-                  <span className="text-white font-black text-sm">S</span>
-                </div>
+                {imageUrl ? (
+                  <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0">
+                    <Image src={imageUrl} alt="" fill className="object-cover" sizes="40px" />
+                  </div>
+                ) : (
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shrink-0">
+                    <span className="text-white font-black text-sm">S</span>
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] text-slate-500 font-bold">Soyol Shop · одоо</p>
                   <p className="text-sm font-bold text-white mt-0.5 truncate">
@@ -158,20 +358,22 @@ export default function AdminNotificationsPage() {
                   <p className="text-xs text-slate-400 mt-1 line-clamp-3">
                     {message || 'Мэдэгдлийн текст энд харагдана...'}
                   </p>
+                  {selectedProduct && (
+                    <p className="text-[10px] text-amber-500/80 mt-2">Дарвал бараа руу орно →</p>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 text-xs text-amber-200/80 space-y-1">
-            <p>✅ Шинэ бараа нэмэхэд автоматаар мэдэгдэл илгээгддэг</p>
-            <p>✅ Захиалгын төлөв өөрчлөгдөхөд тухайн хэрэглэгчид мэдэгдэл очно</p>
-            <p>✅ Эндээс бичсэн мэдэгдэл бүх хэрэглэгчид очно</p>
+            <p>✅ Бараа сонгоод илгээвэл дархад тухайн бараа нээгдэнэ</p>
+            <p>✅ Хямдрал, үнэ, үлдэгдэл автоматаар текстэнд орно</p>
+            <p>✅ Бараа онцлох (⭐) үед мөн адил мэдэгдэл очно</p>
           </div>
         </div>
       </div>
 
-      {/* History */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
         <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
           <Clock className="w-4 h-4" />

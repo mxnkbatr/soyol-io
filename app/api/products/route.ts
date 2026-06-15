@@ -95,10 +95,13 @@ export async function GET(req: NextRequest) {
     }
 
     const col = await getCollection('products');
+    const effectiveLimit = isAdmin
+      ? parseInt(searchParams.get('limit') || '200', 10)
+      : limit;
     const products = await col
       .find(query, isAdmin ? undefined : { projection: LIST_PROJECTION })
       .sort({ _id: -1 })
-      .limit(isAdmin ? 0 : limit)
+      .limit(effectiveLimit)
       .toArray();
 
     const serialized = isAdmin

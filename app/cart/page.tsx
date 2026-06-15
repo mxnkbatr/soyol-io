@@ -25,7 +25,7 @@ export default function CartPage() {
 
     if (items.length === 0) {
         return (
-            <div className="min-h-screen bg-[#F2F2F7] pt-14 pb-28 flex flex-col items-center relative overflow-hidden">
+            <div className="min-h-screen bg-[#F2F2F7] native-header-offset pb-28 flex flex-col items-center relative overflow-hidden lg:pt-0">
                 <NativeHeader title={t('cart', 'title')} />
 
                 <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-orange-400/8 blur-[90px] pointer-events-none" />
@@ -125,7 +125,7 @@ export default function CartPage() {
     const preOrderItems = items.filter(i => i.stockStatus === 'pre-order');
 
     return (
-        <div className="min-h-screen bg-[#F2F2F7] pt-14 pb-[calc(env(safe-area-inset-bottom)+260px)] lg:pb-[260px]">
+        <div className="min-h-screen bg-[#F2F2F7] native-header-offset pb-[calc(env(safe-area-inset-bottom)+260px)] lg:pb-[260px] lg:pt-0">
             <NativeHeader
                 title={t('cart', 'title')}
                 subtitle={`${getTotalItems()} бараа`}

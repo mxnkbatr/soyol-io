@@ -34,6 +34,7 @@ function SignInContent() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ phone, password }),
       });
 
@@ -61,7 +62,7 @@ function SignInContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-start items-center bg-[#F5F5F7] p-4 pt-16 md:pt-24">
+    <div className="min-h-screen flex flex-col justify-start items-center bg-[#F5F5F7] p-4 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)] md:pt-24">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-8 md:p-12">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-black text-slate-900 mb-2">Нэвтрэх</h1>

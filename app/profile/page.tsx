@@ -7,8 +7,8 @@ import Link from 'next/link';
 import {
   Package, Heart, MapPin, Bell, ShieldCheck,
   ChevronRight, LogOut, Camera, KeyRound, Eye,
-  EyeOff, CheckCircle, User, Clock, XCircle,
-  TrendingUp, Lock, Link2, Loader2, Truck
+  EyeOff, CheckCircle, Clock, XCircle,
+  Lock, Link2, Loader2, Truck
 } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@/context/AuthContext';
@@ -19,8 +19,17 @@ import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/
 import { Capacitor } from '@capacitor/core';
 
 import NativeHeader from '@/components/ui/NativeHeader';
+import SafeImage, { PRODUCT_PLACEHOLDER } from '@/components/SafeImage';
 
-type Tab = 'overview' | 'orders' | 'password';
+type Tab = 'orders' | 'password';
+
+interface OrderItem {
+  productId?: string;
+  name?: string;
+  image?: string;
+  price?: number;
+  quantity?: number;
+}
 
 interface Order {
   _id: string;
@@ -28,14 +37,14 @@ interface Order {
   totalPrice?: number;
   status: string;
   createdAt: string;
-  items?: any[];
+  items?: OrderItem[];
 }
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: authLoading, logout, refreshUser } = useAuth();
   const wishlistCount = useWishlistStore(state => state.getTotalItems());
-  const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [activeTab, setActiveTab] = useState<Tab>('orders');
 
   // Stats
   const [orders, setOrders] = useState<Order[]>([]);
@@ -221,14 +230,13 @@ export default function ProfilePage() {
     ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : (user.phone || '?')[0];
 
-  const tabs: { id: Tab; label: string; icon: any }[] = [
-    { id: 'overview', label: 'Хянах самбар', icon: TrendingUp },
+  const tabs: { id: Tab; label: string; icon: typeof Package }[] = [
     { id: 'orders', label: 'Захиалгууд', icon: Package },
     { id: 'password', label: 'Нууц үг', icon: KeyRound },
   ];
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] pb-[120px] pt-14 lg:pt-0 font-sans">
+    <div className="min-h-screen bg-[#F2F2F7] pb-[120px] native-header-offset lg:pt-0 font-sans">
       <NativeHeader title="Профайл" showBack={false} />
 
         {/* ─── PROFILE HERO ─── */}
@@ -305,107 +313,9 @@ export default function ProfilePage() {
       {/* ─── TAB CONTENT ─── */}
       <div className="px-4 space-y-4">
 
-        {/* OVERVIEW */}
-        {activeTab === 'overview' && (
-          <div className="space-y-4">
-
-            {/* Quick stats cards */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white rounded-[14px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-4">
-                <div className="w-9 h-9 bg-[#FFF0E6] rounded-[10px] flex items-center justify-center mb-3">
-                  <Package className="w-5 h-5 text-[#FF6B00]" strokeWidth={2} />
-                </div>
-                <p className="text-[24px] font-bold text-[#1A1A1A]">{dataLoading ? '—' : orders.length}</p>
-                <p className="text-[12px] text-[#999] font-medium mt-0.5">Нийт захиалга</p>
-              </div>
-              <div className="bg-white rounded-[14px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-4">
-                <div className="w-9 h-9 bg-[#FFF0F5] rounded-[10px] flex items-center justify-center mb-3">
-                  <Heart className="w-5 h-5 text-[#EC4899]" strokeWidth={2} />
-                </div>
-                <p className="text-[24px] font-bold text-[#1A1A1A]">{wishlistCount}</p>
-                <p className="text-[12px] text-[#999] font-medium mt-0.5">Хадгалсан бараа</p>
-              </div>
-              <div className="bg-white rounded-[14px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-4">
-                <div className="w-9 h-9 bg-[#EEF2FF] rounded-[10px] flex items-center justify-center mb-3">
-                  <MapPin className="w-5 h-5 text-[#6366F1]" strokeWidth={2} />
-                </div>
-                <p className="text-[24px] font-bold text-[#1A1A1A]">{dataLoading ? '—' : addressCount}</p>
-                <p className="text-[12px] text-[#999] font-medium mt-0.5">Хадгалсан хаяг</p>
-              </div>
-            </div>
-
-            {/* Recent orders preview */}
-            {orders.length > 0 && (
-              <div className="bg-white rounded-[14px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
-                <div className="px-4 pt-4 pb-3 flex items-center justify-between border-b border-[#F5F5F5]">
-                  <h3 className="text-[14px] font-bold text-[#1A1A1A]">Сүүлийн захиалгууд</h3>
-                  <button
-                    onClick={() => setActiveTab('orders')}
-                    className="text-[12px] text-[#FF6B00] font-bold"
-                  >
-                    Бүгдийг харах
-                  </button>
-                </div>
-                <div className="divide-y divide-[#F5F5F5]">
-                  {orders.slice(0, 3).map(order => (
-                    <div key={order._id} className="px-4 py-3 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {getStatusIcon(order.status)}
-                        <div>
-                          <p className="text-[13px] font-bold text-[#1A1A1A]">#{order._id.slice(-6).toUpperCase()}</p>
-                          <p className="text-[11px] text-[#999]">
-                            {new Date(order.createdAt).toLocaleDateString('mn-MN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '.')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[13px] font-bold text-[#1A1A1A]">{formatPrice(Number(order.total || order.totalPrice))}</p>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getStatusColor(order.status)}`}>
-                          {getStatusText(order.status)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Menu links */}
-            <div>
-              <h2 className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider px-1 mb-2">Холбоосууд</h2>
-              <div className="bg-white rounded-[14px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
-                <MenuLink icon={Package} iconBg="#FFF0E6" iconColor="#FF6B00" label="Миний захиалга" href="/orders" subtitle={`${orders.length} захиалга`} />
-                <MenuDiv />
-                <MenuLink icon={Heart} iconBg="#FFF0F5" iconColor="#EC4899" label="Хадгалсан бараа" href="/wishlist" />
-                <MenuDiv />
-                <MenuLink icon={MapPin} iconBg="#EEF2FF" iconColor="#6366F1" label="Миний хаягууд" href="/addresses" subtitle={`${addressCount} хаяг`} />
-                <MenuDiv />
-                <MenuLink icon={Bell} iconBg="#F0F5FF" iconColor="#3B82F6" label="Мэдэгдэл" href="/settings/notifications" />
-                <MenuDiv />
-                <MenuLink icon={ShieldCheck} iconBg="#F5F0FF" iconColor="#8B5CF6" label="Нууцлал & Аюулгүй байдал" href="/settings/security" />
-              </div>
-            </div>
-
-            {/* Connected Social Accounts */}
-            <ConnectedAccounts />
-
-            {/* Logout */}
-            <div className="bg-white rounded-[14px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
-              <button onClick={handleLogout} className="w-full flex items-center gap-4 px-4 h-[64px] active:bg-gray-50 transition-colors">
-                <div className="w-[42px] h-[42px] rounded-[10px] bg-[#FFF5F5] flex items-center justify-center">
-                  <LogOut className="w-5 h-5 text-[#FF3B30]" strokeWidth={2} />
-                </div>
-                <span className="text-[15px] font-bold text-[#FF3B30]">Гарах</span>
-              </button>
-            </div>
-
-            <p className="text-center text-[11px] text-gray-300 font-medium tracking-wide">Soyol v1.0</p>
-          </div>
-        )}
-
-        {/* ORDERS */}
+        {/* ORDERS — default view with products */}
         {activeTab === 'orders' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {dataLoading ? (
               <div className="flex justify-center py-12">
                 <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-[#FF6B00]" />
@@ -422,26 +332,96 @@ export default function ProfilePage() {
                 </Link>
               </div>
             ) : (
-              orders.map(order => (
-                <div key={order._id} className="bg-white rounded-[14px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
-                  <div className="px-4 py-3 border-b border-[#F5F5F5] flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(order.status)}
-                      <span className="text-[13px] font-bold text-[#1A1A1A]">Захиалга #{order._id.slice(-6).toUpperCase()}</span>
-                    </div>
-                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${getStatusColor(order.status)}`}>
-                      {getStatusText(order.status)}
-                    </span>
-                  </div>
-                  <div className="px-4 py-3 flex items-center justify-between">
-                    <p className="text-[12px] text-[#999]">
-                      {new Date(order.createdAt).toLocaleDateString('mn-MN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '.')}
-                    </p>
-                    <p className="text-[15px] font-bold text-[#FF6B00]">{formatPrice(Number(order.total || order.totalPrice))}</p>
-                  </div>
-                </div>
-              ))
+              <div className="space-y-3">
+                {orders.map((order) => {
+                  const firstItem = order.items?.[0];
+                  const moreCount = Math.max(0, (order.items?.length || 0) - 1);
+                  return (
+                    <Link
+                      key={order._id}
+                      href={`/orders/${order._id}`}
+                      className="block bg-white rounded-[14px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden active:scale-[0.99] transition-transform"
+                    >
+                      <div className="px-4 py-3 border-b border-[#F5F5F5] flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(order.status)}
+                          <span className="text-[13px] font-bold text-[#1A1A1A]">
+                            #{order._id.slice(-6).toUpperCase()}
+                          </span>
+                        </div>
+                        <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${getStatusColor(order.status)}`}>
+                          {getStatusText(order.status)}
+                        </span>
+                      </div>
+
+                      <div className="px-4 py-3 flex items-center gap-3">
+                        <div className="relative w-16 h-16 rounded-xl bg-[#F6F6F9] overflow-hidden shrink-0 border border-[#F0F0F0]">
+                          <SafeImage
+                            src={firstItem?.image || PRODUCT_PLACEHOLDER}
+                            alt={firstItem?.name || 'Бараа'}
+                            fill
+                            sizes="64px"
+                            quality={60}
+                            className="object-cover"
+                            fallbackSrc={PRODUCT_PLACEHOLDER}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[14px] font-bold text-[#1A1A1A] leading-snug line-clamp-2">
+                            {firstItem?.name || 'Захиалсан бараа'}
+                          </p>
+                          {moreCount > 0 && (
+                            <p className="text-[11px] text-[#999] mt-0.5">+{moreCount} бараа</p>
+                          )}
+                          <p className="text-[12px] text-[#999] mt-1">
+                            {new Date(order.createdAt).toLocaleDateString('mn-MN', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                            }).replace(/\//g, '.')}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-[15px] font-bold text-[#FF6B00]">
+                            {formatPrice(Number(order.total || order.totalPrice || 0))}
+                          </p>
+                          <ChevronRight className="w-4 h-4 text-[#CCC] ml-auto mt-1" />
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
             )}
+
+            {/* Menu links */}
+            <div>
+              <h2 className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider px-1 mb-2">Холбоосууд</h2>
+              <div className="bg-white rounded-[14px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+                <MenuLink icon={Package} iconBg="#FFF0E6" iconColor="#FF6B00" label="Бүх захиалга" href="/orders" subtitle={`${orders.length} захиалга`} />
+                <MenuDiv />
+                <MenuLink icon={Heart} iconBg="#FFF0F5" iconColor="#EC4899" label="Хадгалсан бараа" href="/wishlist" />
+                <MenuDiv />
+                <MenuLink icon={MapPin} iconBg="#EEF2FF" iconColor="#6366F1" label="Миний хаягууд" href="/addresses" subtitle={`${addressCount} хаяг`} />
+                <MenuDiv />
+                <MenuLink icon={Bell} iconBg="#F0F5FF" iconColor="#3B82F6" label="Мэдэгдэл" href="/settings/notifications" />
+                <MenuDiv />
+                <MenuLink icon={ShieldCheck} iconBg="#F5F0FF" iconColor="#8B5CF6" label="Нууцлал & Аюулгүй байдал" href="/settings/security" />
+              </div>
+            </div>
+
+            <ConnectedAccounts />
+
+            <div className="bg-white rounded-[14px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+              <button onClick={handleLogout} className="w-full flex items-center gap-4 px-4 h-[64px] active:bg-gray-50 transition-colors">
+                <div className="w-[42px] h-[42px] rounded-[10px] bg-[#FFF5F5] flex items-center justify-center">
+                  <LogOut className="w-5 h-5 text-[#FF3B30]" strokeWidth={2} />
+                </div>
+                <span className="text-[15px] font-bold text-[#FF3B30]">Гарах</span>
+              </button>
+            </div>
+
+            <p className="text-center text-[11px] text-gray-300 font-medium tracking-wide pb-2">Soyol v1.0</p>
           </div>
         )}
 

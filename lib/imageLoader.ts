@@ -15,9 +15,34 @@ const TRANSFORMATION_PREFIXES = [
 ];
 
 const MAX_WIDTH = 1200;
-const DEFAULT_WIDTH = 384;
-const DEFAULT_QUALITY = 70;
+const DEFAULT_WIDTH = 320;
+const DEFAULT_QUALITY = 65;
 const THUMBNAIL_MAX_WIDTH = 400;
+const CARD_IMAGE_WIDTH = 280;
+const DETAIL_IMAGE_WIDTH = 720;
+
+/** Guess render width from Next/Image `sizes` or explicit width. */
+export function inferImageWidth(
+  sizes?: string,
+  explicitWidth?: number | `${number}`,
+  priority?: boolean,
+): number {
+  if (typeof explicitWidth === 'number') return explicitWidth;
+  if (!sizes) return priority ? 400 : CARD_IMAGE_WIDTH;
+
+  if (sizes.includes('100vw')) return DETAIL_IMAGE_WIDTH;
+  if (sizes.includes('50vw')) return 480;
+  if (sizes.includes('45vw') || sizes.includes('42vw')) return CARD_IMAGE_WIDTH;
+  if (sizes.includes('33vw')) return 260;
+  if (sizes.includes('25vw')) return 220;
+  if (sizes.includes('64px') || sizes.includes('56px') || sizes.includes('40px')) {
+    return 96;
+  }
+
+  return priority ? 400 : CARD_IMAGE_WIDTH;
+}
+
+export { CARD_IMAGE_WIDTH, DETAIL_IMAGE_WIDTH };
 
 function isTransformationSegment(segment: string): boolean {
   if (/^v\d+$/.test(segment)) return false;

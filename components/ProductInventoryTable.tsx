@@ -69,10 +69,16 @@ export default function ProductInventoryTable({ products }: { products: Product[
       });
 
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
         setFeaturedMap(prev => ({ ...prev, [productId]: newValue }));
-        toast.success(newValue ? 'Онцгой болголоо ⭐' : 'Онцгой-оос хаслаа', {
-          style: { borderRadius: '12px' },
-        });
+        toast.success(
+          newValue
+            ? data.notificationSent
+              ? 'Онцгой болголоо ⭐ — мэдэгдэл илгээгдлээ'
+              : 'Онцгой болголоо ⭐'
+            : 'Онцгой-оос хаслаа',
+          { style: { borderRadius: '12px' } },
+        );
       } else {
         toast.error('Алдаа гарлаа');
       }

@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
+import SafeImage, { PRODUCT_PLACEHOLDER } from '@/components/SafeImage';
 import Link from 'next/link';
 import { Heart, Eye, Package, Clock, TrendingUp, Zap, Sparkles, Star } from 'lucide-react';
 import { formatPrice, formatCurrency } from '@/lib/utils';
@@ -122,16 +122,16 @@ export default function DiscoveryProductCard({
             }}
             className="absolute inset-0"
           >
-            <Image
+            <SafeImage
               key={activeIdx}
               src={allImages[activeIdx]}
               alt={product.name}
               fill
               className="object-contain p-4"
               sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 25vw"
-              quality={70}
-              priority={index < 4 && activeIdx === 0}
-              onError={(e) => { (e.target as HTMLImageElement).src = '/soyol-logo.png'; }}
+              quality={60}
+              priority={index < 6 && activeIdx === 0}
+              fallbackSrc="/soyol-logo.png"
             />
           </motion.div>
         ) : (
@@ -140,15 +140,15 @@ export default function DiscoveryProductCard({
             transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
             className="absolute inset-0"
           >
-            <Image
+            <SafeImage
               src={allImages[0]}
               alt={product.name}
               fill
               className="object-contain p-4"
               sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 25vw"
-              quality={70}
-              priority={index < 4}
-              onError={(e) => { (e.target as HTMLImageElement).src = '/soyol-logo.png'; }}
+              quality={60}
+              priority={index < 6}
+              fallbackSrc="/soyol-logo.png"
             />
           </motion.div>
         )}

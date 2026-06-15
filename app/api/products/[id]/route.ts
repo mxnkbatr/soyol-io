@@ -85,7 +85,11 @@ export async function PATCH(
       );
     }
 
-    // Only allow specific fields to be updated
+    const existingProduct = await products.findOne({ _id: objectId });
+    if (!existingProduct) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
     // Only allow specific fields to be updated
     const allowedFields = [
       "featured",
@@ -139,7 +143,28 @@ export async function PATCH(
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, updated: updateData });
+    const becameFeatured =
+      body.featured === true && !existingProduct.featured;
+
+    if (becameFeatured) {
+      const mergedProduct = { ...existingProduct, ...updateData };
+      void (async () => {
+        try {
+          const { sendFeaturedProductNotification } = await import(
+            "@/lib/productPromotionNotification"
+          );
+          await sendFeaturedProductNotification(id, mergedProduct);
+        } catch (err) {
+          console.error("[Product Featured] Notification error:", err);
+        }
+      })();
+    }
+
+    return NextResponse.json({
+      success: true,
+      updated: updateData,
+      notificationSent: becameFeatured,
+    });
   } catch (error) {
     console.error("Error updating product:", error);
     return NextResponse.json(

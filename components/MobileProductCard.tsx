@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
+import SafeImage, { PRODUCT_PLACEHOLDER } from '@/components/SafeImage';
 import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
 import { type Product } from '@/models/Product';
@@ -79,24 +79,28 @@ export default function MobileProductCard({ product }: MobileProductCardProps) {
                             >
                                 {allImages.map((img, i) => (
                                     <div key={i} className="w-full h-full shrink-0 relative">
-                                        <Image
+                                        <SafeImage
                                             src={img}
                                             alt={product.name}
                                             fill
                                             sizes="(max-width: 768px) 50vw"
                                             className="object-cover"
+                                            quality={60}
                                             priority={i === 0}
+                                            fallbackSrc={PRODUCT_PLACEHOLDER}
                                         />
                                     </div>
                                 ))}
                             </motion.div>
                         ) : (
-                            <Image
+                            <SafeImage
                                 src={allImages[0]}
                                 alt={product.name}
                                 fill
                                 sizes="(max-width: 768px) 50vw"
                                 className="object-cover"
+                                quality={60}
+                                fallbackSrc={PRODUCT_PLACEHOLDER}
                             />
                         )}
                     </motion.div>

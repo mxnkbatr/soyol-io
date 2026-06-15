@@ -40,6 +40,7 @@ import SearchDropdown from "./SearchDropdown";
 import NotificationBell from "./NotificationBell";
 import { Suspense } from "react";
 import { triggerHaptic } from "@/lib/haptics";
+import { hasCustomMobileHeader } from "@/lib/mobileLayout";
 
 function SearchParamsHandler({
   setSearchQuery,
@@ -63,7 +64,9 @@ function SearchParamsHandler({
 export default function LuxuryNavbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated: isLoggedIn, isAdmin, logout } = useAuth();
+  const hideMobileChrome = hasCustomMobileHeader(pathname);
+  const { user, isAuthenticated: isLoggedIn, isAdmin, logout, isLoading: authLoading } = useAuth();
+  const showAsLoggedIn = authLoading ? !!user : isLoggedIn;
 
   const userEmail = user?.email || user?.phone || "";
   const { language, setLanguage } = useLanguage();
@@ -209,7 +212,7 @@ export default function LuxuryNavbar() {
     },
     {
       name: t("nav", "profile"),
-      href: isLoggedIn ? "/profile" : "/sign-in",
+      href: showAsLoggedIn ? "/profile" : "/sign-in",
       icon: User,
     },
   ];
@@ -367,7 +370,7 @@ export default function LuxuryNavbar() {
               >
                 {/* User menu */}
                 <div className="relative" ref={userMenuRef}>
-                  {isLoggedIn ? (
+                  {showAsLoggedIn ? (
                     <>
                       <motion.button
                         type="button"
@@ -600,6 +603,7 @@ export default function LuxuryNavbar() {
       </motion.header>
 
       {/* ── MOBILE HEADER ─────────────────────────────────────────────────── */}
+      {!hideMobileChrome && (
       <header
         className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-[#E5E5EA]/80"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
@@ -645,13 +649,13 @@ export default function LuxuryNavbar() {
           </div>
         </div>
       </header>
+      )}
 
       {/* ── SPACER ─────────────────────────────────────────────────────────── */}
       <div
-        className={`transition-all duration-300 ${scrolled ? "h-[52px] lg:h-[124px]" : "h-[52px] lg:h-[180px]"}`}
-        style={{
-          marginTop: "env(safe-area-inset-top)",
-        }}
+        className={`transition-all duration-300 mobile-navbar-spacer ${
+          hideMobileChrome ? "max-lg:!h-0" : ""
+        } ${scrolled ? "lg:h-[124px]" : "lg:h-[180px]"}`}
       />
 
       {/* ── MOBILE SLIDE MENU ──────────────────────────────────────────────── */}
@@ -686,7 +690,7 @@ export default function LuxuryNavbar() {
               </div>
 
               <div className="px-5 py-6">
-                {isLoggedIn ? (
+                {showAsLoggedIn ? (
                   <Link
                     href="/profile"
                     onClick={() => setMobileMenuOpen(false)}
@@ -762,7 +766,7 @@ export default function LuxuryNavbar() {
                   })}
                 </div>
 
-                {isLoggedIn && (
+                {showAsLoggedIn && (
                   <div className="mt-4 pb-10">
                     <Link
                       href="/orders"

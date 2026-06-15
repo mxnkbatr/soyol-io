@@ -144,6 +144,7 @@ export const usePushNotifications = () => {
                                 window.dispatchEvent(new Event('sync-notifications'));
                             }
 
+                            const url = notification.data?.url;
                             toast(`${notification.title}\n${notification.body}`, {
                                 icon: '🔔',
                                 duration: 5000,
@@ -152,7 +153,13 @@ export const usePushNotifications = () => {
                                     background: '#1C1C1E',
                                     color: '#fff',
                                     fontSize: '14px',
+                                    cursor: url ? 'pointer' : 'default',
                                 },
+                                onClick: url
+                                    ? () => {
+                                          window.location.href = url;
+                                      }
+                                    : undefined,
                             });
                         },
                     );

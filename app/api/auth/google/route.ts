@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCollection } from '@/lib/mongodb';
 import { SignJWT } from 'jose';
+import { getAuthCookieOptions, AUTH_JWT_EXPIRY } from '@/lib/authCookie';
 
 if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET env variable is not set');
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
             email: user.email,
         })
             .setProtectedHeader({ alg: 'HS256' })
-            .setExpirationTime('24h')
+            .setExpirationTime(AUTH_JWT_EXPIRY)
             .sign(JWT_SECRET);
 
         // Set cookie
@@ -75,13 +76,7 @@ export async function POST(request: Request) {
             }
         });
         
-        response.cookies.set('auth_token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 60 * 60 * 24, // 1 day
-            path: '/',
-        });
+        response.cookies.set('auth_token', token, getAuthCookieOptions());
 
         return response;
     } catch (error) {

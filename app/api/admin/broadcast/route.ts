@@ -12,7 +12,7 @@ export async function GET() {
 
     const notificationsCollection = await getCollection('notifications');
     const history = await notificationsCollection
-      .find({ type: 'admin_broadcast' })
+      .find({ type: { $in: ['admin_broadcast', 'product_promo', 'product_featured'] } })
       .sort({ createdAt: -1 })
       .limit(20)
       .toArray();
@@ -35,6 +35,8 @@ export async function POST(req: NextRequest) {
     const title = String(body.title || '').trim();
     const message = String(body.message || '').trim();
     const link = String(body.link || '/').trim() || '/';
+    const productId = body.productId ? String(body.productId).trim() : undefined;
+    const imageUrl = body.imageUrl ? String(body.imageUrl).trim() : undefined;
 
     if (!title || title.length < 2) {
       return NextResponse.json({ error: 'Гарчиг хоосон байна' }, { status: 400 });
@@ -53,7 +55,9 @@ export async function POST(req: NextRequest) {
       title,
       message,
       link: link.startsWith('/') ? link : `/${link}`,
-      type: 'admin_broadcast',
+      type: productId ? 'product_promo' : 'admin_broadcast',
+      imageUrl,
+      productId,
     });
 
     console.log('[Admin Broadcast] Sent by', user.id, fcmResult);

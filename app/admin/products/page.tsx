@@ -86,6 +86,7 @@ export default function AdminProductsPage() {
         body: JSON.stringify({ featured: newValue }),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
         mutateProducts((currentData: any) => {
           if (!currentData || !currentData.products) return currentData;
           return {
@@ -95,7 +96,15 @@ export default function AdminProductsPage() {
             ),
           };
         }, false);
-        toast.success(newValue ? "Онцгой болголоо ⭐" : "Онцгой-оос хаслаа");
+        if (newValue) {
+          toast.success(
+            data.notificationSent
+              ? "Онцгой болголоо ⭐ — бүх хэрэглэгчид мэдэгдэл илгээгдлээ"
+              : "Онцгой болголоо ⭐",
+          );
+        } else {
+          toast.success("Онцгой-оос хаслаа");
+        }
         // Note: нүүр хуудасны carousel дараагийн 60 секундын дараа автоматаар шинэчлэгдэнэ
         // (Cache-Control: s-maxage=60). Яаралтай шинэчлэх шаардлагагүй.
       } else {

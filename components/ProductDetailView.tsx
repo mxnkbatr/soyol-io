@@ -33,6 +33,7 @@ import { Product } from "@/models/Product";
 import { useCartStore } from "@/store/cartStore";
 import toast from "react-hot-toast";
 import { openExternalLink } from "@/lib/openExternalLink";
+import { prefetchImages } from "@/lib/imagePrefetch";
 
 const RelatedProducts = dynamic(() => import("./RelatedProducts"), {
   loading: () => <div className="h-48 rounded-2xl bg-gray-100 animate-pulse" />,
@@ -189,7 +190,7 @@ export function ProductDetailView({
       .catch(() => null);
   }, [product.id, isAuthenticated]);
 
-  const images: string[] = (() => {
+  const images = useMemo(() => {
     const combined: string[] = [];
     if (product.image) combined.push(product.image);
     if (product.images?.length) {
@@ -198,7 +199,11 @@ export function ProductDetailView({
       });
     }
     return combined.length > 0 ? combined : ["/placeholder-product.png"];
-  })();
+  }, [product.image, product.images]);
+
+  useEffect(() => {
+    prefetchImages(images, 720, 70);
+  }, [product.id, images]);
 
   const discount =
     product.originalPrice && product.originalPrice > displayPrice
@@ -410,8 +415,7 @@ export function ProductDetailView({
         </div>
 
         <div
-          className="lg:max-w-6xl lg:mx-auto lg:px-6 lg:pb-12 pb-[calc(160px+env(safe-area-inset-bottom,0px))]"
-          style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 43px)" }}
+          className="lg:max-w-6xl lg:mx-auto lg:px-6 lg:pb-12 pb-[calc(160px+env(safe-area-inset-bottom,0px))] product-header-offset lg:pt-8"
         >
 
           {/* Desktop breadcrumb */}
@@ -449,10 +453,10 @@ export function ProductDetailView({
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={activeImageIndex}
-                    initial={{ opacity: 0, scale: 1.04 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.97 }}
-                    transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.12 }}
                     className="absolute inset-0 p-6 lg:p-10 cursor-zoom-in"
                     onClick={() => setShowLightbox(true)}
                   >
@@ -462,7 +466,7 @@ export function ProductDetailView({
                       fill
                       className="object-contain pointer-events-none"
                       sizes="(max-width: 1024px) 100vw, 50vw"
-                      quality={80}
+                      quality={72}
                       priority={activeImageIndex === 0}
                       fallbackSrc={PRODUCT_PLACEHOLDER}
                     />

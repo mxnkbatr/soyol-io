@@ -75,6 +75,8 @@ export default function RootLayout({
   return (
     <html lang="mn" className={inter.variable} data-scroll-behavior="smooth">
       <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content={SITE_CONFIG.name} />
