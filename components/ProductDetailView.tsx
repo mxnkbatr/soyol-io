@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
 import { isReadyProduct, isPreOrderProduct } from "@/lib/productFilters";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -33,7 +33,7 @@ import { Product } from "@/models/Product";
 import { useCartStore } from "@/store/cartStore";
 import toast from "react-hot-toast";
 import { openExternalLink } from "@/lib/openExternalLink";
-import { prefetchImages } from "@/lib/imagePrefetch";
+import { prefetchProductDetailImages } from "@/lib/imagePrefetch";
 
 const RelatedProducts = dynamic(() => import("./RelatedProducts"), {
   loading: () => <div className="h-48 rounded-2xl bg-gray-100 animate-pulse" />,
@@ -201,8 +201,8 @@ export function ProductDetailView({
     return combined.length > 0 ? combined : ["/placeholder-product.png"];
   }, [product.image, product.images]);
 
-  useEffect(() => {
-    prefetchImages(images, 720, 70);
+  useLayoutEffect(() => {
+    prefetchProductDetailImages(images, { priority: "high", limit: images.length });
   }, [product.id, images]);
 
   const discount =
@@ -453,10 +453,10 @@ export function ProductDetailView({
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={activeImageIndex}
-                    initial={{ opacity: 0 }}
+                    initial={activeImageIndex === 0 ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.12 }}
+                    transition={{ duration: activeImageIndex === 0 ? 0 : 0.12 }}
                     className="absolute inset-0 p-6 lg:p-10 cursor-zoom-in"
                     onClick={() => setShowLightbox(true)}
                   >

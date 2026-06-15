@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import SafeImage, { PRODUCT_PLACEHOLDER } from '@/components/SafeImage';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ShoppingCart } from 'lucide-react';
 import { type Product } from '@/models/Product';
 import { useLanguage } from '@/context/LanguageContext';
@@ -11,12 +12,14 @@ import { formatCurrency } from '@/lib/utils';
 import { useCartStore } from '@/store/cartStore';
 import toast from 'react-hot-toast';
 import ProductBadge from '@/components/ProductBadge';
+import { warmProductPage } from '@/lib/imagePrefetch';
 
 interface MobileProductCardProps {
     product: Product;
 }
 
 export default function MobileProductCard({ product }: MobileProductCardProps) {
+    const router = useRouter();
     const { convertPrice, currency } = useLanguage();
     const addItem = useCartStore((state) => state.addItem);
     const price = convertPrice(product.price);
@@ -51,6 +54,9 @@ export default function MobileProductCard({ product }: MobileProductCardProps) {
             <Link
                 href={`/product/${product.id}`}
                 className="flex flex-col h-full"
+                prefetch
+                onTouchStart={() => warmProductPage(router, product.id, allImages)}
+                onMouseEnter={() => warmProductPage(router, product.id, allImages)}
                 onClick={(e) => { if (isDragging.current) e.preventDefault(); }}
             >
                 {/* Image Section */}

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Image, { ImageProps } from 'next/image';
 import { inferImageWidth, optimizeCloudinaryUrl } from '@/lib/imageLoader';
+import { isImageCached } from '@/lib/imagePrefetch';
 
 export const PRODUCT_PLACEHOLDER = '/placeholder-product.svg';
 export const BANNER_PLACEHOLDER = '/placeholder-banner.svg';
@@ -31,13 +32,25 @@ export default function SafeImage({
   ...props
 }: SafeImageProps) {
   const initial = src && String(src).trim() ? src : fallbackSrc;
+  const renderWidth = inferImageWidth(sizes, width, priority);
+  const renderQuality = typeof quality === 'number' ? quality : 65;
   const [imgSrc, setImgSrc] = useState(initial);
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(() => {
+    const raw = initial && String(initial).trim() ? initial : fallbackSrc;
+    return (
+      priority === true &&
+      isImageCached(String(raw), renderWidth, renderQuality)
+    );
+  });
 
   useEffect(() => {
-    setImgSrc(src && String(src).trim() ? src : fallbackSrc);
-    setLoaded(false);
-  }, [src, fallbackSrc]);
+    const next = src && String(src).trim() ? src : fallbackSrc;
+    setImgSrc(next);
+    setLoaded(
+      priority === true &&
+        isImageCached(String(next), renderWidth, renderQuality),
+    );
+  }, [src, fallbackSrc, priority, renderWidth, renderQuality]);
 
   const displaySrc = useMemo(() => {
     const raw = String(imgSrc || fallbackSrc);
@@ -58,14 +71,14 @@ export default function SafeImage({
     ? [
         'absolute inset-0 h-full w-full',
         !loaded ? 'opacity-0' : 'opacity-100',
-        'transition-opacity duration-200',
+        priority ? 'transition-opacity duration-75' : 'transition-opacity duration-200',
         className,
       ]
         .filter(Boolean)
         .join(' ')
     : [
         !loaded ? 'opacity-0' : 'opacity-100',
-        'transition-opacity duration-200',
+        priority ? 'transition-opacity duration-75' : 'transition-opacity duration-200',
         className,
       ]
         .filter(Boolean)

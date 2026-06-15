@@ -4,12 +4,14 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SafeImage, { PRODUCT_PLACEHOLDER } from '@/components/SafeImage';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Heart, Eye, Package, Clock, TrendingUp, Zap, Sparkles, Star } from 'lucide-react';
 import { formatPrice, formatCurrency } from '@/lib/utils';
 import { useCartStore } from '@/store/cartStore';
 import toast from 'react-hot-toast';
 import type { Product } from '@/models/Product';
 import ProductBadge from '@/components/ProductBadge';
+import { warmProductPage } from '@/lib/imagePrefetch';
 
 import { useAuth } from '@/context/AuthContext';
 
@@ -26,6 +28,7 @@ export default function DiscoveryProductCard({
   showTrendingBadge = false,
   disableInitialAnimation = false
 }: DiscoveryProductCardProps) {
+  const router = useRouter();
   const { isAuthenticated } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -271,7 +274,14 @@ export default function DiscoveryProductCard({
       className="group block h-full"
     >
       {product.id ? (
-        <Link href={`/product/${product.id}`} className="block h-full" onClick={(e) => { if (isDragging.current) e.preventDefault(); }}>
+        <Link
+          href={`/product/${product.id}`}
+          className="block h-full"
+          prefetch
+          onTouchStart={() => warmProductPage(router, product.id, allImages)}
+          onMouseEnter={() => warmProductPage(router, product.id, allImages)}
+          onClick={(e) => { if (isDragging.current) e.preventDefault(); }}
+        >
           <InnerCard />
         </Link>
       ) : (

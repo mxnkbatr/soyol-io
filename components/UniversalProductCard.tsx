@@ -14,7 +14,10 @@ import toast from "react-hot-toast";
 import type { Product } from "@/models/Product";
 import ProductBadge from "@/components/ProductBadge";
 import { triggerHaptic, hapticSuccess } from "@/lib/haptics";
-import { prefetchImages } from "@/lib/imagePrefetch";
+import {
+  prefetchProductDetailImages,
+  warmProductPage,
+} from "@/lib/imagePrefetch";
 import { isWithin24Hours } from "@/lib/utils";
 import { isReadyProduct, isPreOrderProduct } from "@/lib/productFilters";
 
@@ -112,6 +115,8 @@ const UniversalProductCard = memo(({
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
+          prefetchProductDetailImages(allImages, { priority: "low", limit: 3 });
+          router.prefetch(`/product/${product.id}`);
           observer.unobserve(entry.target);
         }
       },
@@ -123,7 +128,7 @@ const UniversalProductCard = memo(({
     }
 
     return () => observer.disconnect();
-  }, []);
+  }, [router, product.id, allImages]);
 
   return (
     <div
@@ -136,8 +141,8 @@ const UniversalProductCard = memo(({
     >
       <div
         className="block cursor-pointer"
-        onMouseEnter={() => prefetchImages([allImages[0]], 320, 60)}
-        onTouchStart={() => prefetchImages([allImages[0]], 320, 60)}
+        onMouseEnter={() => warmProductPage(router, product.id, allImages)}
+        onTouchStart={() => warmProductPage(router, product.id, allImages)}
         onClick={(e) => {
           router.push(`/product/${product.id}`);
         }}

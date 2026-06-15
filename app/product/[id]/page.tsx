@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ObjectId } from "mongodb";
 import ProductDetailClient from "@/components/ProductDetailClient";
 import ProductLoading from "./loading";
+import { DETAIL_IMAGE_QUALITY, DETAIL_IMAGE_WIDTH, optimizeCloudinaryUrl } from "@/lib/imageLoader";
 
 export const revalidate = 3600;
 
@@ -208,7 +209,22 @@ async function ProductContent({ id }: { id: string }) {
     relatedProducts: mappedRelatedProducts,
   });
 
-  return <ProductDetailClient product={productData as any} initialReviews={[]} />;
+  const heroImage = product.image || product.images?.[0];
+  const preloadHref = heroImage
+    ? optimizeCloudinaryUrl(heroImage, {
+        width: DETAIL_IMAGE_WIDTH,
+        quality: DETAIL_IMAGE_QUALITY,
+      })
+    : null;
+
+  return (
+    <>
+      {preloadHref ? (
+        <link rel="preload" as="image" href={preloadHref} fetchPriority="high" />
+      ) : null}
+      <ProductDetailClient product={productData as any} initialReviews={[]} />
+    </>
+  );
 }
 
 export default async function ProductDetailPage({

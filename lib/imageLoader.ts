@@ -20,6 +20,8 @@ const DEFAULT_QUALITY = 65;
 const THUMBNAIL_MAX_WIDTH = 400;
 const CARD_IMAGE_WIDTH = 280;
 const DETAIL_IMAGE_WIDTH = 720;
+const CARD_IMAGE_QUALITY = 60;
+const DETAIL_IMAGE_QUALITY = 72;
 
 /** Guess render width from Next/Image `sizes` or explicit width. */
 export function inferImageWidth(
@@ -42,7 +44,7 @@ export function inferImageWidth(
   return priority ? 400 : CARD_IMAGE_WIDTH;
 }
 
-export { CARD_IMAGE_WIDTH, DETAIL_IMAGE_WIDTH };
+export { CARD_IMAGE_WIDTH, DETAIL_IMAGE_WIDTH, CARD_IMAGE_QUALITY, DETAIL_IMAGE_QUALITY };
 
 function isTransformationSegment(segment: string): boolean {
   if (/^v\d+$/.test(segment)) return false;

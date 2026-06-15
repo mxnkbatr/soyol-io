@@ -1,5 +1,5 @@
 import { mutate } from 'swr';
-import { extractProductImageUrls, prefetchImages } from '@/lib/imagePrefetch';
+import { extractProductImageUrls, prefetchImages, prefetchProductDetailImages } from '@/lib/imagePrefetch';
 
 const fetcher = (url: string) =>
   fetch(url, { credentials: 'include' }).then((res) => {
@@ -29,6 +29,10 @@ export async function warmAppCache() {
   if (productsPayload?.status === 'fulfilled') {
     const products = productsPayload.value.data?.products || [];
     prefetchImages(extractProductImageUrls(products, 24), 280, 60);
+    prefetchProductDetailImages(
+      extractProductImageUrls(products, 8),
+      { priority: 'low', limit: 8 },
+    );
   }
 }
 
