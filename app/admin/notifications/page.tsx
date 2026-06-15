@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatPrice } from '@/lib/utils';
-import { buildFeaturedProductNotification } from '@/lib/productPromotionNotification';
+import { buildFeaturedProductNotification } from '@/lib/productPromotionHelpers';
 
 type BroadcastHistory = {
   _id: string;

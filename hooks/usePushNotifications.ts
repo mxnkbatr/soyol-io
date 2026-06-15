@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, createElement } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useUser } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
@@ -145,22 +145,39 @@ export const usePushNotifications = () => {
                             }
 
                             const url = notification.data?.url;
-                            toast(`${notification.title}\n${notification.body}`, {
-                                icon: '🔔',
-                                duration: 5000,
-                                style: {
-                                    borderRadius: '16px',
-                                    background: '#1C1C1E',
-                                    color: '#fff',
-                                    fontSize: '14px',
-                                    cursor: url ? 'pointer' : 'default',
-                                },
-                                onClick: url
-                                    ? () => {
-                                          window.location.href = url;
-                                      }
-                                    : undefined,
-                            });
+                            const toastStyle = {
+                                borderRadius: '16px',
+                                background: '#1C1C1E',
+                                color: '#fff',
+                                fontSize: '14px',
+                                padding: '12px 16px',
+                                cursor: url ? 'pointer' : 'default',
+                            };
+                            const toastMessage = `${notification.title}\n${notification.body}`;
+
+                            if (url) {
+                                toast.custom(
+                                    (t) =>
+                                        createElement(
+                                            'div',
+                                            {
+                                                onClick: () => {
+                                                    toast.dismiss(t.id);
+                                                    window.location.href = url;
+                                                },
+                                                style: toastStyle,
+                                            },
+                                            `🔔 ${toastMessage}`,
+                                        ),
+                                    { duration: 5000 },
+                                );
+                            } else {
+                                toast(toastMessage, {
+                                    icon: '🔔',
+                                    duration: 5000,
+                                    style: toastStyle,
+                                });
+                            }
                         },
                     );
 

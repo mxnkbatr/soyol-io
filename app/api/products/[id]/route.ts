@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
+import type { ProductDoc } from "@/lib/productPromotionHelpers";
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
@@ -153,7 +154,7 @@ export async function PATCH(
           const { sendFeaturedProductNotification } = await import(
             "@/lib/productPromotionNotification"
           );
-          await sendFeaturedProductNotification(id, mergedProduct);
+          await sendFeaturedProductNotification(id, mergedProduct as ProductDoc);
         } catch (err) {
           console.error("[Product Featured] Notification error:", err);
         }
