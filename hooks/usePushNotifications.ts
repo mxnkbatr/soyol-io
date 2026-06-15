@@ -4,13 +4,16 @@ import { useEffect, useCallback, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useUser } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
+import { debugPushError, debugPushLog } from '@/lib/pushDebug';
 
 export const usePushNotifications = () => {
     const { isSignedIn } = useUser();
     const permissionGrantedRef = useRef(false);
 
-    const registerToken = useCallback(async (token: string) => {
+    const registerToken = useCallback(async (token: string, source = 'device') => {
         if (!token?.trim()) return;
+        debugPushLog(`Push token (${source})`, token);
+
         try {
             const res = await fetch('/api/notifications/register-token', {
                 method: 'POST',
@@ -18,27 +21,38 @@ export const usePushNotifications = () => {
                 credentials: 'include',
                 body: JSON.stringify({
                     token,
-                    platform: Capacitor.getPlatform(), // 'ios', 'android', or 'web'
+                    platform: Capacitor.getPlatform(),
                 }),
             });
             if (!res.ok) {
                 const body = await res.json().catch(() => ({}));
                 console.error('FCM: Token registration failed:', res.status, body);
+                debugPushError(`Сервер token хадгалж чадсангүй (${res.status})`, body);
                 return;
             }
             console.log('FCM: Token saved to server successfully');
+            debugPushLog('Сервер дээр token амжилттай хадгалагдлаа', token);
         } catch (error) {
             console.error('FCM: Token registration failed:', error);
+            debugPushError('Сервер рүү token илгээхэд алдаа', error);
         }
     }, []);
 
-    const getIosFcmToken = useCallback(async () => {
-        const { FCM } = await import('@capacitor-community/fcm');
-        const fcmResult = await FCM.getToken();
-        if (fcmResult.token) {
-            console.log('FCM: iOS FCM token:', fcmResult.token);
-            await registerToken(fcmResult.token);
+    const getFcmToken = useCallback(async (source: string) => {
+        try {
+            const { FCM } = await import('@capacitor-community/fcm');
+            const fcmResult = await FCM.getToken();
+            if (fcmResult.token) {
+                console.log(`FCM: ${source} token:`, fcmResult.token);
+                await registerToken(fcmResult.token, `fcm-${source}`);
+                return fcmResult.token;
+            }
+            debugPushError('FCM token хоосон байна', source);
+        } catch (error) {
+            console.error(`FCM: ${source} token fetch failed:`, error);
+            debugPushError('FCM token авахад алдаа', error);
         }
+        return null;
     }, [registerToken]);
 
     const ensureNativePermission = useCallback(async () => {
@@ -51,33 +65,29 @@ export const usePushNotifications = () => {
 
         if (permStatus.receive === 'granted') {
             permissionGrantedRef.current = true;
+            debugPushLog('Мэдэгдлийн эрх', 'granted');
             return true;
         }
 
         console.warn('FCM: Push notification permission not granted');
+        debugPushError('Мэдэгдэл авах эрхийг хэрэглэгч зөвшөөрсөнгүй!', permStatus);
         return false;
     }, []);
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Ask permission on native launch (before login), so iOS dialog shows early.
-    // ──────────────────────────────────────────────────────────────────────────
     useEffect(() => {
         if (!Capacitor.isNativePlatform()) return;
         ensureNativePermission().catch((error) => {
             console.error('FCM: Permission request failed:', error);
+            debugPushError('Эрх асуухад алдаа', error);
         });
     }, [ensureNativePermission]);
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Register FCM/APNs token & attach listeners (requires sign-in)
-    // ──────────────────────────────────────────────────────────────────────────
     useEffect(() => {
         if (!isSignedIn) return;
 
         let cleanupFn: (() => void) | undefined;
 
         const initPush = async () => {
-            // NATIVE BRANCH (iOS / Android)
             if (Capacitor.isNativePlatform()) {
                 try {
                     const { PushNotifications } = await import('@capacitor/push-notifications');
@@ -89,32 +99,31 @@ export const usePushNotifications = () => {
                         return;
                     }
 
-                    // Listeners MUST be added before register() or iOS may miss the token event
-                    const registrationListener = await PushNotifications.addListener('registration', async (token) => {
-                        console.log('FCM: Native device token received:', token.value);
+                    const registrationListener = await PushNotifications.addListener(
+                        'registration',
+                        async (token) => {
+                            console.log('FCM: Native device token received:', token.value);
+                            debugPushLog('Native push token', token.value);
 
-                        if (Capacitor.getPlatform() === 'ios') {
-                            try {
-                                await getIosFcmToken();
-                            } catch (fcmError) {
-                                console.error('FCM: Failed to get FCM token via plugin:', fcmError);
+                            if (Capacitor.getPlatform() === 'ios') {
+                                await getFcmToken('ios');
+                            } else {
+                                await registerToken(token.value, 'android-native');
+                                await getFcmToken('android');
                             }
-                        } else {
-                            await registerToken(token.value);
-                        }
-                    });
+                        },
+                    );
 
-                    // Foreground notification
-                    const receivedListener = await PushNotifications.addListener('pushNotificationReceived', (notification) => {
-                        console.log('FCM: Foreground notification:', notification);
+                    const receivedListener = await PushNotifications.addListener(
+                        'pushNotificationReceived',
+                        (notification) => {
+                            console.log('FCM: Foreground notification:', notification);
 
-                        if (typeof window !== 'undefined') {
-                            window.dispatchEvent(new Event('sync-notifications'));
-                        }
+                            if (typeof window !== 'undefined') {
+                                window.dispatchEvent(new Event('sync-notifications'));
+                            }
 
-                        toast(
-                            `${notification.title}\n${notification.body}`,
-                            {
+                            toast(`${notification.title}\n${notification.body}`, {
                                 icon: '🔔',
                                 duration: 5000,
                                 style: {
@@ -123,35 +132,39 @@ export const usePushNotifications = () => {
                                     color: '#fff',
                                     fontSize: '14px',
                                 },
+                            });
+                        },
+                    );
+
+                    const actionListener = await PushNotifications.addListener(
+                        'pushNotificationActionPerformed',
+                        (action) => {
+                            console.log('FCM: Notification action performed:', action);
+
+                            if (typeof window !== 'undefined') {
+                                window.dispatchEvent(new Event('sync-notifications'));
                             }
-                        );
-                    });
 
-                    // Notification tap
-                    const actionListener = await PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
-                        console.log('FCM: Notification action performed:', action);
+                            const url = action.notification.data?.url;
+                            if (url) {
+                                window.location.href = url;
+                            }
+                        },
+                    );
 
-                        if (typeof window !== 'undefined') {
-                            window.dispatchEvent(new Event('sync-notifications'));
-                        }
-
-                        const url = action.notification.data?.url;
-                        if (url) {
-                            window.location.href = url;
-                        }
-                    });
-
-                    // Registration error
-                    const errorListener = await PushNotifications.addListener('registrationError', (err) => {
-                        console.error('FCM: Registration error:', err);
-                    });
+                    const errorListener = await PushNotifications.addListener(
+                        'registrationError',
+                        (err) => {
+                            console.error('FCM: Registration error:', err);
+                            debugPushError('Push бүртгэлийн алдаа', err);
+                        },
+                    );
 
                     await PushNotifications.register();
 
-                    // iOS fallback: FCM token may be ready slightly after register()
                     if (Capacitor.getPlatform() === 'ios') {
                         setTimeout(() => {
-                            getIosFcmToken().catch((err) => {
+                            getFcmToken('ios-fallback').catch((err) => {
                                 console.error('FCM: iOS fallback token fetch failed:', err);
                             });
                         }, 2500);
@@ -165,18 +178,20 @@ export const usePushNotifications = () => {
                     };
                 } catch (error) {
                     console.error('FCM: Native initialization failed:', error);
+                    debugPushError('Push эхлүүлэхэд алдаа', error);
                 }
-            }
-            // WEB BRANCH
-            else {
+            } else {
                 try {
                     const { getWebPushToken } = await import('@/lib/firebaseClient');
                     const token = await getWebPushToken();
                     if (token) {
-                        registerToken(token);
+                        registerToken(token, 'web');
+                    } else {
+                        debugPushError('Web push token олдсонгүй', 'VAPID эсвэл permission шалгана уу');
                     }
                 } catch (error) {
                     console.error('FCM: Web push initialization failed:', error);
+                    debugPushError('Web push алдаа', error);
                 }
             }
         };
@@ -186,5 +201,5 @@ export const usePushNotifications = () => {
         return () => {
             if (cleanupFn) cleanupFn();
         };
-    }, [isSignedIn, registerToken, ensureNativePermission, getIosFcmToken]);
+    }, [isSignedIn, registerToken, ensureNativePermission, getFcmToken]);
 };

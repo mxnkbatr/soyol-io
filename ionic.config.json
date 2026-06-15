@@ -1,0 +1,7 @@
+{
+  "name": "Soyol Shop",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "custom"
+}
