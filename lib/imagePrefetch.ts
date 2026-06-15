@@ -48,12 +48,17 @@ export function prefetchImages(
 
     const src = toOptimizedUrl(url, width, quality);
     if (preloaded.has(src)) continue;
-    preloaded.add(src);
 
     const img = new window.Image();
     img.decoding = 'async';
     img.fetchPriority = priority;
+    const markReady = () => preloaded.add(src);
+    img.onload = markReady;
+    img.onerror = () => preloaded.delete(src);
     img.src = src;
+    if (img.complete && img.naturalWidth > 0) {
+      markReady();
+    }
   }
 }
 

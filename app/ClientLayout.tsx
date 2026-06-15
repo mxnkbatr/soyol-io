@@ -121,26 +121,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     };
   }, []);
 
-  // Hide splash as soon as first paint completes (no fixed delay)
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const { SplashScreen } = await import('@capacitor/splash-screen');
-        const hide = () => {
-          if (!cancelled) SplashScreen.hide().catch(() => {});
-        };
-        requestAnimationFrame(() => requestAnimationFrame(hide));
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
+  // Native splash is hidden after warmAppCache in useAppPrefetch.
   // Add subtle "native feel" haptics on taps
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;

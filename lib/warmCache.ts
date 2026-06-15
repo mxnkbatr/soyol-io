@@ -1,5 +1,10 @@
 import { mutate } from 'swr';
-import { extractProductImageUrls, prefetchImages, prefetchProductDetailImages } from '@/lib/imagePrefetch';
+import {
+  extractProductImageUrls,
+  prefetchImages,
+  prefetchProductDetailImages,
+} from '@/lib/imagePrefetch';
+import { DETAIL_IMAGE_QUALITY, DETAIL_IMAGE_WIDTH } from '@/lib/imageLoader';
 
 const fetcher = (url: string) =>
   fetch(url, { credentials: 'include' }).then((res) => {
@@ -7,11 +12,21 @@ const fetcher = (url: string) =>
     return res.json();
   });
 
-/** Warm SWR cache + prefetch product thumbnails (native app). */
-export async function warmAppCache() {
+type WarmOptions = {
+  aggressive?: boolean;
+};
+
+/** Warm SWR cache + prefetch hero images (especially for native app). */
+export async function warmAppCache(options?: WarmOptions) {
+  const aggressive = options?.aggressive === true;
+  const productLimit = aggressive ? 40 : 18;
+  const imageLimit = aggressive ? 40 : 24;
+  const priority = aggressive ? 'high' : 'low';
+
   const endpoints = [
     '/api/banners',
-    '/api/products?limit=18',
+    `/api/products?limit=${productLimit}`,
+    '/api/products?featured=true&limit=12',
     '/api/categories',
   ];
 
@@ -23,16 +38,32 @@ export async function warmAppCache() {
     }),
   );
 
-  const productsPayload = results.find(
-    (r) => r.status === 'fulfilled' && r.value.url.includes('/api/products'),
+  const bannerPayload = results.find(
+    (r) => r.status === 'fulfilled' && r.value.url.includes('/api/banners'),
   );
-  if (productsPayload?.status === 'fulfilled') {
-    const products = productsPayload.value.data?.products || [];
-    prefetchImages(extractProductImageUrls(products, 24), 280, 60);
-    prefetchProductDetailImages(
-      extractProductImageUrls(products, 8),
-      { priority: 'low', limit: 8 },
+  if (bannerPayload?.status === 'fulfilled') {
+    const bannerUrls =
+      bannerPayload.value.data?.banners?.map((b: { image?: string }) => b.image) ||
+      [];
+    prefetchImages(bannerUrls, DETAIL_IMAGE_WIDTH, DETAIL_IMAGE_QUALITY, priority);
+  }
+
+  const productUrls: string[] = [];
+  for (const result of results) {
+    if (result.status !== 'fulfilled') continue;
+    if (!result.value.url.includes('/api/products')) continue;
+    productUrls.push(
+      ...extractProductImageUrls(result.value.data?.products || [], imageLimit),
     );
+  }
+
+  const uniqueProductUrls = [...new Set(productUrls)].slice(0, imageLimit);
+  if (uniqueProductUrls.length > 0) {
+    prefetchImages(uniqueProductUrls, 280, 60, priority);
+    prefetchProductDetailImages(uniqueProductUrls.slice(0, aggressive ? 12 : 8), {
+      priority,
+      limit: aggressive ? 12 : 8,
+    });
   }
 }
 

@@ -32,12 +32,12 @@ export default function MobileHero() {
 
     if (isLoading || banners.length === 0) {
         return (
-            <div className="mx-4 mt-4 relative rounded-[28px] overflow-hidden bg-slate-100 animate-pulse aspect-[21/9]" />
+            <div className="mx-4 mt-3 relative rounded-[24px] overflow-hidden bg-slate-100 animate-pulse aspect-[21/9]" />
         );
     }
 
     return (
-        <section className="relative w-full bg-transparent lg:hidden mb-4 mt-3 px-4">
+        <section className="relative w-full bg-transparent lg:hidden mb-3 mt-2 px-4">
             {/* Native Paging Banner Header */}
             <div className="relative rounded-[24px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.03)] bg-[#EBEBF0] border border-[#E5E5EA]/50">
                 <div className="relative aspect-[21/9] w-full overflow-hidden">
@@ -92,7 +92,7 @@ export default function MobileHero() {
             </div>
 
             {/* Premium Minimalist Quick Actions */}
-            <div className="mt-4 flex justify-between items-start gap-1 overflow-x-auto scrollbar-hide">
+            <div className="mt-3 flex justify-between items-start gap-1 overflow-x-auto scrollbar-hide">
                 {[
                     { name: 'Шинэ', icon: Flame, color: 'text-rose-500', href: '/new-arrivals' },
                     { name: 'Бэлэн', icon: Package, color: 'text-[#FF4500]', href: '/ready-to-ship' },

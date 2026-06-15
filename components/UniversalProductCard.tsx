@@ -13,6 +13,7 @@ import { formatPrice } from "@/lib/utils";
 import toast from "react-hot-toast";
 import type { Product } from "@/models/Product";
 import ProductBadge from "@/components/ProductBadge";
+import { isNativeApp } from '@/lib/nativeApp';
 import { triggerHaptic, hapticSuccess } from "@/lib/haptics";
 import {
   prefetchProductDetailImages,
@@ -157,7 +158,7 @@ const UniversalProductCard = memo(({
               className="object-cover object-center transition-transform duration-500 lg:group-hover:scale-[1.03]"
               sizes="(max-width: 1024px) 42vw, 200px"
               quality={60}
-              priority={index < 8}
+              priority={index < (isNativeApp() ? 16 : 8)}
               fallbackSrc={PRODUCT_PLACEHOLDER}
             />
 
