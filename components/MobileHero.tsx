@@ -32,15 +32,15 @@ export default function MobileHero() {
 
     if (isLoading || banners.length === 0) {
         return (
-            <div className="mx-4 mt-4 relative rounded-[28px] overflow-hidden bg-slate-100 animate-pulse aspect-[16/9]" />
+            <div className="mx-4 mt-4 relative rounded-[28px] overflow-hidden bg-slate-100 animate-pulse aspect-[21/9]" />
         );
     }
 
     return (
-        <section className="relative w-full bg-transparent lg:hidden mb-8 mt-3 px-4">
+        <section className="relative w-full bg-transparent lg:hidden mb-4 mt-3 px-4">
             {/* Native Paging Banner Header */}
-            <div className="relative rounded-[24px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.03)] bg-white border border-[#E5E5EA]/50">
-                <div className="relative aspect-[16/9] w-full overflow-hidden">
+            <div className="relative rounded-[24px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.03)] bg-[#EBEBF0] border border-[#E5E5EA]/50">
+                <div className="relative aspect-[21/9] w-full overflow-hidden">
                     <motion.div
                         drag="x"
                         dragConstraints={{ left: 0, right: 0 }}
@@ -62,11 +62,11 @@ export default function MobileHero() {
                                 <SafeImage
                                     src={banner.image || ''}
                                     alt={banner.title || `Banner ${index + 1}`}
-                                    width={1200}
-                                    height={675}
+                                    fill
                                     priority={index === 0}
-                                    className="h-full w-full object-cover"
+                                    className="object-cover"
                                     sizes="100vw"
+                                    quality={75}
                                     fallbackSrc={BANNER_PLACEHOLDER}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent pointer-events-none" />
@@ -75,7 +75,7 @@ export default function MobileHero() {
                     </motion.div>
 
                     {/* iOS Style Pill Indicators */}
-                    <div className="absolute bottom-4 left-0 right-0 z-10 flex justify-center gap-1.5">
+                    <div className="absolute bottom-2.5 left-0 right-0 z-10 flex justify-center gap-1.5 pointer-events-none">
                         {banners.map((_, index) => (
                             <motion.div
                                 key={index}
@@ -92,7 +92,7 @@ export default function MobileHero() {
             </div>
 
             {/* Premium Minimalist Quick Actions */}
-            <div className="mt-6 flex justify-between items-start gap-1 overflow-x-auto scrollbar-hide">
+            <div className="mt-4 flex justify-between items-start gap-1 overflow-x-auto scrollbar-hide">
                 {[
                     { name: 'Шинэ', icon: Flame, color: 'text-rose-500', href: '/new-arrivals' },
                     { name: 'Бэлэн', icon: Package, color: 'text-[#FF4500]', href: '/ready-to-ship' },
