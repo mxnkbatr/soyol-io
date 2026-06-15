@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
 
         const { title, message, typeKey } = GREETINGS[type];
 
-        const fcmId = await sendPushToAllUsers({
+        const fcmResult = await sendPushToAllUsers({
             title,
             body: message,
             data: {
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             success: true,
             message: `Sent ${type} greeting.`,
-            fcmId: fcmId ?? null,
+            fcm: fcmResult ?? null,
         });
     } catch (error) {
         console.error('[Greetings Cron] Error executing cron job:', error);

@@ -11,13 +11,13 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        const fcmId = await sendPushToAllUsers({
+        const result = await sendPushToAllUsers({
             title: '🔔 Soyol тест',
             body: 'Апп хаалттай үед мэдэгдэл ирж байна уу? Энэ бол туршилтын мэдэгдэл.',
             data: { type: 'test_push', url: '/' },
         });
 
-        return NextResponse.json({ success: true, fcmId: fcmId ?? null });
+        return NextResponse.json({ success: true, ...result });
     } catch (error) {
         console.error('[Test Push] Error:', error);
         return NextResponse.json({ error: 'Failed to send push' }, { status: 500 });
