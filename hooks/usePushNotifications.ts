@@ -108,6 +108,18 @@ export const usePushNotifications = () => {
                         return;
                     }
 
+                    if (Capacitor.getPlatform() === 'android') {
+                        await PushNotifications.createChannel({
+                            id: 'soyol_push',
+                            name: 'Soyol мэдэгдэл',
+                            description: 'Захиалга, хямдрал, өглөө/оройн мэдэгдэл',
+                            importance: 5,
+                            sound: 'default',
+                            vibration: true,
+                            visibility: 1,
+                        });
+                    }
+
                     const registrationListener = await PushNotifications.addListener(
                         'registration',
                         async (token) => {

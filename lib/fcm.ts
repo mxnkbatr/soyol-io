@@ -3,6 +3,9 @@ import { User, PushToken } from "@/models/User";
 
 let admin: any = null;
 
+/** Android notification channel — must match FCM android.notification.channelId */
+export const PUSH_CHANNEL_ID = "soyol_push";
+
 async function getFirebaseAdmin() {
   if (typeof window !== "undefined") return null; // Server-side only
 
@@ -33,6 +36,61 @@ async function getFirebaseAdmin() {
   return admin;
 }
 
+function toStringData(data?: Record<string, string>) {
+  return Object.fromEntries(
+    Object.entries(data || {}).map(([key, value]) => [key, String(value)]),
+  );
+}
+
+/** High-priority payload so notifications show when app is closed/background. */
+function buildPushPayload({
+  title,
+  body,
+  imageUrl,
+  data,
+}: {
+  title: string;
+  body: string;
+  imageUrl?: string;
+  data?: Record<string, string>;
+}) {
+  const stringData = toStringData(data);
+
+  return {
+    notification: {
+      title,
+      body,
+      ...(imageUrl ? { imageUrl } : {}),
+    },
+    data: stringData,
+    android: {
+      priority: "high" as const,
+      notification: {
+        channelId: PUSH_CHANNEL_ID,
+        sound: "default",
+        priority: "high" as const,
+        defaultSound: true,
+        defaultVibrateTimings: true,
+        visibility: "PUBLIC" as const,
+      },
+    },
+    apns: {
+      headers: {
+        "apns-priority": "10",
+        "apns-push-type": "alert",
+      },
+      payload: {
+        aps: {
+          alert: { title, body },
+          sound: "default",
+          badge: 1,
+          "mutable-content": imageUrl ? 1 : 0,
+        },
+      },
+    },
+  };
+}
+
 export async function sendPushToAllUsers({
   title,
   body,
@@ -48,23 +106,17 @@ export async function sendPushToAllUsers({
     const firebase = await getFirebaseAdmin();
     if (!firebase) return;
 
-    // NOTE: Topic subscription management (subscribing to / unsubscribing from 'all-users')
-    // is handled dynamically inside the User Preferences API when users toggle 'promo' preferences.
-    // Therefore, we do not need to manually check preferences or filter user tokens here before sending.
     const message = {
-      notification: {
-        title,
-        body,
-        ...(imageUrl ? { imageUrl } : {}),
-      },
-      data: data || {},
-      topic: 'all-users',
+      ...buildPushPayload({ title, body, imageUrl, data }),
+      topic: "all-users",
     };
 
     const response = await firebase.messaging().send(message);
     console.log(`FCM: Sent notification to topic 'all-users':`, response);
+    return response;
   } catch (error) {
     console.error("FCM Topic Send Error:", error);
+    throw error;
   }
 }
 
@@ -78,9 +130,13 @@ export async function subscribeTokenToTopic(token: string, topic: string) {
 
     const response = await firebase.messaging().subscribeToTopic([token], topic);
     console.log(`FCM: Subscribed token to topic ${topic} (success count: ${response.successCount})`);
+    if (response.failureCount > 0) {
+      console.error(`FCM: Topic subscribe failures for ${topic}:`, response.errors);
+    }
     return response;
   } catch (error) {
     console.error(`FCM: Error subscribing token to topic ${topic}:`, error);
+    throw error;
   }
 }
 
@@ -135,12 +191,7 @@ export async function sendPushToUser({
     const tokens = user.pushTokens.map((pt: PushToken) => pt.token);
 
     const message = {
-      notification: {
-        title,
-        body,
-        ...(imageUrl ? { imageUrl } : {}),
-      },
-      data: data || {},
+      ...buildPushPayload({ title, body, imageUrl, data }),
       tokens,
     };
 
@@ -163,8 +214,8 @@ export async function sendPushToUser({
 
       if (tokensToRemove.length > 0) {
         await usersCollection.updateMany(
-          { 'pushTokens.token': { $in: tokensToRemove } },
-          { $pull: { pushTokens: { token: { $in: tokensToRemove } } } } as any
+          { "pushTokens.token": { $in: tokensToRemove } },
+          { $pull: { pushTokens: { token: { $in: tokensToRemove } } } } as any,
         );
       }
     }
