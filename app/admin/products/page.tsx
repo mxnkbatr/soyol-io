@@ -164,7 +164,7 @@ export default function AdminProductsPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 pb-6">
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 items-center bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-sm">
           <div className="relative w-full sm:w-80">
@@ -259,8 +259,46 @@ export default function AdminProductsPage() {
                       ? "● Бэлэн"
                       : "○ Захиалга"}
                   </span>
-                  <span className="text-xs text-slate-500">
-                    Үлд: {product.inventory ?? 0}ш
+                  <span
+                    onClick={() =>
+                      setEditingStock({
+                        id: product._id,
+                        value: String(product.inventory || 0),
+                      })
+                    }
+                    className="text-xs text-slate-400 ml-auto cursor-pointer hover:text-amber-400 touch-manipulation"
+                  >
+                    {editingStock?.id === product._id && editingStock ? (
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        value={editingStock.value}
+                        onChange={(e) =>
+                          setEditingStock({
+                            id: product._id,
+                            value: e.target.value,
+                          })
+                        }
+                        onBlur={() =>
+                          handleStockUpdate(
+                            product._id,
+                            parseInt(editingStock.value) || 0,
+                          )
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleStockUpdate(
+                              product._id,
+                              parseInt(editingStock.value) || 0,
+                            );
+                          }
+                        }}
+                        className="w-14 bg-slate-800 text-white text-xs rounded px-2 py-1 text-center"
+                        autoFocus
+                      />
+                    ) : (
+                      <>Үлд: {product.inventory ?? 0}ш ✎</>
+                    )}
                   </span>
                   <button
                     onClick={() => handleToggleFeatured(product)}

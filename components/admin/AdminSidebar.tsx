@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
     BarChart3, Package, Layers, ShoppingCart, MessageCircle,
-    ArrowLeft, Menu, X, Building2, LogOut, Image as ImageIcon, TrendingUp, Users, Video, Bell
+    ArrowLeft, Menu, X, Building2, LogOut, Image as ImageIcon, TrendingUp, Users, Video, Bell, PlusCircle
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useSWR from 'swr';
@@ -174,12 +174,12 @@ export default function AdminSidebar() {
             </aside>
 
             {/* Mobile Bottom Tab Navigation */}
-            <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950 border-t border-slate-800/80 flex items-center justify-around px-2 py-1.5 lg:hidden pb-[calc(env(safe-area-inset-bottom,0px)+6px)] pt-2 shadow-[0_-8px_30px_rgb(0,0,0,0.5)]">
+            <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950 border-t border-slate-800/80 flex items-center justify-around px-1 py-1.5 lg:hidden pb-[calc(env(safe-area-inset-bottom,0px)+6px)] pt-2 shadow-[0_-8px_30px_rgb(0,0,0,0.5)]">
                 {[
                     { href: '/admin', icon: BarChart3, label: 'Хяналт' },
                     { href: '/admin/orders', icon: ShoppingCart, label: 'Захиалга', badge: pendingCount, badgeColor: 'bg-red-500' },
                     { href: '/admin/products', icon: Package, label: 'Бараа' },
-                    { href: '/admin/video', icon: Video, label: 'Видео' },
+                    { href: '/admin/products/new', icon: PlusCircle, label: 'Нэмэх', accent: true },
                 ].map((tab) => {
                     const active = isActive(tab.href);
                     const Icon = tab.icon;
@@ -187,9 +187,9 @@ export default function AdminSidebar() {
                         <Link
                             key={tab.href}
                             href={tab.href}
-                            className={`flex flex-col items-center justify-center flex-1 py-1 relative transition-all ${
+                            className={`flex flex-col items-center justify-center flex-1 py-1 relative transition-all touch-manipulation min-h-[48px] ${
                                 active ? 'text-amber-500' : 'text-slate-400 active:text-slate-200'
-                            }`}
+                            } ${'accent' in tab && tab.accent ? 'text-amber-400' : ''}`}
                         >
                             <div className="relative">
                                 <Icon className="w-5 h-5" />

@@ -6,8 +6,6 @@ import { Loader2, Save, ArrowLeft, Image as ImageIcon, Box, FileText, CheckCircl
 import useSWR from 'swr';
 import toast from 'react-hot-toast';
 import VariantsManager, { ProductOption, ProductVariant } from './VariantsManager';
-import { Capacitor } from '@capacitor/core';
-import { pickAndUploadImage } from '@/lib/upload';
 import AdminImageUpload from '@/components/admin/AdminImageUpload';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
@@ -63,27 +61,6 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
         isCargo: initialData?.isCargo || false
     });
 
-    const [isUploading, setIsUploading] = useState(false);
-
-    const handleNativeUpload = async (isMain: boolean) => {
-        setIsUploading(true);
-        try {
-            const url = await pickAndUploadImage({ folder: 'products' });
-            if (url) {
-                if (isMain) {
-                    setFormData(prev => ({ ...prev, image: url }));
-                } else {
-                    setFormData(prev => ({ ...prev, images: [...(prev.images || []), url] }));
-                }
-                toast.success('Зураг амжилттай хуулагдлаа');
-            }
-        } catch (error) {
-            toast.error('Зураг хуулахад алдаа гарлаа');
-        } finally {
-            setIsUploading(false);
-        }
-    };
-
     const [attributeRows, setAttributeRows] = useState<{ key: string, value: string }[]>(
         initialData?.attributes
             ? Object.entries(initialData.attributes).map(([k, v]) => ({ key: k, value: String(v) }))
@@ -129,7 +106,14 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
         e.preventDefault();
 
         if (!formData.name || !formData.price || !formData.category) {
-            toast.error('Шаардлагатай талбаруудыг бөглөнө үю (Нэр, Үнэ, Ангилал)');
+            toast.error('Шаардлагатай талбаруудыг бөглөнө үү (Нэр, Үнэ, Ангилал)');
+            setActiveTab('basic');
+            return;
+        }
+
+        if (!formData.image?.trim()) {
+            toast.error('Үндсэн зураг сонгоно уу');
+            setActiveTab('media');
             return;
         }
 
@@ -160,7 +144,7 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
     ];
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-6 h-full pb-20">
+        <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-6 h-full pb-36 lg:pb-20">
             {/* Main Content Area - Left Column */}
             <div className="flex-1 space-y-6">
 
@@ -201,7 +185,7 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                 </div>
 
                 {/* Tab Content Boxes */}
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl">
 
                     {/* Basic Info Tab */}
                     {activeTab === 'basic' && (
@@ -331,32 +315,15 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                                     )}
 
                                     {!formData.image && (
-                                        <div className="flex flex-col gap-3">
-                                            {Capacitor.isNativePlatform() ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleNativeUpload(true)}
-                                                    disabled={isUploading}
-                                                    className="w-full py-12 bg-slate-950 border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center gap-3 text-slate-500 hover:text-amber-500 hover:border-amber-500/50 hover:bg-amber-500/5 transition-all group"
-                                                >
-                                                    <div className="p-4 bg-slate-900 rounded-full group-hover:bg-amber-500/10 transition-colors">
-                                                        {isUploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <ImageIcon className="w-8 h-8" />}
-                                                    </div>
-                                                    <span className="font-bold">{isUploading ? 'Хуулж байна...' : 'Зураг сонгох (Галерей)'}</span>
-                                                    <span className="text-[10px] uppercase tracking-widest opacity-60">Үндсэн зураг заавал байх шаардлагатай</span>
-                                                </button>
-                                            ) : (
-                                                <AdminImageUpload
-                                                    value={formData.image}
-                                                    onChange={(url) => setFormData((prev) => ({ ...prev, image: url }))}
-                                                    folder="products"
-                                                    variant="dark"
-                                                    label="Зураг сонгох"
-                                                    sublabel="Шинэ Cloudinary account руу upload"
-                                                    showPreview={false}
-                                                />
-                                            )}
-                                        </div>
+                                        <AdminImageUpload
+                                            value={formData.image}
+                                            onChange={(url) => setFormData((prev) => ({ ...prev, image: url }))}
+                                            folder="products"
+                                            variant="dark"
+                                            label="Галерейгаас зураг сонгох"
+                                            sublabel="Үндсэн зураг заавал"
+                                            showPreview={false}
+                                        />
                                     )}
                                 </div>
                             </div>
@@ -377,7 +344,7 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                                                     ...prev,
                                                     images: (prev.images || []).filter((_: string, idx: number) => idx !== i)
                                                 }))}
-                                                className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all text-xs"
+                                                className="absolute top-1 right-1 p-2 bg-red-500 text-white rounded-lg sm:opacity-0 sm:group-hover:opacity-100 transition-all"
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                             </button>
@@ -386,34 +353,19 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                                 </div>
 
                                 {(formData.images || []).length < 8 && (
-                                    <div className="flex flex-col gap-3">
-                                        {Capacitor.isNativePlatform() ? (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleNativeUpload(false)}
-                                                disabled={isUploading}
-                                                className="w-full flex items-center justify-center gap-2 py-4 bg-slate-950 border border-slate-800 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-sm font-bold border-dashed"
-                                            >
-                                                {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                                                {isUploading ? 'Хуулж байна...' : 'Зураг нэмэх (Галерей)'}
-                                            </button>
-                                        ) : (
-                                            <AdminImageUpload
-                                                onAdd={(url) =>
-                                                    setFormData((prev) => ({
-                                                        ...prev,
-                                                        images: [...(prev.images || []), url],
-                                                    }))
-                                                }
-                                                folder="products"
-                                                multiple
-                                                variant="dark"
-                                                label="Зураг нэмэх"
-                                                sublabel="Шинэ Cloudinary"
-                                                showPreview={false}
-                                            />
-                                        )}
-                                    </div>
+                                    <AdminImageUpload
+                                        onAdd={(url) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                images: [...(prev.images || []), url],
+                                            }))
+                                        }
+                                        folder="products"
+                                        variant="dark"
+                                        label="Зураг нэмэх"
+                                        sublabel="Галерей эсвэл камер"
+                                        showPreview={false}
+                                    />
                                 )}
                             </div>
                         </div>
@@ -456,7 +408,7 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                                         <button
                                             type="button"
                                             onClick={() => setAttributeRows(rows => rows.filter((_, i) => i !== index))}
-                                            className="p-3 rounded-xl bg-slate-800 text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
+                                            className="p-3 rounded-xl bg-slate-800 text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-all shrink-0"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -731,19 +683,19 @@ export default function ProductForm({ initialData, onSubmit, isSubmitting }: Pro
                 </div>
 
                 {/* Submit Floating Action Bar for Mobile & Fixed button for Desktop */}
-                <div className="fixed bottom-0 left-0 right-0 p-4 bg-slate-950/80 backdrop-blur-xl border-t border-slate-800 lg:static lg:bg-transparent lg:border-t-0 lg:p-0 lg:backdrop-blur-none z-40">
-                    <div className="max-w-7xl mx-auto flex gap-4 auto-cols-auto">
+                <div className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] left-0 right-0 p-3 sm:p-4 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 lg:static lg:bg-transparent lg:border-t-0 lg:p-0 lg:backdrop-blur-none z-50">
+                    <div className="max-w-7xl mx-auto flex gap-3">
                         <button
                             type="button"
                             onClick={() => router.back()}
-                            className="px-6 py-4 lg:py-3 rounded-xl text-slate-300 font-bold border border-slate-800 hover:bg-slate-800 flex-1 lg:flex-none"
+                            className="px-5 py-3.5 min-h-[48px] rounded-xl text-slate-300 font-bold border border-slate-800 hover:bg-slate-800 flex-1 lg:flex-none touch-manipulation"
                         >
                             Болих
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex-1 px-6 py-4 lg:py-3 bg-amber-500 text-slate-950 rounded-xl font-black hover:bg-amber-400 transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 disabled:opacity-50"
+                            className="flex-[2] px-6 py-3.5 min-h-[48px] bg-amber-500 text-slate-950 rounded-xl font-black hover:bg-amber-400 transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 disabled:opacity-50 touch-manipulation active:scale-[0.98]"
                         >
                             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                             {initialData ? 'Шинэчлэх' : 'Хадгалах'}

@@ -2,14 +2,24 @@ import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { uploadAdminImageFile } from '@/lib/uploadClient';
 
+export type PickSource = 'gallery' | 'camera' | 'prompt';
+
 interface UploadOptions {
   folder?: 'banners' | 'products';
+  source?: PickSource;
 }
 
-/** Native admin — шинэ Cloudinary account руу upload (web admin → /api/upload/image) */
+function resolveCameraSource(source: PickSource = 'gallery') {
+  if (source === 'camera') return CameraSource.Camera;
+  if (source === 'prompt') return CameraSource.Prompt;
+  return CameraSource.Photos;
+}
+
+/** Native/web admin — Cloudinary руу upload. Утас дээр шууд галерей нээнэ. */
 export async function pickAndUploadImage(options: UploadOptions = {}): Promise<string | null> {
   try {
     const folder = options.folder === 'banners' ? 'banners' : 'products';
+    const source = options.source ?? (Capacitor.isNativePlatform() ? 'gallery' : 'gallery');
 
     if (!Capacitor.isNativePlatform()) {
       const input = document.createElement('input');
@@ -27,10 +37,10 @@ export async function pickAndUploadImage(options: UploadOptions = {}): Promise<s
     }
 
     const photo = await Camera.getPhoto({
-      quality: 80,
+      quality: 85,
       allowEditing: false,
       resultType: CameraResultType.DataUrl,
-      source: CameraSource.Prompt,
+      source: resolveCameraSource(source),
       promptLabelHeader: 'Зураг сонгох',
       promptLabelPhoto: 'Галерейгаас сонгох',
       promptLabelPicture: 'Зураг авах',

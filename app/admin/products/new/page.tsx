@@ -90,7 +90,7 @@ export default function NewProductPage() {
             </header>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-8">
                 <div className="max-w-7xl mx-auto">
                     <ProductForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
                 </div>
