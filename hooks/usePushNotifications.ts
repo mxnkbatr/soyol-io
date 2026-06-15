@@ -83,6 +83,15 @@ export const usePushNotifications = () => {
     }, [ensureNativePermission]);
 
     useEffect(() => {
+        if (!Capacitor.isNativePlatform()) return;
+        if (isSignedIn) return;
+        debugPushLog(
+            'Push debug',
+            'Эрх зөвшөөрсөн. Token авахын тулд нэвтэрнэ үү.',
+        );
+    }, [isSignedIn]);
+
+    useEffect(() => {
         if (!isSignedIn) return;
 
         let cleanupFn: (() => void) | undefined;
@@ -161,11 +170,18 @@ export const usePushNotifications = () => {
                     );
 
                     await PushNotifications.register();
+                    debugPushLog('Push бүртгэл', 'register() дуудагдлаа — token хүлээж байна...');
 
                     if (Capacitor.getPlatform() === 'ios') {
                         setTimeout(() => {
                             getFcmToken('ios-fallback').catch((err) => {
                                 console.error('FCM: iOS fallback token fetch failed:', err);
+                            });
+                        }, 2500);
+                    } else {
+                        setTimeout(() => {
+                            getFcmToken('android-fallback').catch((err) => {
+                                console.error('FCM: Android fallback token fetch failed:', err);
                             });
                         }, 2500);
                     }
