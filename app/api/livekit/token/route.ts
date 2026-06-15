@@ -1,5 +1,21 @@
 import { AccessToken } from 'livekit-server-sdk';
 import { NextResponse } from 'next/server';
+import { notifyAdminsIncomingCall } from '@/lib/callNotifications';
+
+async function maybeNotifyAdminsForCall(
+  roomName: string,
+  identity: string,
+  displayName?: string,
+) {
+  if (!roomName.startsWith('support-')) return;
+  if (identity.startsWith('admin-')) return;
+
+  await notifyAdminsIncomingCall({
+    roomName,
+    callerName: displayName || identity,
+    isVoice: false,
+  });
+}
 
 export async function POST(request: Request) {
   try {
@@ -41,6 +57,10 @@ export async function POST(request: Request) {
     });
 
     const token = await at.toJwt();
+
+    maybeNotifyAdminsForCall(roomName, identity, displayName).catch((err) =>
+      console.error('[Call Push] token POST hook error:', err),
+    );
 
     return NextResponse.json({ token, expiresIn: ttlSeconds });
   } catch (err: any) {

@@ -1,5 +1,6 @@
 import { AccessToken } from 'livekit-server-sdk';
 import { NextResponse } from 'next/server';
+import { notifyAdminsIncomingCall } from '@/lib/callNotifications';
 
 export async function GET(request: Request) {
   try {
@@ -40,6 +41,14 @@ export async function GET(request: Request) {
     });
 
     const token = await at.toJwt();
+
+    if (room.startsWith('support-') && !username.startsWith('admin-')) {
+      notifyAdminsIncomingCall({
+        roomName: room,
+        callerName: username,
+        isVoice: false,
+      }).catch((err) => console.error('[Call Push] token GET hook error:', err));
+    }
 
     return NextResponse.json({ token });
   } catch (err: any) {

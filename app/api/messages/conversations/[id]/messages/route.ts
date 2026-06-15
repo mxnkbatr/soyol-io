@@ -3,6 +3,11 @@ import { getCollection } from '@/lib/mongodb';
 import { auth } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
 import { broadcastNewMessage, broadcastAdminConversationUpdate } from '@/lib/messageBroadcast';
+import {
+    notifyAdminsIncomingCall,
+    isUserCallMessage,
+    extractCallRoomName,
+} from '@/lib/callNotifications';
 
 export async function GET(
     req: Request,
@@ -141,6 +146,18 @@ export async function POST(
         await broadcastNewMessage(id, responseMessage);
         if (updatedConversation) {
             await broadcastAdminConversationUpdate(updatedConversation);
+        }
+
+        if (isUserCallMessage(messageType, content, authRole)) {
+            const callRoom = extractCallRoomName(roomName, content);
+            if (callRoom) {
+                const isVoice = /дуут|📞|voice/i.test(content);
+                notifyAdminsIncomingCall({
+                    roomName: callRoom,
+                    callerName: senderName,
+                    isVoice,
+                }).catch((err) => console.error('[Call Push] message hook error:', err));
+            }
         }
 
         return NextResponse.json(responseMessage);

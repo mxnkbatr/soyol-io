@@ -119,10 +119,12 @@ export default function ChatWidget({ isOpen, onClose }: ChatWidgetProps) {
                     method: 'POST',
                     headers,
                     body: JSON.stringify({
-                        body: isVoiceCall 
-                            ? `📞 Дуут дуудлага эхэллээ: ${roomName}` 
+                        type: 'call_invite',
+                        roomName,
+                        body: isVoiceCall
+                            ? `📞 Дуут дуудлага эхэллээ: ${roomName}`
                             : `📹 Видео дуудлага эхэллээ: ${roomName}`,
-                        senderName: effectiveUser.name
+                        senderName: effectiveUser.name,
                     }),
                 });
             }
@@ -282,8 +284,10 @@ export default function ChatWidget({ isOpen, onClose }: ChatWidgetProps) {
                                         method: 'POST',
                                         headers,
                                         body: JSON.stringify({
+                                            type: 'call_invite',
+                                            roomName,
                                             body: `📹 Видео дуудлага эхэллээ: ${roomName}`,
-                                            senderName: effectiveUser.name
+                                            senderName: effectiveUser.name,
                                         }),
                                     });
                                     setViewMode('video_call');
@@ -301,8 +305,10 @@ export default function ChatWidget({ isOpen, onClose }: ChatWidgetProps) {
                                         method: 'POST',
                                         headers,
                                         body: JSON.stringify({
+                                            type: 'call_invite',
+                                            roomName,
                                             body: `📞 Дуут дуудлага эхэллээ: ${roomName}`,
-                                            senderName: effectiveUser.name
+                                            senderName: effectiveUser.name,
                                         }),
                                     });
                                     setViewMode('video_call');
