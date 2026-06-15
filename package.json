@@ -1,6 +1,6 @@
 {
   "name": "soyol-video-shop",
-  "version": "20.0.0",
+  "version": "21.0.0",
   "scripts": {
     "postinstall": "patch-package",
     "dev": "next dev -H 0.0.0.0",
