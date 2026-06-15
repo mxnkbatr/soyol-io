@@ -113,6 +113,29 @@ html.cap-native body {
   height: 100%;
 }
 
+/* Faster tap response — no 300ms delay on mobile */
+html.cap-native button,
+html.cap-native a,
+html.cap-native [role="button"] {
+  touch-action: manipulation;
+}
+
+/* Subtle page enter — feels native, not a full reload */
+html.cap-native main {
+  animation: native-page-in 0.12s ease-out;
+}
+
+@keyframes native-page-in {
+  from {
+    opacity: 0.94;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* iOS safe area padding (only in native wrapper) */
 @supports (padding: max(0px)) {
   html.cap-native body {

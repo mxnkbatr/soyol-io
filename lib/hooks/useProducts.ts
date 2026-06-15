@@ -42,7 +42,7 @@ export function useProducts(filters: Record<string, any> = {}) {
     {
       revalidateFirstPage: false,
       persistSize: true,
-      dedupingInterval: 30000,      // cache for 30s — instant back-navigation
+      dedupingInterval: 120000,     // cache 2min — instant tab/back navigation
       revalidateOnFocus: false,     // don't re-fetch when app regains focus
     }
   );

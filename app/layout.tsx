@@ -1,12 +1,10 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import LuxuryNavbar from '@components/LuxuryNavbar';
 import ClientLayout from './ClientLayout';
 import NextTopLoader from 'nextjs-toploader';
 import CapacitorBackButton from '@components/providers/CapacitorBackButton';
 import { SITE_CONFIG } from '@lib/constants';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 const inter = Inter({
   subsets: ['latin', 'cyrillic'],
   display: 'swap',
@@ -75,7 +73,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="mn" className={inter.variable}>
+    <html lang="mn" className={inter.variable} data-scroll-behavior="smooth">
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />

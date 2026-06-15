@@ -42,12 +42,13 @@ const nextConfig = {
     minimumCacheTTL: 604800,
     deviceSizes: [384, 640, 828, 1080],
     imageSizes: [64, 128, 256],
+    qualities: [65, 70, 75, 80, 85],
   },
   experimental: {
     serverActions: { bodySizeLimit: "10mb" },
     staleTimes: {
-      dynamic: 30,
-      static: 300,
+      dynamic: 120,
+      static: 600,
     },
     optimizePackageImports: ['lucide-react', 'framer-motion', 'react-hot-toast'],
   },

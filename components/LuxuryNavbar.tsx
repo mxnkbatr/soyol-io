@@ -834,6 +834,7 @@ export default function LuxuryNavbar() {
               <Link
                 key={item.name}
                 href={item.href}
+                prefetch
                 onClick={() => {
                   triggerHaptic();
                   if (isActive) {

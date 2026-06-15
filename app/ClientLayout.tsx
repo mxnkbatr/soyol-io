@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import FloatingChatButton from '@/components/FloatingChatButton';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useAppPrefetch } from '@/hooks/useAppPrefetch';
 import LuxuryNavbar from "@/components/LuxuryNavbar";
 import Footer from "@/components/Footer";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -24,6 +25,11 @@ const swrDefaults = {
 
 function PushInit() {
   usePushNotifications();
+  return null;
+}
+
+function PrefetchInit() {
+  useAppPrefetch();
   return null;
 }
 
@@ -115,17 +121,17 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     };
   }, []);
 
-  // Hide native splash screen once the web UI is ready
+  // Hide splash as soon as first paint completes (no fixed delay)
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     let cancelled = false;
     (async () => {
       try {
         const { SplashScreen } = await import('@capacitor/splash-screen');
-        // give the first paint a moment on slow devices
-        setTimeout(() => {
+        const hide = () => {
           if (!cancelled) SplashScreen.hide().catch(() => {});
-        }, 600);
+        };
+        requestAnimationFrame(() => requestAnimationFrame(hide));
       } catch {
         // ignore
       }
@@ -166,13 +172,14 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   const isAdminRoute = !!pathname && pathname.startsWith("/admin");
   const isSupportPage = pathname === '/support';
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
-  return (
-    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
+  const appTree = (
       <SWRConfig value={swrDefaults}>
         <LanguageProvider>
           <AuthProvider>
             <PushInit />
+            <PrefetchInit />
             <ErrorBoundary>
               <AnimatePresence>
                 {isOffline && (
@@ -206,6 +213,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           </AuthProvider>
         </LanguageProvider>
       </SWRConfig>
+  );
+
+  if (!googleClientId) return appTree;
+
+  return (
+    <GoogleOAuthProvider clientId={googleClientId}>
+      {appTree}
     </GoogleOAuthProvider>
   );
 }

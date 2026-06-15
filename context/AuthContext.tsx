@@ -30,6 +30,33 @@ interface AuthContextType {
   refreshUser: () => Promise<void>;
 }
 
+const AUTH_CACHE_KEY = "soyol_auth_user";
+
+function readCachedUser(): User | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const cached = sessionStorage.getItem(AUTH_CACHE_KEY);
+    return cached ? JSON.parse(cached) : null;
+  } catch {
+    return null;
+  }
+}
+
+function hasAuthCookie(): boolean {
+  if (typeof document === "undefined") return false;
+  return document.cookie.split(";").some((c) => c.trim().startsWith("auth_token="));
+}
+
+function writeCachedUser(user: User | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (user) sessionStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(user));
+    else sessionStorage.removeItem(AUTH_CACHE_KEY);
+  } catch {
+    // ignore quota errors
+  }
+}
+
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isAuthenticated: false,
@@ -41,28 +68,41 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(() => readCachedUser());
+  const [isLoading, setIsLoading] = useState(() => !readCachedUser());
   const router = useRouter();
   const clearCart = useCartStore((state) => state.clearCart);
   const setCartAuth = useCartStore((state) => state.setAuthenticated);
   const clearWishlist = useWishlistStore((state) => state.clearWishlist);
 
   useEffect(() => {
+    if (readCachedUser()) setCartAuth(true);
+  }, [setCartAuth]);
+
+  useEffect(() => {
+    // Skip network call when clearly logged out — avoids slow 401 round-trips
+    if (!hasAuthCookie() && !readCachedUser()) {
+      setIsLoading(false);
+      return;
+    }
+
     const checkAuth = async () => {
       try {
         const res = await fetch("/api/auth/me", { credentials: "include" });
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
+          writeCachedUser(data.user);
           setCartAuth(true);
         } else {
           setUser(null);
+          writeCachedUser(null);
           setCartAuth(false);
         }
       } catch (error) {
         console.error("Auth check failed:", error);
         setUser(null);
+        writeCachedUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -73,6 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = (userData: User) => {
     setUser(userData);
+    writeCachedUser(userData);
     setCartAuth(true);
   };
 
@@ -80,6 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       setUser(null);
+      writeCachedUser(null);
       setCartAuth(false);
       clearWishlist();
       router.push("/sign-in");
@@ -95,6 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
+        writeCachedUser(data.user);
       }
     } catch (error) {
       console.error("Refresh user failed:", error);

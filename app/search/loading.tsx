@@ -1,10 +1,12 @@
+import ProductGridSkeleton from '@/components/skeletons/ProductGridSkeleton';
+
 export default function SearchLoading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 pt-24 pb-16">
-      <div className="text-center">
-        <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-gray-600 font-medium">Хайж байна...</p>
+    <div className="min-h-screen bg-white pt-4 pb-28">
+      <div className="px-4 mb-4">
+        <div className="h-11 bg-gray-100 rounded-2xl animate-pulse" />
       </div>
+      <ProductGridSkeleton count={4} />
     </div>
   );
 }

@@ -10,7 +10,9 @@
   public protected *;
 }
 
-# Firebase Cloud Messaging
+# Capacitor Community plugins
+-keep class com.getcapacitor.community.** { *; }
+-keep class io.capawesome.** { *; }
 -keep class com.google.firebase.** { *; }
 -keep class com.google.android.gms.** { *; }
 -dontwarn com.google.firebase.**

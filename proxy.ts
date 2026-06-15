@@ -48,8 +48,13 @@ export async function proxy(req: NextRequest) {
   const forwarded = req.headers.get('x-forwarded-for');
   const ip = forwarded ? forwarded.split(',')[0] : '127.0.0.1';
 
-  // 1. Rate Limiting for API routes
-  if (pathname.startsWith('/api/')) {
+  // 1. Rate Limiting for API routes (skip lightweight high-frequency reads)
+  const rateLimitExempt =
+    pathname === '/api/auth/me' ||
+    pathname.startsWith('/api/banners') ||
+    pathname.startsWith('/api/health/');
+
+  if (pathname.startsWith('/api/') && !rateLimitExempt) {
     if (ratelimit) {
       try {
         const { success, limit, reset, remaining } = await ratelimit.limit(`ratelimit_${ip}`);

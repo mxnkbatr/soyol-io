@@ -1,16 +1,21 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import useSWR from 'swr';
 import SafeImage, { BANNER_PLACEHOLDER } from '@/components/SafeImage';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { Banner } from '@/models/Banner';
-import { getApiUrl } from '@/lib/utils';
+
+const bannerFetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function BannerSlider() {
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data, isLoading } = useSWR('/api/banners', bannerFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 300_000,
+  });
+  const banners: Banner[] = data?.banners || [];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0); // -1 for left, 1 for right
   const [isHovered, setIsHovered] = useState(false);
@@ -32,34 +37,6 @@ export default function BannerSlider() {
       setCurrentIndex(0);
     }
   }, [banners.length, currentIndex]);
-
-  useEffect(() => {
-    const fetchBanners = async () => {
-      try {
-        const response = await fetch(getApiUrl('/api/banners'));
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        // Ensure standard JSON content-type to avoid parsing HTML as JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new TypeError("Oops, we haven't got JSON!");
-        }
-
-        const data = await response.json();
-        setBanners(data.banners || []);
-      } catch (err) {
-        console.error('Error fetching banners:', err);
-        // Fallback to empty array if fetch fails
-        setBanners([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchBanners();
-  }, []);
 
   useEffect(() => {
     if (isHovered || banners.length <= 1) return;

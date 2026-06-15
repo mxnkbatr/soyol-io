@@ -49,7 +49,41 @@ async function fetchProductPageData(id: string) {
   }
 
   const products = await getCollection("products");
-  const product = (await products.findOne({ _id: objectId } as any)) as ProductResponse | null;
+  const product = (await products.findOne(
+    { _id: objectId } as any,
+    {
+      projection: {
+        name: 1,
+        description: 1,
+        price: 1,
+        originalPrice: 1,
+        discountPercent: 1,
+        image: 1,
+        images: 1,
+        category: 1,
+        stockStatus: 1,
+        inventory: 1,
+        brand: 1,
+        model: 1,
+        paymentMethods: 1,
+        sections: 1,
+        attributes: 1,
+        options: 1,
+        variants: 1,
+        shippingOrigin: 1,
+        shippingDestination: 1,
+        dispatchTime: 1,
+        sizeGuideUrl: 1,
+        wholesale: 1,
+        featured: 1,
+        isCargo: 1,
+        deliveryFee: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        rating: 1,
+      },
+    },
+  )) as ProductResponse | null;
   if (!product) return null;
 
   const categories = await getCollection("categories");

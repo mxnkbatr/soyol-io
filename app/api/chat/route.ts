@@ -5,29 +5,23 @@ import { getCollection } from '@/lib/mongodb';
 import { auth } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
 import { User } from '@/models/User';
+import {
+  searchChatProducts,
+  buildProductRecommendationsBlock,
+  buildProductCardMarkers,
+} from '@/lib/chatProducts';
 
 const openrouter = createOpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY || process.env.Deepseek_API,
 });
 
-// Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
-
     const modelMessages = await convertToModelMessages(messages);
-
-    // LOGGING for debug
-    try {
-      const fs = await import('fs');
-      const path = await import('path');
-      const logPath = path.join(process.cwd(), 'debug-log.txt');
-      fs.appendFileSync(logPath, `\n\n--- Request ${new Date().toISOString()} ---\n`);
-      fs.appendFileSync(logPath, JSON.stringify(modelMessages, null, 2));
-    } catch (e) { console.error('Logging failed', e); }
 
     const session = await auth();
     let userContext = '';
@@ -38,13 +32,11 @@ export async function POST(req: Request) {
         const user = await users.findOne({ _id: new ObjectId(session.userId) });
         if (user?.addresses?.length) {
           userContext = `
-          Хэрэглэгчийн хадгалсан хаягууд:
-          ${user.addresses.map((a, i) => `
-          ${i + 1}. ID: ${a.id} | [${a.label || 'Хаяг ' + (i + 1)}] ${a.isDefault ? '(Үндсэн)' : ''}
-             - ${a.city}, ${a.district}, ${a.street}
-          `).join('\n')}
-          Утас: ${user.phone || 'Бүртгэлгүй'}
-          `;
+Хэрэглэгчийн хадгалсан хаягууд:
+${user.addresses.map((a, i) => `
+${i + 1}. [${a.label || 'Хаяг ' + (i + 1)}] ${a.isDefault ? '(Үндсэн)' : ''} — ${a.city}, ${a.district}, ${a.street}
+`).join('')}
+Утас: ${user.phone || 'Бүртгэлгүй'}`;
         }
       } catch (err) {
         console.error('Failed to fetch user context:', err);
@@ -53,247 +45,232 @@ export async function POST(req: Request) {
 
     const result = await streamText({
       model: openrouter.chat('google/gemini-2.5-flash'),
-      system: `
-    Та бол "Soyol Video Shop" онлайн дэлгүүрийн мэргэжлийн борлуулалтын зөвлөх AI байна. 
-    Чиний гол үүрэг бол хэрэглэгчийг ойлгож, тэдэнд тохирсон барааг санал болгож, худалдан авалт хийхэд нь туслах юм. 
-    Манай дэлгүүр нь Taobao, Temu шиг бүх төрлийн бараа зардаг e-commerce платформ юм.
+      system: `Та "Soyol Video Shop" дэлгүүрийн мэргэжлийн AI худалдааны зөвлөх.
 
-    ### [ЧИНИЙ ЗАН ТӨЛӨВ]
-    1. Эелдэг, залуулаг, тусламтгай бай. "Cool" бөгөөд мэргэжлийн бай.
-    2. Хэрэглэгчийг байцаах хэрэггүй. Хэрэв хэрэглэгч тодорхой бус хүсэлт тавибал (жишээ нь: "Бэлэг авмаар байна") шууд эрэгтэй, эмэгтэй, хүүхдэд тохирох эсвэл хамгийн трэнд байгаа 3 өөр шилдэг барааг санал болгоод, дараа нь тодруулах асуулт асуу.
-    3. Нуршуу урт текстээс татгалз. Хариулт чинь 2-3 өгүүлбэрт багтах ёстой. Маш товч бөгөөд тодорхой бай.
+## Үүрэг
+- Хэрэглэгчийн хүсэлтийг ойлгож, дэлгүүрийн БОДИТ бараанаас тохирохыг санал болго.
+- Худалдан авалт, сагс, хүргэлт, төлбөрт тусла.
+- Хэзээ ч зохиомол бараа, үнэ, ID бүү өг.
 
-    ### [БАРУУНЫ САНАЛ БОЛГОХ ФОРМАТ]
-    Хэрэглэгчид бараа санал болгохдоо текстийнхээ доор заавал энэ кодыг шинэ мөрөнд хавсарга. Энэ код нь UI дээр зурагтай карт болж харагдана:
-    [PRODUCT_CARD: id="ID", name="Нэр", price="Үнэ", image="URL"]
-    
-    ЖИЧ:
-    1. 'searchProducts' эсвэл бусад хайлтын tool-ийг ашиглан бодит датабаазаас мэдээллийг авч ашиглана.
-    2. Хэрэглэгч "хямд", "үнэтэй", эсвэл тодорхой үнийн дүн хэлбэл 'searchProducts' tool-ийн үнийн шүүлтүүрийг (minPrice, maxPrice) ашигла.
-    3. Хэрэв тодорхой ангилал хэлбэл (жишээ нь: "Sony", "Гутал") 'searchProducts' tool-ийн 'category' эсвэл 'searchQuery' ашиглан шүүлт хий.
-    4. Хэзээ ч барааны ID эсвэл мэдээллийг өөрөөсөө зохиож болохгүй. Зөвхөн tool-ийн буцаасан бодит өгөгдлийг ашигла.
+## Зан төлөв
+- Монгол хэлээр, эелдэг, товч, мэргэжлийн.
+- 2-4 өгүүлбэрт багтаа. Урт жагсаалт бүү бич.
+- Эхлээд санал, дараа нь нэг тодруулах асуулт.
 
-    [ҮЙЛДЛҮҮД БА TOOLS]
-    - Бараа санал болгохын өмнө заавал хайлтын tool ашигла.
-    - Хэрэглэгч сагсанд нэмэхийг хүсвэл 'addToCart' ашигла.
-    - Хуудас хооронд шилжихийг хүсвэл 'navigateToPage' ашигла.
+## Бараа санал болгох дүрэм (ЗААВАЛ)
+1. Санал болгохоос ӨМНӨ 'recommendProducts' эсвэл 'searchProducts' tool ашигла.
+2. Tool-ийн буцаасан бараануудыг хэрэглэгчид танилцуул.
+3. Tool буцаасан _display блокыг хариултынхаа ТӨГСГӨЛД яг хэвээр хавсарга (UI карт болно).
+4. Нэг удаад 3-6 бараа санал болго.
 
-    Боломжууд (Tools):
-    - 'getShopCategories': Ангиллуудыг харах.
-    - 'getNewestProducts': Шинэ бараануудыг харах.
-    - 'searchProducts': Бараа хайх (нэр, ангилал, үнээр шүүх боломжтой).
-    - 'checkInventory': Үлдэгдэл шалгах.
-    - 'addToCart': Сагсанд нэмэх.
-    - 'navigateToPage': Хуудас руу шилжих.
-    
-    Контекст:
-    - Өнөөдөр: ${new Date().toLocaleDateString('mn-MN')}.
-    ${userContext ? '- ' + userContext : ''}
-    `,
+## Tools
+- recommendProducts: Ерөнхий санал (бэлэг, тренд, хямдрал гэх мэт)
+- searchProducts: Нэр/ангилал/үнээр хайх
+- getShopCategories: Ангиллууд
+- getNewestProducts: Шинэ бараа
+- getSaleProducts: Хямдралтай бараа
+- checkInventory: Үлдэгдэл шалгах
+- addToCart: Сагсанд нэмэх
+- navigateToPage: Хуудас руу шилжүүлэх
+
+Өнөөдөр: ${new Date().toLocaleDateString('mn-MN')}.
+${userContext}`,
       stopWhen: stepCountIs(8),
       messages: modelMessages,
       toolChoice: 'auto',
       tools: {
+        recommendProducts: tool({
+          description:
+            'Хэрэглэгчийн ерөнхий хүсэлтэд тохирсон бараа санал болгох (бэлэг, тренд, хямд, шинэ гэх мэт).',
+          inputSchema: zodSchema(
+            z.object({
+              intent: z.string().describe('Хэрэглэгчийн хүсэлт, жишээ: "эмэгтэйд бэлэг", "хямд утас"'),
+              maxPrice: z.number().optional().describe('Дээд үнэ (₮)'),
+              category: z.string().optional().describe('Ангилал'),
+            }),
+          ),
+          execute: async ({ intent, maxPrice, category }) => {
+            const products = await searchChatProducts({
+              searchQuery: intent,
+              category,
+              maxPrice,
+              limit: 6,
+            });
+
+            if (!products.length) {
+              return { found: 0, message: 'Тохирох бараа олдсонгүй. Өөр түлхүүр үгээр дахин хайна уу.' };
+            }
+
+            return {
+              found: products.length,
+              products,
+              message: `${products.length} бараа олдлоо.`,
+              _display: buildProductRecommendationsBlock(products),
+              _hint: buildProductCardMarkers(products),
+            };
+          },
+        }),
+        searchProducts: tool({
+          description: 'Дэлгүүрээс бараа хайх. Нэр, ангилал, үнээр шүүж болно.',
+          inputSchema: zodSchema(
+            z.object({
+              searchQuery: z.string().optional().describe('Хайх үг'),
+              category: z.string().optional().describe('Ангилал'),
+              minPrice: z.number().optional().describe('Доод үнэ'),
+              maxPrice: z.number().optional().describe('Дээд үнэ'),
+            }),
+          ),
+          execute: async ({ searchQuery, category, minPrice, maxPrice }) => {
+            const products = await searchChatProducts({
+              searchQuery,
+              category,
+              minPrice,
+              maxPrice,
+              limit: 6,
+            });
+
+            return {
+              found: products.length,
+              products,
+              _display: buildProductRecommendationsBlock(products),
+            };
+          },
+        }),
+        getSaleProducts: tool({
+          description: 'Хямдралтай бараануудыг харуулах.',
+          inputSchema: zodSchema(z.object({})),
+          execute: async () => {
+            const products = await searchChatProducts({ onSale: true, limit: 6 });
+            return {
+              found: products.length,
+              products,
+              _display: buildProductRecommendationsBlock(products),
+            };
+          },
+        }),
+        getNewestProducts: tool({
+          description: 'Хамгийн сүүлд нэмэгдсэн бараанууд.',
+          inputSchema: zodSchema(z.object({})),
+          execute: async () => {
+            const productsCollection = await getCollection('products');
+            const docs = await productsCollection
+              .find({})
+              .project({
+                name: 1, price: 1, originalPrice: 1, image: 1, images: 1,
+                category: 1, rating: 1, inventory: 1, stockStatus: 1,
+                featured: 1, isCargo: 1, description: 1,
+              })
+              .sort({ createdAt: -1 })
+              .limit(6)
+              .toArray();
+
+            const products = docs.map((p) => ({
+              id: p._id.toString(),
+              name: p.name,
+              price: p.price ?? 0,
+              originalPrice: p.originalPrice,
+              image: p.image || (Array.isArray(p.images) ? p.images[0] : '') || '',
+              category: p.category || '',
+              rating: p.rating ?? 0,
+              stock: p.inventory ?? 0,
+              stockStatus: p.stockStatus || 'in-stock',
+              featured: !!p.featured,
+              isCargo: !!p.isCargo,
+              description: (p.description || '').slice(0, 120),
+            }));
+
+            return {
+              found: products.length,
+              products,
+              _display: buildProductRecommendationsBlock(products),
+            };
+          },
+        }),
+        getShopCategories: tool({
+          description: 'Дэлгүүрийн бүх барааны ангиллууд.',
+          inputSchema: zodSchema(z.object({})),
+          execute: async () => {
+            const productsCollection = await getCollection('products');
+            const categories = await productsCollection.distinct('category');
+            return `Ангиллууд: ${categories.filter(Boolean).slice(0, 20).join(', ')}`;
+          },
+        }),
         addToCart: tool({
-          description: 'Хэрэглэгчийн сагсанд бараа нэмэх. Барааны ID болон тоо ширхэг шаардлагатай.',
-          inputSchema: zodSchema(z.object({
-            productId: z.string(),
-          })),
-          execute: async ({ productId }: { productId: string }) => {
+          description: 'Хэрэглэгчийн сагсанд бараа нэмэх.',
+          inputSchema: zodSchema(z.object({ productId: z.string() })),
+          execute: async ({ productId }) => {
             if (!productId) return 'Error: productId is missing.';
 
             try {
               const productsCollection = await getCollection('products');
               let product;
               try {
-                const { ObjectId } = await import('mongodb');
                 product = await productsCollection.findOne({ _id: new ObjectId(productId) });
-              } catch (e) {
+              } catch {
                 product = await productsCollection.findOne({ _id: productId as any });
               }
 
-              if (!product) {
-                return 'Product not found with that ID.';
-              }
+              if (!product) return 'Бараа олдсонгүй.';
 
               const productData = {
                 id: product._id.toString(),
                 name: product.name,
                 price: product.price,
                 image: product.image || '',
-                quantity: 1
+                quantity: 1,
               };
 
-              return `[ACTION:ADD_TO_CART_DATA:${JSON.stringify(productData)}:END_ACTION] Added ${product.name} to cart.`;
+              return `[ACTION:ADD_TO_CART_DATA:${JSON.stringify(productData)}:END_ACTION] "${product.name}" сагсанд нэмэгдлээ.`;
             } catch (error) {
               console.error('Add to cart error:', error);
-              return 'Error adding to cart.';
+              return 'Сагсанд нэмэхэд алдаа гарлаа.';
             }
           },
         }),
         navigateToPage: tool({
-          description: 'Хэрэглэгчийг өөр хуудас руу шилжүүлэх (жишээ нь: сагс, захиалга, нүүр хуудас).',
-          inputSchema: zodSchema(z.object({
-            page: z.string().describe('The page to navigate to (home, cart, orders, checkout, profile, wishlist). REQUIRED.'),
-          })),
-          execute: async ({ page }: { page: string }) => {
-            if (!page) return 'Error: page argument is missing.';
-
-            let path = '/';
+          description: 'Хэрэглэгчийг хуудас руу шилжүүлэх.',
+          inputSchema: zodSchema(
+            z.object({
+              page: z.string().describe('home, cart, orders, checkout, profile, wishlist'),
+            }),
+          ),
+          execute: async ({ page }) => {
             const p = page.toLowerCase();
+            let path = '/';
             if (p.includes('cart')) path = '/cart';
             else if (p.includes('order')) path = '/orders';
             else if (p.includes('checkout')) path = '/checkout';
             else if (p.includes('profile')) path = '/profile';
             else if (p.includes('wishlist')) path = '/wishlist';
-            else path = '/';
+            else if (p.includes('sale') || p.includes('хямд')) path = '/sale';
 
-            return `[ACTION:NAVIGATE:${path}:END_ACTION] Navigating to ${path}.`;
+            return `[ACTION:NAVIGATE:${path}:END_ACTION] ${path} хуудас руу шилжүүлж байна.`;
           },
         }),
         checkInventory: tool({
-          description: 'Барааны үлдэгдэл эсвэл дэлгэрэнгүй мэдээллийг шалгах.',
-          inputSchema: zodSchema(z.object({
-            productName: z.string().describe('The name of the product to check. REQUIRED.'),
-          })),
-          execute: async ({ productName }: { productName: string }) => {
-            if (!productName) return 'Error: productName is missing.';
-            try {
-              const productsCollection = await getCollection('products');
-              const product = await productsCollection.findOne({
-                $or: [
-                  { name: { $regex: new RegExp(productName, 'i') } }
-                ]
-              });
-
-              if (product) {
-                return `Inventory Status for ${product.name}: ${product.inventory ?? 0} units available. Price: ${product.price}₮.`;
-              } else {
-                return `Product ${productName} not found in inventory.`;
-              }
-            } catch (error) {
-              return 'Error checking inventory.';
-            }
-          },
-        }),
-        searchProducts: tool({
-          description: 'Дэлгүүрээс бараа хайх. Нэр, ангилал, үнээр шүүж болно.',
-          inputSchema: zodSchema(z.object({
-            searchQuery: z.string().optional().describe('Хайх үг (нэр эсвэл тайлбар)'),
-            category: z.string().optional().describe('Барааны ангилал'),
-            minPrice: z.number().optional().describe('Доод үнэ'),
-            maxPrice: z.number().optional().describe('Дээд үнэ'),
-          })),
-          execute: async ({ searchQuery, category, minPrice, maxPrice }: { searchQuery?: string; category?: string; minPrice?: number; maxPrice?: number }) => {
-            try {
-              const productsCollection = await getCollection('products');
-              const query: any = {};
-
-              if (searchQuery) {
-                const regex = new RegExp(searchQuery.split(' ').join('|'), 'i');
-                query.$or = [
-                  { name: { $regex: regex } },
-                  { description: { $regex: regex } }
-                ];
-              }
-
-              if (category) {
-                query.category = { $regex: new RegExp(category, 'i') };
-              }
-
-              if (minPrice !== undefined || maxPrice !== undefined) {
-                query.price = {};
-                if (minPrice !== undefined) query.price.$gte = minPrice;
-                if (maxPrice !== undefined) query.price.$lte = maxPrice;
-              }
-
-              const products = await productsCollection.find(query).limit(10).toArray();
-
-              return products.map(p => ({
-                id: p._id.toString(),
-                name: p.name,
-                price: p.price,
-                stock: p.inventory ?? 0,
-                description: p.description || '',
-                image: p.image || '',
-                category: p.category || ''
-              }));
-            } catch (error) {
-              console.error('Search error:', error);
-              return [];
-            }
-          },
-        }),
-        getShopCategories: tool({
-          description: 'Дэлгүүрийн бүх барааны ангиллуудыг харах.',
-          inputSchema: zodSchema(z.object({})),
-          execute: async () => {
-            try {
-              const productsCollection = await getCollection('products');
-              const categories = await productsCollection.distinct('category');
-              return `Боломжит ангиллууд: ${categories.filter(Boolean).join(', ')}`;
-            } catch (error) {
-              return 'Error fetching categories.';
-            }
-          },
-        }),
-        getNewestProducts: tool({
-          description: 'Хамгийн сүүлд нэмэгдсэн бараануудыг харах.',
-          inputSchema: zodSchema(z.object({})),
-          execute: async () => {
-            try {
-              const productsCollection = await getCollection('products');
-              const products = await productsCollection.find({}).sort({ createdAt: -1 }).limit(5).toArray();
-              return products.map(p => ({
-                id: p._id.toString(),
-                name: p.name,
-                price: p.price,
-                image: p.image || ''
-              }));
-            } catch (error) {
-              return 'Error fetching newest products.';
-            }
+          description: 'Барааны үлдэгдэл шалгах.',
+          inputSchema: zodSchema(z.object({ productName: z.string() })),
+          execute: async ({ productName }) => {
+            const products = await searchChatProducts({ searchQuery: productName, limit: 1 });
+            if (!products.length) return `"${productName}" олдсонгүй.`;
+            const p = products[0];
+            return `${p.name}: ${p.stock > 0 ? `${p.stock} ширхэг үлдсэн` : 'Дууссан'}, үнэ ${p.price}₮`;
           },
         }),
       },
     });
 
-    try {
-      return result.toUIMessageStreamResponse();
-    } catch (innerError: any) {
-      try {
-        const fs = await import('fs');
-        const path = await import('path');
-        fs.appendFileSync(path.join(process.cwd(), 'debug-log.txt'), `\n\nERROR:\n${JSON.stringify(innerError, Object.getOwnPropertyNames(innerError), 2)}`);
-      } catch (e) {}
-      throw innerError;
-    }
+    return result.toUIMessageStreamResponse();
   } catch (error: any) {
-    // Enhanced Error Logging
-    console.error('Chat API Error Details:', {
-      message: error.message,
-      name: error.name,
-      cause: error.cause,
-      stack: error.stack,
-    });
+    console.error('Chat API Error:', error?.message);
 
-    try {
-      const fs = await import('fs');
-      const path = await import('path');
-      fs.appendFileSync(path.join(process.cwd(), 'debug-log.txt'), `\n\nOUTER ERROR:\n${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`);
-    } catch (e) {}
-
-    // Check for specific error types
-    if (error.message?.includes('API key')) {
-      console.error('CRITICAL: API Key missing or invalid');
-    } else if (error.status === 429 || error.message?.includes('Quota') || error.message?.includes('429')) {
-      console.error('CRITICAL: Quota exceeded (429)');
-      return new Response("Уучлаарай, систем хэт ачаалалтай байна. Та хэсэг хугацааны дараа дахин оролдоно уу. (Quota Exceeded)", { status: 200 });
-    } else if (error.status === 404 || /model not found/i.test(error.message || '')) {
-      console.error('CRITICAL: Model not found (404)');
-      return new Response("Түр хүлээгээрэй, холболтоо шалгаж байна...", { status: 200 });
+    if (error.status === 429 || error.message?.includes('429')) {
+      return new Response('Уучлаарай, систем ачаалалтай байна. Хэсэг хугацааны дараа дахин оролдоно уу.', { status: 200 });
     }
 
-    return new Response(JSON.stringify({ error: 'Failed to process chat', details: error.message, stack: error.stack }), { status: 500 });
+    return new Response(
+      JSON.stringify({ error: 'Failed to process chat', details: error.message }),
+      { status: 500 },
+    );
   }
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import useSWR from 'swr';
 import SafeImage, { BANNER_PLACEHOLDER } from '@/components/SafeImage';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -8,23 +9,20 @@ import { Banner } from '@/models/Banner';
 
 import { Flame, Package, Globe, Tag } from 'lucide-react';
 
+const bannerFetcher = (url: string) => fetch(url).then((res) => res.json());
+
 export default function MobileHero() {
-    const [banners, setBanners] = useState<Banner[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const { data, isLoading } = useSWR('/api/banners', bannerFetcher, {
+        revalidateOnFocus: false,
+        dedupingInterval: 300_000,
+    });
+    const banners: Banner[] = data?.banners || [];
     const [currentIndex, setCurrentIndex] = useState(0);
 
     const nextSlide = useCallback(() => {
         if (banners.length === 0) return;
         setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
     }, [banners.length]);
-
-    useEffect(() => {
-        fetch('/api/banners')
-            .then(res => res.json())
-            .then(data => setBanners(data.banners || []))
-            .catch(err => console.error('Error fetching banners:', err))
-            .finally(() => setIsLoading(false));
-    }, []);
 
     useEffect(() => {
         if (banners.length <= 1) return;
