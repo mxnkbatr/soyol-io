@@ -10,6 +10,7 @@ import {
   readAuthToken,
   writeAuthToken,
 } from "@/lib/clientAuth";
+import { notifyAuthReady } from "@/lib/authEvents";
 
 interface User {
   id: string;
@@ -107,6 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(data.user);
           writeCachedUser(data.user);
           setCartAuth(true);
+          notifyAuthReady();
         } else if (res.status === 401) {
           setUser(null);
           writeCachedUser(null);
@@ -140,6 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     writeCachedUser(userData);
     setCartAuth(true);
     setIsLoading(false);
+    notifyAuthReady();
   };
 
   const logout = async () => {

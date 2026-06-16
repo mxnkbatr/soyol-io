@@ -5,6 +5,8 @@ import { Capacitor } from '@capacitor/core';
 import { useUser } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 import { debugPushError, debugPushLog } from '@/lib/pushDebug';
+import { authFetch } from '@/lib/clientAuth';
+import { AUTH_READY_EVENT } from '@/lib/authEvents';
 
 export const usePushNotifications = () => {
     const { isSignedIn } = useUser();
@@ -15,10 +17,9 @@ export const usePushNotifications = () => {
         debugPushLog(`Push token (${source})`, token);
 
         try {
-            const res = await fetch('/api/notifications/register-token', {
+            const res = await authFetch('/api/notifications/register-token', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
                 body: JSON.stringify({
                     token,
                     platform: Capacitor.getPlatform(),
@@ -28,13 +29,15 @@ export const usePushNotifications = () => {
                 const body = await res.json().catch(() => ({}));
                 console.error('FCM: Token registration failed:', res.status, body);
                 debugPushError(`Сервер token хадгалж чадсангүй (${res.status})`, body);
-                return;
+                return false;
             }
             console.log('FCM: Token saved to server successfully');
             debugPushLog('Сервер дээр token амжилттай хадгалагдлаа', token);
+            return true;
         } catch (error) {
             console.error('FCM: Token registration failed:', error);
             debugPushError('Сервер рүү token илгээхэд алдаа', error);
+            return false;
         }
     }, []);
 
@@ -85,16 +88,14 @@ export const usePushNotifications = () => {
     useEffect(() => {
         if (!Capacitor.isNativePlatform()) return;
         if (isSignedIn) return;
-        debugPushLog(
-            'Push debug',
-            'Эрх зөвшөөрсөн. Token авахын тулд нэвтэрнэ үү.',
-        );
+        debugPushLog('Push debug', 'Token бүртгэхийн тулд нэвтэрнэ үү.');
     }, [isSignedIn]);
 
     useEffect(() => {
         if (!isSignedIn) return;
 
         let cleanupFn: (() => void) | undefined;
+        let cancelled = false;
 
         const initPush = async () => {
             if (Capacitor.isNativePlatform()) {
@@ -250,7 +251,31 @@ export const usePushNotifications = () => {
 
         initPush();
 
+        const onAuthReady = () => {
+            if (!cancelled) void initPush();
+        };
+        window.addEventListener(AUTH_READY_EVENT, onAuthReady);
+
+        let removeResume: (() => void) | undefined;
+        if (Capacitor.isNativePlatform()) {
+            import('@capacitor/app')
+                .then(({ App }) =>
+                    App.addListener('resume', () => {
+                        if (!cancelled) void initPush();
+                    }),
+                )
+                .then((handle) => {
+                    removeResume = () => {
+                        void handle.remove();
+                    };
+                })
+                .catch(() => {});
+        }
+
         return () => {
+            cancelled = true;
+            window.removeEventListener(AUTH_READY_EVENT, onAuthReady);
+            removeResume?.();
             if (cleanupFn) cleanupFn();
         };
     }, [isSignedIn, registerToken, ensureNativePermission, getFcmToken]);

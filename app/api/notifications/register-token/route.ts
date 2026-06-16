@@ -67,18 +67,31 @@ export async function POST(req: Request) {
             console.log('[Push Token] Removed invalid tokens:', invalidTokens.length);
         }
 
-        if (platform === 'ios' || platform === 'android') {
-            await usersCollection.updateOne(
-                { _id: new ObjectId(userId) },
-                {
-                    $pull: {
-                        pushTokens: {
-                            platform,
-                            token: { $ne: token },
-                        },
-                    } as any,
-                },
+        // Keep recent devices (same user can use multiple phones).
+        const MAX_PUSH_TOKENS = 8;
+        const refreshedUser = await usersCollection.findOne(
+            { _id: new ObjectId(userId) },
+            { projection: { pushTokens: 1 } },
+        );
+        const allTokens = refreshedUser?.pushTokens || [];
+        if (allTokens.length > MAX_PUSH_TOKENS) {
+            const sorted = [...allTokens].sort(
+                (a, b) =>
+                    new Date(b.updatedAt || b.createdAt || 0).getTime() -
+                    new Date(a.updatedAt || a.createdAt || 0).getTime(),
             );
+            const keep = new Set(
+                sorted.slice(0, MAX_PUSH_TOKENS).map((pt: PushToken) => pt.token),
+            );
+            const remove = allTokens
+                .filter((pt: PushToken) => !keep.has(pt.token))
+                .map((pt: PushToken) => pt.token);
+            if (remove.length > 0) {
+                await usersCollection.updateOne(
+                    { _id: new ObjectId(userId) },
+                    { $pull: { pushTokens: { token: { $in: remove } } } } as any,
+                );
+            }
         }
 
         if (promoEnabled) {
