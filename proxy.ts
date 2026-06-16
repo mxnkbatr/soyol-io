@@ -25,17 +25,11 @@ if (!process.env.JWT_SECRET) {
 }
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
-// Paths that require authentication
+// Page routes use client-side auth checks. API routes enforce JWT.
+// Capacitor WebView often does not persist httpOnly cookies reliably.
 const protectedRoutes = [
-  '/dashboard',
   '/admin',
-  '/profile',
-  '/orders',
-  '/wishlist',
-  '/addresses',
-  '/settings',
-  '/vendor',
-  '/messages',
+  '/dashboard',
 ];
 
 // Paths that are for admins only
@@ -79,7 +73,11 @@ export async function proxy(req: NextRequest) {
   }
 
   // 2. Auth checks (Custom JWT Auth)
-  const token = req.cookies.get('auth_token')?.value;
+  const token =
+    req.cookies.get('auth_token')?.value ||
+    (req.headers.get('authorization')?.startsWith('Bearer ')
+      ? req.headers.get('authorization')!.slice(7).trim()
+      : undefined);
 
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route));

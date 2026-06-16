@@ -77,6 +77,7 @@ export async function POST(request: Request) {
 
         const response = NextResponse.json({
             success: true,
+            token,
             user: {
                 id: updatedUser._id.toString(),
                 phone: updatedUser.phone,

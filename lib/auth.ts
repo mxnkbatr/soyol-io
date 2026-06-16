@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { getCollection } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
+import { getAuthToken } from '@/lib/getAuthToken';
 
 if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET env variable is not set');
@@ -14,8 +15,7 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
  */
 export async function auth(): Promise<{ userId: string | null; phone: string | null; role: string | null }> {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
+        const token = await getAuthToken();
 
         if (!token) return { userId: null, phone: null, role: null };
 

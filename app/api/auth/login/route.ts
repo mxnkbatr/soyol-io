@@ -44,6 +44,7 @@ export async function POST(request: Request) {
         // Set cookie
         const response = NextResponse.json({
             success: true,
+            token,
             user: {
                 id: user._id.toString(),
                 phone: user.phone,

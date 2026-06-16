@@ -50,7 +50,7 @@ export default function SignUpPage() {
 
             // Auto-login if user data returned
             if (data.user) {
-                login(data.user);
+                login(data.user, data.token);
                 router.push('/');
             } else {
                 router.push('/sign-in');

@@ -63,7 +63,7 @@ export default function CompleteProfilePage() {
 
             toast.success('Бүртгэл амжилттай!');
             if (data.user) {
-                login(data.user);
+                login(data.user, data.token);
             }
             router.push('/');
             router.refresh();

@@ -65,7 +65,7 @@ function GoogleLoginButton({
 
         const data = await res.json();
         if (res.ok) {
-          login(data.user);
+          login(data.user, data.token);
           if (data.isNewUser) {
             toast.success('Мэдээллээ бөглөнө үү!');
             router.push('/complete-profile');
@@ -147,7 +147,7 @@ export default function SocialAuthButtons({ mode }: SocialAuthButtonsProps) {
 
         const data = await res.json();
         if (res.ok) {
-          login(data.user);
+          login(data.user, data.token);
           if (data.isNewUser) {
             router.push('/complete-profile');
           } else {

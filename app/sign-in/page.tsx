@@ -48,7 +48,7 @@ function SignInContent() {
 
       // Update Auth Context immediately
       if (data.user) {
-        login(data.user);
+        login(data.user, data.token);
       }
 
       router.push(redirectTo);
@@ -209,11 +209,12 @@ function SignInContent() {
                       const res = await fetch('/api/auth/verify-otp', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
                         body: JSON.stringify({ phone, code: otpCode }),
                       });
                       const data = await res.json();
                       if (res.ok) {
-                        login(data.user);
+                        login(data.user, data.token);
                         toast.success('Амжилттай нэвтэрлээ');
                         router.push(redirectTo);
                       } else {

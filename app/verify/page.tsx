@@ -68,7 +68,7 @@ function VerifyContent() {
       }
 
       toast.success('Successfully logged in!');
-      login(data.user);
+      login(data.user, data.token);
 
       const redirectUrl = searchParams.get('redirect_url') || '/';
       router.push(redirectUrl);

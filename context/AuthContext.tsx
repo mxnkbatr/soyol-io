@@ -4,6 +4,12 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import { useWishlistStore } from "@/store/wishlistStore";
+import {
+  authFetch,
+  installAuthFetchInterceptor,
+  readAuthToken,
+  writeAuthToken,
+} from "@/lib/clientAuth";
 
 interface User {
   id: string;
@@ -25,7 +31,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   isAdmin: boolean;
-  login: (userData: User) => void;
+  login: (userData: User, token?: string) => void;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -40,7 +46,6 @@ function readCachedUser(): User | null {
       sessionStorage.getItem(AUTH_CACHE_KEY);
     if (!cached) return null;
     const user = JSON.parse(cached) as User;
-    // Migrate legacy sessionStorage cache to localStorage
     try {
       localStorage.setItem(AUTH_CACHE_KEY, cached);
       sessionStorage.removeItem(AUTH_CACHE_KEY);
@@ -86,28 +91,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const clearWishlist = useWishlistStore((state) => state.clearWishlist);
 
   useEffect(() => {
-    if (readCachedUser()) setCartAuth(true);
+    installAuthFetchInterceptor();
+  }, []);
+
+  useEffect(() => {
+    if (readCachedUser() || readAuthToken()) setCartAuth(true);
   }, [setCartAuth]);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("/api/auth/me", { credentials: "include" });
+        const res = await authFetch("/api/auth/me");
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
           writeCachedUser(data.user);
           setCartAuth(true);
-        } else {
+        } else if (res.status === 401) {
           setUser(null);
           writeCachedUser(null);
+          writeAuthToken(null);
           setCartAuth(false);
+        } else {
+          const cached = readCachedUser();
+          if (!cached) {
+            setUser(null);
+            setCartAuth(false);
+          }
         }
       } catch (error) {
         console.error("Auth check failed:", error);
-        // Keep cached session on transient network errors
         const cached = readCachedUser();
-        if (!cached) {
+        if (!cached && !readAuthToken()) {
           setUser(null);
           setCartAuth(false);
         }
@@ -119,7 +134,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, [setCartAuth]);
 
-  const login = (userData: User) => {
+  const login = (userData: User, token?: string) => {
+    if (token) writeAuthToken(token);
     setUser(userData);
     writeCachedUser(userData);
     setCartAuth(true);
@@ -128,9 +144,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      await authFetch("/api/auth/logout", { method: "POST" });
       setUser(null);
       writeCachedUser(null);
+      writeAuthToken(null);
       setCartAuth(false);
       clearWishlist();
       router.push("/sign-in");
@@ -142,15 +159,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = async () => {
     try {
-      const res = await fetch("/api/auth/me", { credentials: "include" });
+      const res = await authFetch("/api/auth/me");
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
         writeCachedUser(data.user);
         setCartAuth(true);
-      } else {
+      } else if (res.status === 401) {
         setUser(null);
         writeCachedUser(null);
+        writeAuthToken(null);
         setCartAuth(false);
       }
     } catch (error) {

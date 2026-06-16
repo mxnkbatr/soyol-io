@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCollection } from '@/lib/mongodb';
 import { verifyOtp } from '@/lib/twilio';
 import { SignJWT } from 'jose';
-import { cookies } from 'next/headers';
+import { getAuthCookieOptions, AUTH_JWT_EXPIRY } from '@/lib/authCookie';
 
 if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET env variable is not set');
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
@@ -75,22 +75,13 @@ export async function POST(req: Request) {
       role: user.role
     })
       .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('7d')
+      .setExpirationTime(AUTH_JWT_EXPIRY)
       .sign(JWT_SECRET);
 
     // Set Cookie
-    const cookieStore = await cookies();
-    cookieStore.set('auth_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-      sameSite: 'lax'
-    });
-
-    // Return profile
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
+      token,
       user: {
         id: user._id.toString(),
         phone: user.phone,
@@ -100,6 +91,9 @@ export async function POST(req: Request) {
         image: user.image
       }
     });
+    response.cookies.set('auth_token', token, getAuthCookieOptions());
+
+    return response;
 
   } catch (error) {
     console.error('Verify OTP Error:', error);
