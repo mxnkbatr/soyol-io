@@ -1,17 +1,22 @@
-import { AccessToken } from 'livekit-server-sdk';
 import { NextResponse } from 'next/server';
-import { notifyAdminsIncomingCall } from '@/lib/callNotifications';
+import { auth } from '@/lib/auth';
+import {
+  assertCanJoinCallRoom,
+  assertSupportRoomAccess,
+  RoomFullError,
+} from '@/lib/livekitRoom';
+import { AccessToken } from 'livekit-server-sdk';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const room = searchParams.get('room');
-    const username = searchParams.get('username') || `user_${Math.floor(Math.random() * 10000)}`;
+    const username = searchParams.get('username');
 
-    if (!room) {
+    if (!room || !username) {
       return NextResponse.json(
-        { error: 'Missing "room" query parameter' },
-        { status: 400 }
+        { error: 'Missing "room" or "username" query parameter' },
+        { status: 400 },
       );
     }
 
@@ -22,36 +27,33 @@ export async function GET(request: Request) {
     if (!apiKey || !apiSecret || !wsUrl) {
       return NextResponse.json(
         { error: 'Server misconfigured' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
+    const { userId, role } = await auth();
+    assertSupportRoomAccess(room, username, userId, role === 'admin');
+    await assertCanJoinCallRoom(room, username);
+
     const at = new AccessToken(apiKey, apiSecret, {
       identity: username,
-      ttl: '10m', // Token expires in 10 minutes
+      ttl: '10m',
     });
 
-    // FIXED: added canPublishData: true permission grant
-    at.addGrant({ 
-      roomJoin: true, 
-      room, 
-      canPublish: true, 
+    at.addGrant({
+      roomJoin: true,
+      room,
+      canPublish: true,
       canSubscribe: true,
-      canPublishData: true
+      canPublishData: true,
     });
 
     const token = await at.toJwt();
-
-    if (room.startsWith('support-') && !username.startsWith('admin-')) {
-      notifyAdminsIncomingCall({
-        roomName: room,
-        callerName: username,
-        isVoice: false,
-      }).catch((err) => console.error('[Call Push] token GET hook error:', err));
-    }
-
     return NextResponse.json({ token });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    if (err instanceof RoomFullError) {
+      return NextResponse.json({ error: err.message }, { status: 409 });
+    }
     console.error('LiveKit Token Error:', err);
     return NextResponse.json({ error: 'Failed to generate token' }, { status: 500 });
   }

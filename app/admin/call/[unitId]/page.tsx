@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, use } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { authFetch } from '@/lib/clientAuth';
+import { buildAdminCallIdentity } from '@/lib/livekitRoom';
 import { useRouter } from 'next/navigation';
 import { 
   LiveKitRoom, 
@@ -36,27 +39,31 @@ function AdminRoomWatcher({ unitId }: { unitId: string }) {
 export default function AdminCallPage({ params }: { params: Promise<{ unitId: string }> }) {
   const { unitId } = use(params);
   const router = useRouter();
+  const { user } = useAuth();
   const [token, setToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const roomName = unitId.startsWith('support-') ? unitId : `room-${unitId}`;
-  const identity = `admin-${Date.now()}`;
+  const identity = user?.id ? buildAdminCallIdentity(user.id) : 'admin-unknown';
 
   useEffect(() => {
     const fetchToken = async () => {
       try {
         // Use the POST endpoint which is already correctly set up
-        const res = await fetch('/api/livekit/token', {
+        const res = await authFetch('/api/livekit/token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             roomName,
             identity,
-            displayName: 'Admin'
-          })
+            displayName: user?.name || 'Admin',
+          }),
         });
         
-        if (!res.ok) throw new Error('Failed to get token');
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || 'Failed to get token');
+        }
         const data = await res.json();
         setToken(data.token);
       } catch (err: any) {
@@ -64,7 +71,7 @@ export default function AdminCallPage({ params }: { params: Promise<{ unitId: st
       }
     };
     fetchToken();
-  }, [roomName, identity]);
+  }, [roomName, identity, user?.name]);
 
   if (error) {
     return (

@@ -324,8 +324,9 @@ export default function ChatWidget({ isOpen, onClose }: ChatWidgetProps) {
                         ) : viewMode === 'video_call' && selectedAdmin ? (
                             <div className="h-full overflow-y-auto">
                                 <VideoCall
-                                    // FIXED 4: Fallback set to support- prefixed room name
                                     prefilledRoom={callRoom || `support-${effectiveUser.id}`}
+                                    callerIdentity={`user-${effectiveUser.id}`}
+                                    displayName={effectiveUser.name || 'Хэрэглэгч'}
                                     onBack={handleBack}
                                     initialVideoDisabled={isVoiceCall}
                                 />

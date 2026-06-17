@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Video, Phone, ArrowLeft, Loader2, Ban, PhoneOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -10,9 +10,12 @@ import {
   useParticipants
 } from '@livekit/components-react';
 import '@livekit/components-styles';
+import { authFetch } from '@/lib/clientAuth';
 
 export interface VideoCallProps {
   prefilledRoom?: string;
+  callerIdentity?: string;
+  displayName?: string;
   onBack?: () => void;
   onDisconnected?: () => void;
   initialVideoDisabled?: boolean;
@@ -20,6 +23,8 @@ export interface VideoCallProps {
 
 export default function VideoCall({ 
   prefilledRoom, 
+  callerIdentity,
+  displayName,
   onBack, 
   onDisconnected,
   initialVideoDisabled = false
@@ -28,31 +33,53 @@ export default function VideoCall({
   const [inCall, setInCall] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [token, setToken] = useState('');
-  const [identity, setIdentity] = useState('');
+  const [identity, setIdentity] = useState(callerIdentity || '');
+  const autoConnectAttempted = useRef(false);
 
-  const connectToRoom = async () => {
-    const roomName = room.trim();
+  const connectToRoom = useCallback(async (
+    roomNameInput?: string,
+    identityInput?: string,
+    displayNameInput?: string,
+  ) => {
+    const roomName = (roomNameInput || room).trim();
+    const userIdentity = identityInput || callerIdentity;
     if (!roomName) { toast.error('Өрөөний нэр оруулна уу'); return; }
+    if (!userIdentity) { toast.error('Нэвтэрч дуудлага эхлүүлнэ үү'); return; }
 
     setConnecting(true);
-    const userIdentity = `user_${Math.floor(Math.random() * 10000)}`;
+    setRoom(roomName);
     setIdentity(userIdentity);
 
     try {
-      const res = await fetch(`/api/livekit?room=${encodeURIComponent(roomName)}&username=${encodeURIComponent(userIdentity)}`);
+      const res = await authFetch('/api/livekit/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roomName,
+          identity: userIdentity,
+          displayName: displayNameInput || displayName || userIdentity,
+        }),
+      });
       const data = await res.json();
       
-      if (data.error) throw new Error(data.error);
+      if (!res.ok) throw new Error(data.error || 'Token failed');
       
       setToken(data.token);
       setInCall(true);
       toast.success('Дуудлагад нэгдлээ!');
     } catch (err) {
-      toast.error('Холбогдож чадсангүй. Дахин оролдоно уу.');
+      const message = err instanceof Error ? err.message : 'Холбогдож чадсангүй';
+      toast.error(message);
     } finally {
       setConnecting(false);
     }
-  };
+  }, [room, callerIdentity, displayName]);
+
+  useEffect(() => {
+    if (!prefilledRoom || !callerIdentity || autoConnectAttempted.current) return;
+    autoConnectAttempted.current = true;
+    void connectToRoom(prefilledRoom, callerIdentity, displayName);
+  }, [prefilledRoom, callerIdentity, displayName, connectToRoom]);
 
   const onLeave = useCallback(async () => {
     setInCall(false);
@@ -173,7 +200,19 @@ export default function VideoCall({
     );
   }
 
-  // Pre-call UI
+  // Auto-connect loading state
+  if ((connecting || (prefilledRoom && callerIdentity && !inCall)) && !token) {
+    return (
+      <div className="h-full flex items-center justify-center p-6">
+        <div className="text-center text-white">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-orange-500" />
+          <p className="text-sm font-semibold">Дуудлагад холбогдож байна...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Pre-call UI (manual room entry — dev only)
   return (
     <div className="h-full flex items-center justify-center p-4 bg-transparent">
       <div className="w-full max-w-sm">
@@ -217,7 +256,7 @@ export default function VideoCall({
           </div>
 
           <button
-            onClick={connectToRoom}
+            onClick={() => connectToRoom()}
             disabled={connecting || !room.trim()}
             className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg transition-all"
           >

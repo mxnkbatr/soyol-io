@@ -10,6 +10,7 @@ import {
 import Link from 'next/link';
 import SupportChatWindow from '@/components/Chat/SupportChatWindow';
 import VideoCall from '@/components/VideoCall';
+import { buildAdminCallIdentity, buildSupportRoomName } from '@/lib/livekitRoom';
 import toast from 'react-hot-toast';
 
 interface Conversation {
@@ -103,7 +104,9 @@ export default function AdminMessagesPage() {
     const handleStartCall = async (isVoice: boolean = false) => {
         if (!selectedConversation) return;
 
-        const room = `call-${selectedConversation._id}-${Date.now()}`;
+        const room = selectedConversation.userId
+            ? buildSupportRoomName(selectedConversation.userId)
+            : `support-guest-${selectedConversation._id}`;
         try {
             // Send call invite in the chat feed
             await postCallInvite(selectedConversation._id, room, isVoice);
@@ -268,6 +271,8 @@ export default function AdminMessagesPage() {
                                 <div className="flex-1 h-full p-4 bg-slate-950">
                                     <VideoCall
                                         prefilledRoom={callRoom}
+                                        callerIdentity={user?.id ? buildAdminCallIdentity(user.id) : undefined}
+                                        displayName={user?.name || 'Admin'}
                                         onDisconnected={handleCallDisconnected}
                                         initialVideoDisabled={isVoiceCall}
                                         onBack={handleCallDisconnected}

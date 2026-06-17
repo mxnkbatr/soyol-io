@@ -1,6 +1,13 @@
 import { AccessToken } from 'livekit-server-sdk';
 import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 import { notifyAdminsIncomingCall } from '@/lib/callNotifications';
+import {
+  assertCanJoinCallRoom,
+  assertSupportRoomAccess,
+  isAdminIdentity,
+  RoomFullError,
+} from '@/lib/livekitRoom';
 
 async function maybeNotifyAdminsForCall(
   roomName: string,
@@ -8,7 +15,7 @@ async function maybeNotifyAdminsForCall(
   displayName?: string,
 ) {
   if (!roomName.startsWith('support-')) return;
-  if (identity.startsWith('admin-')) return;
+  if (isAdminIdentity(identity)) return;
 
   await notifyAdminsIncomingCall({
     roomName,
@@ -25,7 +32,7 @@ export async function POST(request: Request) {
     if (!roomName || !identity) {
       return NextResponse.json(
         { error: 'Missing roomName or identity' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -36,11 +43,19 @@ export async function POST(request: Request) {
     if (!apiKey || !apiSecret || !wsUrl) {
       return NextResponse.json(
         { error: 'Server misconfigured' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
-    // Increased expiry time to match the admin token duration (1 hour)
+    const { userId, role } = await auth();
+    assertSupportRoomAccess(
+      roomName,
+      identity,
+      userId,
+      role === 'admin',
+    );
+    await assertCanJoinCallRoom(roomName, identity);
+
     const ttlSeconds = 3600;
 
     const at = new AccessToken(apiKey, apiSecret, {
@@ -49,11 +64,12 @@ export async function POST(request: Request) {
       ttl: ttlSeconds,
     });
 
-    at.addGrant({ 
-      roomJoin: true, 
-      room: roomName, 
-      canPublish: true, 
-      canSubscribe: true 
+    at.addGrant({
+      roomJoin: true,
+      room: roomName,
+      canPublish: true,
+      canSubscribe: true,
+      canPublishData: true,
     });
 
     const token = await at.toJwt();
@@ -63,7 +79,10 @@ export async function POST(request: Request) {
     );
 
     return NextResponse.json({ token, expiresIn: ttlSeconds });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    if (err instanceof RoomFullError) {
+      return NextResponse.json({ error: err.message }, { status: 409 });
+    }
     console.error('LiveKit Token generation error:', err);
     return NextResponse.json({ error: 'Failed to generate token' }, { status: 500 });
   }
